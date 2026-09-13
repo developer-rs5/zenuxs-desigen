@@ -35,7 +35,7 @@ export async function analyzeAttachedImages(
 
   const content: Array<
     | { type: 'text'; text: string }
-    | { type: 'file'; mediaType: PreparedImageAttachment['mediaType']; data: Uint8Array }
+    | { type: 'file'; data: Uint8Array; mediaType: string }
   > = [
     {
       type: 'text',
@@ -43,8 +43,8 @@ export async function analyzeAttachedImages(
     },
     ...images.map((image) => ({
       type: 'file' as const,
-      mediaType: image.mediaType,
-      data: image.data
+      data: image.data,
+      mediaType: image.mediaType
     }))
   ]
 
@@ -62,7 +62,7 @@ export async function analyzeAttachedImages(
           'PNG',
           store.state.currentPageId
         )
-        if (selection) content.push({ type: 'file', mediaType: 'image/png', data: selection })
+        if (selection) content.push({ type: 'file', data: selection, mediaType: 'image/png' })
       }
     }
   }

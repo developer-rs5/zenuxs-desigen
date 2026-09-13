@@ -83,7 +83,7 @@ export async function inspectRenderedDesign(
               request.question?.trim() ||
               'Review this rendered design. Concisely identify visual hierarchy, alignment, spacing, clipping, contrast, and rendering problems. Return actionable findings only.'
           },
-          { type: 'file', mediaType: 'image/png', data: image }
+          { type: 'file', data: image, mediaType: 'image/png' }
         ]
       }
     ]
