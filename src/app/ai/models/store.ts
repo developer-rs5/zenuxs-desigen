@@ -119,6 +119,12 @@ function optionalAssignment(value: unknown, modelIds: Set<string>): AIModelRoleA
   return typeof value === 'string' && modelIds.has(value) ? (value as AIModelProfileId) : null
 }
 
+const VISION_MODEL_PATTERN = /vision|gpt-4o|claude-3|gemini|grok|qwen-vl|llama-3.*vision|pixtral|o1|o3/i
+
+function isVisionCapableModel(modelID: string): boolean {
+  return VISION_MODEL_PATTERN.test(modelID)
+}
+
 function curatedModelCapabilities(
   providerID: AIProviderID,
   modelID: string
@@ -126,7 +132,11 @@ function curatedModelCapabilities(
   const model = AI_PROVIDERS.find((provider) => provider.id === providerID)?.models.find(
     (candidate) => candidate.id === modelID
   )
-  return model?.capabilities ? [...model.capabilities] : null
+  const baseCaps = model?.capabilities ? [...model.capabilities] : (isVisionCapableModel(modelID) ? ['tools', 'vision'] : ['tools'])
+  if (isVisionCapableModel(modelID) && !baseCaps.includes('vision')) {
+    baseCaps.push('vision')
+  }
+  return baseCaps
 }
 
 function hydrateCuratedCapabilities(
@@ -134,11 +144,14 @@ function hydrateCuratedCapabilities(
   connections: AIModelConnection[]
 ): void {
   for (const profile of profiles) {
-    if (profile.customModelID) continue
     const connection = connections.find((candidate) => candidate.id === profile.connectionId)
     if (!connection) continue
-    const capabilities = curatedModelCapabilities(connection.providerID, profile.modelID)
-    if (capabilities) profile.capabilities = [...new Set(capabilities)]
+    const targetModelID = profile.customModelID || profile.modelID
+    const capabilities = curatedModelCapabilities(connection.providerID, targetModelID)
+    if (capabilities) profile.capabilities = [...new Set([...profile.capabilities, ...capabilities])]
+    if (isVisionCapableModel(targetModelID) && !profile.capabilities.includes('vision')) {
+      profile.capabilities.push('vision')
+    }
   }
 }
 

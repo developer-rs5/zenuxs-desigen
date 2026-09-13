@@ -1,5 +1,6 @@
 import ZenuxOAuth, { type UserInfo } from 'zenuxs-oauth'
 import { ref } from 'vue'
+import { fetchRemoteSettings } from '@/app/settings/remote-sync'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
@@ -69,6 +70,7 @@ async function syncUserWithBackend(info: UserInfo): Promise<void> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(info)
     })
+    await fetchRemoteSettings()
   } catch (err) {
     console.warn('[Zenuxs Backend] User sync failed:', err)
   }

@@ -4,6 +4,7 @@ import express from 'express'
 import { connectDB } from './db/connection.js'
 import { authRouter } from './routes/auth.js'
 import { documentsRouter } from './routes/documents.js'
+import { settingsRouter } from './routes/settings.js'
 
 dotenv.config()
 
@@ -21,6 +22,7 @@ app.get('/health', (_req, res) => {
 // Routes
 app.use('/api/auth', authRouter)
 app.use('/api/documents', documentsRouter)
+app.use('/api/settings', settingsRouter)
 
 async function start() {
   try {

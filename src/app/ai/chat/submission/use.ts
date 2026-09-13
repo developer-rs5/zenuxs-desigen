@@ -102,8 +102,9 @@ export function useChatSubmission(options: SubmissionOptions) {
 
   function reportSubmissionError(error: unknown): void {
     console.error('Chat error:', error)
-    if (error instanceof VisionModelUnavailableError) {
-      options.reportError(options.messages.value.visionUnavailable, {
+    const errMessage = error instanceof Error ? error.message : String(error)
+    if (error instanceof VisionModelUnavailableError || /vision|image input|credential/i.test(errMessage)) {
+      options.reportError(options.messages.value.visionUnavailable || 'Configure a Vision-capable model (GPT-4o, Claude 3.5, Gemini) and check API key in Settings.', {
         label: options.messages.value.openSettings,
         run: options.openModelSettings
       })
