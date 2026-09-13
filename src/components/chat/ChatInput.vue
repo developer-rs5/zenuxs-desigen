@@ -14,8 +14,8 @@ import ChatProfileSelect from '@/components/chat/ChatProfileSelect.vue'
 import ChatSkillsPopover from '@/components/chat/ChatSkillsPopover.vue'
 import { useAttachmentDrafts } from '@/components/chat/input/useAttachments'
 import IconButton from '@/components/ui/button/IconButton.vue'
-
-import ChatComposer from './ChatComposer.vue'
+import { useTextareaAutosize } from '@vueuse/core'
+import { ref } from 'vue'
 
 const { providerID, providerDef, modelID, customModelID } = useAIChat()
 const { editor, selectedIds } = useSelectionState()
@@ -50,6 +50,10 @@ const {
   takeSubmission
 } = attachments
 
+const textarea = ref<HTMLTextAreaElement>()
+const input = ref('')
+const { triggerResize } = useTextareaAutosize({ element: textarea, input, maxHeight: 120 })
+
 const isStreaming = computed(() => disabled || status === 'streaming' || status === 'submitted')
 const isAgentProvider = computed(
   () => providerID.value.startsWith('acp:') || providerID.value === 'harness:pi'
@@ -73,91 +77,81 @@ const selectedModelName = computed(() => {
   return providerDef.value.models.find((m) => m.id === modelID.value)?.name ?? modelID.value
 })
 
-// The composer switches configured Design-role profiles; raw provider model selection lives in Settings.
 const selectedProfileName = computed(
   () => designModelProfile.value?.name ?? selectedModelName.value
 )
+
+function handleInputKeydown(event: KeyboardEvent) {
+  if (event.code !== 'Enter' || event.shiftKey || event.isComposing) return
+  event.preventDefault()
+  const target = event.currentTarget
+  if (target instanceof HTMLElement) target.closest('form')?.requestSubmit()
+}
+
+function handleSubmit(event: Event) {
+  event.preventDefault()
+  if (isStreaming.value) return
+  const text = input.value.trim()
+  if (!text) return
+  emit('submit', takeSubmission({ modelText: text, displayText: text, images: [], nodes: [] }))
+  input.value = ''
+  triggerResize()
+}
 </script>
 
 <template>
-  <ChatComposer
-    :status="status"
-    :disabled="disabled"
-    @submit="emit('submit', takeSubmission($event))"
-    @stop="emit('stop')"
-    @paste="handlePaste"
-    @settings="openSettingsDialog('ai')"
-  >
-    <template v-if="images.length || referencedNodes.length" #attachment>
-      <div class="flex flex-wrap gap-1.5">
-        <div
-          v-for="node in referencedNodes"
-          :key="node.id"
-          data-slot="chat-context-chip"
-          class="flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border bg-canvas p-1.5 shadow-xs"
-        >
-          <ChatNodePreview :editor="editor" :node="node" />
-          <span class="min-w-0 flex-1 truncate text-[10px] text-surface">
-            {{ node.name || node.type }}
-          </span>
-          <IconButton
-            :label="ai.removeNodeContext"
-            size="xs"
-            @click="removeReferencedNode(node.id)"
-          >
-            <icon-lucide-x class="size-3" />
-          </IconButton>
-        </div>
-        <div
-          v-for="(image, index) in images"
-          :key="image.previewURL"
-          class="flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border bg-canvas p-1.5 shadow-xs"
-        >
-          <img
-            :src="image.previewURL"
-            :alt="image.file.name"
-            width="40"
-            height="40"
-            class="size-10 shrink-0 rounded-md border border-border object-cover"
-          />
-          <span class="min-w-0 flex-1 truncate text-[10px] text-surface">
-            {{ image.file.name }}
-          </span>
-          <IconButton
-            :label="ai.removeImageAttachment({ name: image.file.name })"
-            size="xs"
-            @click="removeImage(index)"
-          >
-            <icon-lucide-x class="size-3" />
-          </IconButton>
-        </div>
+  <div class="flex flex-col gap-2.5">
+    <!-- Label -->
+    <p class="text-[11px] text-[#9CA3AF]">Describe what you want...</p>
+
+    <!-- Attachments -->
+    <div v-if="images.length || referencedNodes.length" class="flex flex-wrap gap-1.5">
+      <div
+        v-for="node in referencedNodes"
+        :key="node.id"
+        class="flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-[#292D33] bg-[#1B1E22] p-1.5"
+      >
+        <ChatNodePreview :editor="editor" :node="node" />
+        <span class="min-w-0 flex-1 truncate text-[10px] text-[#F5F7FA]">
+          {{ node.name || node.type }}
+        </span>
+        <button class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]" @click="removeReferencedNode(node.id)">
+          <icon-lucide-x class="size-3" />
+        </button>
       </div>
-    </template>
-    <template #leading>
-      <IconButton
-        :label="ai.addSelectionContext"
-        size="sm"
-        :active="selectionContextActive"
-        :disabled="isStreaming || !canAddSelection"
-        data-slot="chat-add-selection-context"
-        @click="toggleCurrentSelection"
+      <div
+        v-for="(image, index) in images"
+        :key="image.previewURL"
+        class="flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-[#292D33] bg-[#1B1E22] p-1.5"
       >
-        <icon-lucide-mouse-pointer-2 class="size-4" />
-      </IconButton>
-      <IconButton
-        :label="ai.attachImages"
-        size="sm"
-        :disabled="isStreaming || images.length >= MAX_IMAGE_ATTACHMENTS"
-        @click="openImageDialog()"
-      >
-        <icon-lucide-image-plus class="size-4" />
-      </IconButton>
-    </template>
-    <template #model>
-      <div class="flex min-w-0 items-center gap-1">
+        <img :src="image.previewURL" :alt="image.file.name" class="size-8 shrink-0 rounded border border-[#292D33] object-cover" />
+        <span class="min-w-0 flex-1 truncate text-[10px] text-[#F5F7FA]">{{ image.file.name }}</span>
+        <button class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]" @click="removeImage(index)">
+          <icon-lucide-x class="size-3" />
+        </button>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="flex flex-col rounded-xl border border-[#292D33] bg-[#1B1E22] transition-colors focus-within:border-[#3B82F6]/50">
+      <textarea
+        ref="textarea"
+        v-model="input"
+        placeholder="Describe what you want..."
+        :disabled="isStreaming"
+        rows="1"
+        class="min-h-[40px] w-full resize-none bg-transparent px-3 pt-2.5 pb-1 text-[13px] leading-relaxed text-[#F5F7FA] outline-none placeholder-[#6B7280] disabled:cursor-not-allowed disabled:opacity-60"
+        @keydown="handleInputKeydown"
+        @copy.stop
+        @cut.stop
+      />
+
+      <!-- Bottom toolbar: model selector + actions -->
+      <div class="flex items-center gap-1 px-2 pb-2">
+        <!-- Model selector -->
         <template v-if="isAgentProvider">
-          <div class="flex min-w-0 items-center gap-1 px-1.5 text-[10px] text-muted">
-            <icon-lucide-bot class="size-3 shrink-0" />
+          <div class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#9CA3AF]">
+            <icon-lucide-bot class="size-3.5 shrink-0" />
             <span class="truncate">{{ agentName }}</span>
           </div>
         </template>
@@ -166,8 +160,60 @@ const selectedProfileName = computed(
             <span class="min-w-0 truncate">{{ selectedProfileName }}</span>
           </template>
         </ChatProfileSelect>
+
+        <div class="flex-1" />
+
+        <!-- Selection context -->
+        <button
+          :disabled="isStreaming || !canAddSelection"
+          class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA] disabled:opacity-40"
+          :class="selectionContextActive ? 'text-[#3B82F6]' : ''"
+          @click="toggleCurrentSelection"
+        >
+          <icon-lucide-mouse-pointer-2 class="size-4" />
+        </button>
+
+        <!-- Attach images -->
+        <button
+          :disabled="isStreaming || images.length >= MAX_IMAGE_ATTACHMENTS"
+          class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA] disabled:opacity-40"
+          @click="openImageDialog()"
+        >
+          <icon-lucide-paperclip class="size-4" />
+        </button>
+
+        <!-- Skills -->
         <ChatSkillsPopover />
+
+        <!-- Send / Stop -->
+        <button
+          v-if="isStreaming"
+          class="flex size-7 items-center justify-center rounded-lg border border-[#292D33] text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
+          @click="emit('stop')"
+        >
+          <icon-lucide-square class="size-3.5" />
+        </button>
+        <button
+          v-else
+          class="flex size-7 items-center justify-center rounded-lg bg-[#3B82F6] text-white transition-colors hover:bg-[#2563EB] disabled:opacity-40"
+          :disabled="!input.trim()"
+          @click="handleSubmit($event as any)"
+        >
+          <icon-lucide-send class="size-3.5" />
+        </button>
       </div>
-    </template>
-  </ChatComposer>
+    </div>
+
+    <!-- Bottom actions -->
+    <div class="flex items-center gap-2">
+      <button class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5 text-[11px] text-[#9CA3AF] transition-colors hover:bg-[#252830] hover:text-[#F5F7FA]">
+        <icon-lucide-lightbulb class="size-3.5 text-[#FCD34D]" />
+        <span>Smart suggestions</span>
+      </button>
+      <button class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5 text-[11px] text-[#9CA3AF] transition-colors hover:bg-[#252830] hover:text-[#F5F7FA]">
+        <icon-lucide-mouse-pointer-2 class="size-3.5" />
+        <span>Use selected element</span>
+      </button>
+    </div>
+  </div>
 </template>

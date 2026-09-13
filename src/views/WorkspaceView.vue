@@ -2,7 +2,7 @@
 import { useHead } from '@unhead/vue'
 import { useEventListener } from '@vueuse/core'
 import { onMounted, onUnmounted, provide, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 import { startMCPRuntime, stopMCPRuntime } from '@/app/automation/mcp/runtime'
 import { exposeCollaborationActions } from '@/app/browser-bridge'

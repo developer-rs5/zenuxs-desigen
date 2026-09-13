@@ -196,31 +196,27 @@ async function handleCopyACPLog() {
 
 <template>
   <div data-test-id="chat-panel" class="flex min-h-0 flex-1 flex-col overflow-hidden select-text">
-    <!-- ZONE 1: Header (fixed) - Chat history, new chat controls -->
-    <div class="shrink-0">
-      <ChatHistory
-        :saved="history.conversations.value.some((row) => row.id === history.current.value?.id)"
-        :debug="true"
-        :acp-debug="IS_DEV && hasACPDebugEntries()"
-        @copy-debug="handleCopyDebug"
-        @copy-a-c-p-debug="handleCopyACPLog"
-        :conversations="historyOptions"
-        :selected-id="history.current.value?.id"
-        :disabled="history.busy.value"
-        @create="historyAction(history.newChat)"
-        @select="historyAction(() => history.open($event))"
-        @rename="renameConversation"
-        @delete="historyAction(() => history.remove($event))"
-      />
-      <p v-if="diagnosticNotice" role="status" class="px-3 py-2 text-xs text-muted">
-        {{ diagnosticNotice }}
-      </p>
-      <p v-if="history.storageError.value" role="alert" class="px-3 py-2 text-xs text-red-400">
-        {{ ai.chatStorageFailed }}
-      </p>
+    <!-- ZONE 1: Fixed Header - Copilot info + New chat controls -->
+    <div class="shrink-0 border-b border-[#292D33] px-3 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <icon-lucide-sparkles class="size-4 text-[#3B82F6]" />
+          <span class="text-[14px] font-semibold text-[#F5F7FA]">Zenux Ai</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]">
+            <icon-lucide-plus class="size-3" />
+            <span>New chat</span>
+          </button>
+          <button class="flex size-6 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]">
+            <icon-lucide-ellipsis class="size-3.5" />
+          </button>
+        </div>
+      </div>
+      <p class="mt-1 text-[11px] text-[#9CA3AF]">Your design partner, powered by AI.</p>
     </div>
 
-    <!-- ZONE 2: Content (scrollable) - AI copilot or chat transcript -->
+    <!-- ZONE 2: Scrollable Content - Empty state or conversation -->
     <div class="min-h-0 flex-1 overflow-y-auto">
       <ProviderSetup v-if="!isConfigured" />
 
@@ -268,8 +264,8 @@ async function handleCopyACPLog() {
       </template>
     </div>
 
-    <!-- ZONE 3: Composer (fixed) - Input, model selector, skills -->
-    <div class="shrink-0">
+    <!-- ZONE 3: Fixed Composer - Input, model, skills, actions -->
+    <div class="shrink-0 border-t border-[#292D33] p-3">
       <ChatInput
         v-if="isConfigured && !agentHistoryReadOnly && !history.readOnly.value"
         :status="status"

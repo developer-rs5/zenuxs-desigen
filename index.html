@@ -7,62 +7,74 @@
     <link rel="icon" type="image/png" sizes="128x128" href="/favicon-128.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#1e1e1e" />
-    <title>Zenuxs Desigen</title>
+    <meta name="theme-color" content="#111315" />
+    <title>ZenuxsDesign</title>
     <style>
       :root {
-        --loader-bg: #1e1e1e;
-        --loader-fg: 255, 255, 255;
+        --loader-bg: #111315;
+        --loader-fg: #F5F7FA;
+        --loader-muted: #737A85;
+        --loader-accent: #3B82F6;
+      }
+      html[data-theme='dark'] {
+        --loader-bg: #111315;
+        --loader-fg: #F5F7FA;
+        --loader-muted: #737A85;
+        --loader-accent: #3B82F6;
+      }
+      html[data-theme='light'] {
+        --loader-bg: #F7F8FA;
+        --loader-fg: #17191C;
+        --loader-muted: #8A919B;
+        --loader-accent: #2563EB;
       }
       @media (prefers-color-scheme: light) {
         :root {
-          --loader-bg: #f3f4f6;
-          --loader-fg: 32, 33, 36;
+          --loader-bg: #F7F8FA;
+          --loader-fg: #17191C;
+          --loader-muted: #8A919B;
+          --loader-accent: #2563EB;
         }
-      }
-      html[data-theme='dark'] {
-        --loader-bg: #1e1e1e;
-        --loader-fg: 255, 255, 255;
-      }
-      html[data-theme='light'] {
-        --loader-bg: #f3f4f6;
-        --loader-fg: 32, 33, 36;
       }
       body { margin: 0; background: var(--loader-bg); }
       #boot-splash {
         position: fixed;
         inset: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 16px;
         z-index: 9999;
-        color: rgb(var(--loader-fg));
         background: var(--loader-bg);
+        font-family: Inter, system-ui, -apple-system, sans-serif;
       }
-      #boot-splash svg { width: 32px; height: 32px; opacity: 0.45; }
-      #boot-splash .bar {
-        position: absolute;
-        bottom: 50%;
-        left: 50%;
-        transform: translate(-50%, 40px);
-        width: 100px;
-        height: 2px;
-        background: rgba(var(--loader-fg), 0.08);
-        border-radius: 1px;
-        overflow: hidden;
+      .boot-logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        background: var(--loader-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        animation: boot-pulse 2s ease-in-out infinite;
       }
-      #boot-splash .bar::after {
-        content: '';
-        display: block;
-        height: 100%;
-        width: 40%;
-        background: rgba(var(--loader-fg), 0.25);
-        border-radius: 1px;
-        animation: slide 1s ease-in-out infinite;
+      .boot-brand {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--loader-fg);
+        letter-spacing: -0.01em;
       }
-      @keyframes slide {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(350%); }
+      .boot-status {
+        font-size: 12px;
+        color: var(--loader-muted);
+      }
+      @keyframes boot-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.85; transform: scale(1.02); }
       }
     </style>
   </head>
@@ -70,10 +82,9 @@
   <body>
     <div id="app">
       <div id="boot-splash">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m15.232 5.232 3.536 3.536m-2.036-5.036a2.5 2.5 0 0 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732Z"/>
-        </svg>
-        <div class="bar"></div>
+        <div class="boot-logo">Z</div>
+        <div class="boot-brand">ZenuxsDesign</div>
+        <div class="boot-status">Loading...</div>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

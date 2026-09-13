@@ -6,6 +6,7 @@ import { onMounted } from 'vue'
 
 import { provideEditor, useI18n } from '@open-pencil/vue'
 
+import { initAuth } from '@/app/auth/zenuxs'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useAppTheme } from '@/app/shell/theme'
 import { toast } from '@/app/shell/ui'
@@ -23,7 +24,7 @@ const store = useEditorStore()
 const { updates, locale } = useI18n()
 
 useHead({
-  titleTemplate: (title) => (title ? `${title} — Zenuxs Desigen` : 'Zenuxs Desigen'),
+  titleTemplate: (title) => (title ? `${title} — ZenuxsDesign` : 'ZenuxsDesign'),
   htmlAttrs: { lang: locale }
 })
 
@@ -37,6 +38,7 @@ onMounted(() => {
   toast.setupGlobalErrorHandler()
   scheduleStartupUpdateCheck(updates)
   void kickSyncEngine()
+  void initAuth()
 })
 </script>
 
