@@ -4,7 +4,7 @@ import { ref } from 'vue'
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
 export const oauthClient = new ZenuxOAuth({
-  clientId: 'zenuxs-desigen',
+  clientId: import.meta.env.VITE_ZENUXS_OAUTH_CLIENT_ID || 'd5695548c45c3ae5',
   autoRefresh: true,
   debug: false
 })
