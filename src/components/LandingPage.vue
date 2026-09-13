@@ -3,6 +3,8 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { authReady, currentUser, isAuthenticated, loginWithZenuxs } from '@/app/auth/zenuxs'
+import SmoothScrollSlider from '@/components/originkit/SmoothScrollSlider.vue'
+import StarfieldButton from '@/components/originkit/StarfieldButton.vue'
 
 const router = useRouter()
 const mobileMenuOpen = ref(false)
@@ -75,19 +77,28 @@ function handleExplore() {
 }
 
 const aiFeatures = [
-  { icon: 'icon-lucide-wand-2', title: 'Generate', description: 'Turn a rough idea into an editable interface.' },
-  { icon: 'icon-lucide-sparkles', title: 'Improve', description: 'Select anything and ask AI to refine it.' },
-  { icon: 'icon-lucide-layout-grid', title: 'Components', description: 'Build reusable patterns and design systems.' },
-  { icon: 'icon-lucide-code-2', title: 'Code', description: 'Move from visual design to implementation.' }
+  { title: 'Generate', description: 'Turn a rough idea into an editable interface.', details: 'Describe what you need in plain language. ZenuxsDesign generates a full layout with real components you can tweak, rearrange and refine.' },
+  { title: 'Improve', description: 'Select anything and ask AI to refine it.', details: 'Pick a section, a card or the whole page and ask for changes — better spacing, bolder typography or a different layout direction.' },
+  { title: 'Components', description: 'Build reusable patterns and design systems.', details: 'Generate a component once, reuse it everywhere. AI understands design systems and keeps your patterns consistent.' },
+  { title: 'Code', description: 'Move from visual design to implementation.', details: 'Export any design as production-ready JSX, Tailwind or HTML/CSS with a single action.' }
 ]
 
 const featureGroups = [
-  { icon: 'icon-lucide-pen-tool', title: 'Visual editor', description: 'Shapes, vectors, text, images and precision tools.' },
-  { icon: 'icon-lucide-layers-3', title: 'Pages & layers', description: 'Keep complex projects structured and easy to navigate.' },
-  { icon: 'icon-lucide-component', title: 'Components', description: 'Create reusable building blocks without leaving the canvas.' },
-  { icon: 'icon-lucide-palette', title: 'Design systems', description: 'Shared tokens, styles and variables across your work.' },
-  { icon: 'icon-lucide-smartphone', title: 'Responsive', description: 'Compose layouts for every viewport and breakpoint.' },
-  { icon: 'icon-lucide-code-2', title: 'Code export', description: 'Take designs into JSX, Tailwind or HTML/CSS.' }
+  { title: 'Visual editor', description: 'Shapes, vectors, text, images and precision tools.', details: 'A full-featured canvas with rulers, layers, components and real-time collaboration.' },
+  { title: 'Pages & layers', description: 'Keep complex projects structured and easy to navigate.', details: 'Organize work across multiple pages with a hierarchical layer tree and search.' },
+  { title: 'Components', description: 'Create reusable building blocks without leaving the canvas.', details: 'Design once, instance everywhere. Override properties per instance while staying linked.' },
+  { title: 'Design systems', description: 'Shared tokens, styles and variables across your work.', details: 'Define colors, spacing, typography and effects as variables that update everywhere.' },
+  { title: 'Responsive', description: 'Compose layouts for every viewport and breakpoint.', details: 'Auto-layout, constraints and responsive breakpoints keep designs flexible at any size.' },
+  { title: 'Code export', description: 'Take designs into JSX, Tailwind or HTML/CSS.', details: 'Live preview, copy-ready code and real framework output — not a static screenshot.' }
+]
+
+const featureSliderImages = [
+  { image: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&auto=format&fit=crop&q=80', offsetY: 0 },
+  { image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80', offsetY: 0 },
+  { image: 'https://images.unsplash.com/photo-1555421689-d68471e189f2?w=600&auto=format&fit=crop&q=80', offsetY: 0 },
+  { image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop&q=80', offsetY: 0 },
+  { image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&auto=format&fit=crop&q=80', offsetY: 0 },
+  { image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?w=600&auto=format&fit=crop&q=80', offsetY: 0 }
 ]
 
 const steps = [
@@ -151,20 +162,22 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 
           <!-- Not authenticated: show Sign in + Start designing -->
           <template v-else>
-            <button class="signin-link mono hidden sm:inline-flex" @click="handleGetStarted">Sign in</button>
-            <button class="zx-cta" :disabled="signingIn" @click="handleGetStarted">
-              <template v-if="signingIn">Signing in…</template>
-              <template v-else>
-                Start designing
-                <icon-lucide-arrow-up-right class="size-3.5" />
-              </template>
-            </button>
+            <StarfieldButton
+            class="hidden sm:inline-flex"
+            border-color="rgba(255,255,255,0.12)"
+            :border-width="1"
+            face-background="var(--color-panel-secondary, #1B1E22)"
+            :light-count="16"
+            :light-size="60"
+            light-color="rgba(59, 130, 246, 0.4)"
+            padding="8px 16px"
+            border-radius="8px"
+            @click="handleGetStarted"
+          >
+            <span class="signin-text mono">Sign in</span>
+          </StarfieldButton>
           </template>
 
-          <button class="theme-toggle md:hidden" aria-label="Toggle navigation" @click="mobileMenuOpen = !mobileMenuOpen">
-            <icon-lucide-x v-if="mobileMenuOpen" class="size-4" />
-            <icon-lucide-menu v-else class="size-4" />
-          </button>
         </div>
       </div>
 
@@ -332,38 +345,35 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 
       <!-- ============ 01 / AI ============ -->
       <section id="ai" class="zx-section">
-        <div class="mx-auto max-w-7xl px-5 sm:px-7">
-          <div class="section-head grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end" data-reveal>
-            <div>
-              <div class="section-label mono"><span class="label-sq" />01 / AI layer</div>
-              <h2 class="section-title">AI that lives <em class="zx-serif">inside the canvas.</em></h2>
-            </div>
-            <p class="section-copy">Generate, improve and translate ideas without handing control of the design over to a black box.</p>
+        <div class="mx-auto max-w-6xl px-6 sm:px-8">
+          <div class="section-head" data-reveal>
+            <div class="section-label mono"><span class="label-sq" />01 / AI layer</div>
+            <h2 class="section-title">AI that lives <em class="zx-serif">inside the canvas.</em></h2>
+            <p class="section-copy max-w-xl">Generate, improve and translate ideas without handing control of the design over to a black box.</p>
           </div>
 
-          <div class="ai-grid mt-12" data-reveal style="--rd: .1s">
+          <div class="ai-grid" data-reveal style="--rd: .15s">
             <article
               v-for="(feature, index) in aiFeatures"
               :key="feature.title"
               class="ai-card"
               :class="{ featured: index === 0 }"
             >
-              <div class="ai-card-top">
-                <span class="ai-index mono">0{{ index + 1 }}</span>
-                <span class="icoframe brk"><component :is="feature.icon" /></span>
+              <div class="ai-card-icon">
+                <!-- Generate: wand -->
+                <svg v-if="index === 0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8 19 13"/><path d="M15 9h.01"/><path d="M17.8 6.2 19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
+                <!-- Improve: sparkle -->
+                <svg v-else-if="index === 1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+                <!-- Components: grid -->
+                <svg v-else-if="index === 2" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                <!-- Code: code -->
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
               </div>
-
-              <div v-if="index === 0" class="gen-visual mono" aria-hidden="true">
-                <span class="gen-prompt">“a pricing page…”</span>
-                <span class="gen-arrow">↓</span>
-                <span class="gen-board"><b /><b /><b /><b /></span>
-              </div>
-
-              <div class="ai-card-copy">
-                <h3>{{ feature.title }}</h3>
-                <p>{{ feature.description }}</p>
-              </div>
-              <span class="ai-card-line" aria-hidden="true" />
+              <div class="ai-card-index mono">{{ String(index + 1).padStart(2, '0') }}</div>
+              <h3 class="ai-card-title">{{ feature.title }}</h3>
+              <p class="ai-card-desc">{{ feature.description }}</p>
+              <p class="ai-card-details">{{ feature.details }}</p>
+              <div class="ai-card-accent" aria-hidden="true" />
             </article>
           </div>
         </div>
@@ -371,24 +381,48 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 
       <!-- ============ 02 / WORKSPACE ============ -->
       <section id="features" class="zx-section pt-0">
-        <div class="mx-auto max-w-7xl px-5 sm:px-7">
-          <div class="section-head grid gap-6 lg:grid-cols-[1fr_0.8fr] lg:items-end" data-reveal>
-            <div>
-              <div class="section-label mono"><span class="label-sq" />02 / Workspace</div>
-              <h2 class="section-title">A serious editor with <em class="zx-serif">less chrome.</em></h2>
-            </div>
-            <p class="section-copy">The product stays quiet so the work can stay loud: clear hierarchy, compact controls and surfaces that earn their space.</p>
+        <div class="mx-auto max-w-6xl px-6 sm:px-8">
+          <div class="section-head" data-reveal>
+            <div class="section-label mono"><span class="label-sq" />02 / Workspace</div>
+            <h2 class="section-title">A serious editor with <em class="zx-serif">less chrome.</em></h2>
+            <p class="section-copy max-w-xl">The product stays quiet so the work can stay loud: clear hierarchy, compact controls and surfaces that earn their space.</p>
           </div>
 
-          <div class="feature-grid mt-12" data-reveal style="--rd: .1s">
-            <article v-for="feature in featureGroups" :key="feature.title" class="feature-card">
-              <div class="feature-top">
-                <span class="icoframe brk"><component :is="feature.icon" /></span>
-                <icon-lucide-arrow-up-right class="feature-arrow size-4" />
+          <div class="feature-grid" data-reveal style="--rd: .15s">
+            <article v-for="(feature, index) in featureGroups" :key="feature.title" class="feature-card">
+              <div class="feature-icon">
+                <svg v-if="index === 0" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+                <svg v-else-if="index === 1" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+                <svg v-else-if="index === 2" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                <svg v-else-if="index === 3" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+                <svg v-else-if="index === 4" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
               </div>
               <h3>{{ feature.title }}</h3>
               <p>{{ feature.description }}</p>
+              <p class="feature-details">{{ feature.details }}</p>
+              <div class="feature-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </div>
             </article>
+          </div>
+
+          <!-- Smooth scroll slider showcase -->
+          <div class="slider-showcase" data-reveal style="--rd: .2s">
+            <SmoothScrollSlider
+              :images="featureSliderImages"
+              :slide-width="320"
+              :slide-height="220"
+              :spacing="1"
+              direction="right"
+              :smoothness="10"
+              :radius="12"
+              :dim="8"
+              background="#111315"
+              :sensitivity="5"
+              :loop="true"
+              class="h-[260px]"
+            />
           </div>
         </div>
       </section>
@@ -474,12 +508,12 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 
 /* ============ TOKENS ============ */
 .zenuxs-page {
-  --zx: #c9f14f;
-  --zx-ink: #131705;
-  --zx-text: #c9f14f;
-  --zx-dim: color-mix(in srgb, #c9f14f 34%, transparent);
-  --zx-glow: color-mix(in srgb, #c9f14f 18%, transparent);
-  --zx-tint: color-mix(in srgb, #c9f14f 7%, transparent);
+  --zx: #3B82F6;
+  --zx-ink: #ffffff;
+  --zx-text: #3B82F6;
+  --zx-dim: color-mix(in srgb, #3B82F6 34%, transparent);
+  --zx-glow: color-mix(in srgb, #3B82F6 18%, transparent);
+  --zx-tint: color-mix(in srgb, #3B82F6 7%, transparent);
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
   --font-serif: 'Instrument Serif', Georgia, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
@@ -487,10 +521,10 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 }
 
 .zenuxs-page[data-theme='light'] {
-  --zx-text: #5a7508;
-  --zx-dim: color-mix(in srgb, #7a9a10 38%, transparent);
-  --zx-glow: color-mix(in srgb, #9dc41e 22%, transparent);
-  --zx-tint: color-mix(in srgb, #9dc41e 8%, transparent);
+  --zx-text: #2563EB;
+  --zx-dim: color-mix(in srgb, #2563EB 38%, transparent);
+  --zx-glow: color-mix(in srgb, #2563EB 22%, transparent);
+  --zx-tint: color-mix(in srgb, #2563EB 8%, transparent);
 }
 
 .zenuxs-page ::selection { background: var(--zx); color: var(--zx-ink); }
@@ -609,15 +643,34 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 .theme-toggle:hover { color: var(--color-surface, #f5f5f5); border-color: var(--zx-dim); }
 
 .signin-link {
-  font-size: 10px;
-  font-weight: 550;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 8px 9px;
-  color: var(--color-muted, #888);
-  transition: color 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border, #292D33);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-surface, #F5F7FA);
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.signin-link:hover { color: var(--color-surface, #f5f5f5); }
+.signin-link:hover {
+  background: var(--color-hover, #252830);
+  border-color: var(--zx-dim);
+  color: var(--color-surface, #F5F7FA);
+}
+.signin-text {
+  position: relative;
+  z-index: 2;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-surface, #F5F7FA);
+  letter-spacing: 0.02em;
+}
 
 .zx-cta {
   display: inline-flex;
@@ -692,9 +745,9 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
   pointer-events: none;
 }
 .zx-orb { position: absolute; border-radius: 999px; filter: blur(90px); pointer-events: none; }
-.zx-orb-a { width: 380px; height: 380px; top: 60px; right: 6%; background: #c9f14f; opacity: 0.1; }
-.zx-orb-b { width: 280px; height: 280px; top: 220px; left: -90px; background: #8b5cf6; opacity: 0.06; }
-.zx-orb-c { width: 340px; height: 340px; right: -8%; bottom: -55%; background: #c9f14f; opacity: 0.09; }
+.zx-orb-a { width: 380px; height: 380px; top: 60px; right: 6%; background: #3B82F6; opacity: 0.1; }
+.zx-orb-b { width: 280px; height: 280px; top: 220px; left: -90px; background: #3B82F6; opacity: 0.06; }
+.zx-orb-c { width: 340px; height: 340px; right: -8%; bottom: -55%; background: #3B82F6; opacity: 0.09; }
 .zenuxs-page[data-theme='light'] .zx-orb-b { opacity: 0.05; }
 
 .hero-plus { position: absolute; color: var(--zx-dim); font-size: 13px; pointer-events: none; }
@@ -878,22 +931,22 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 .ab-nav { display: grid; grid-template-columns: 1fr auto auto auto auto; align-items: center; gap: 18px; font-size: 7px; color: #5e6357; }
 .ab-logo { color: #191c14; font-size: 9px; font-weight: 750; letter-spacing: -0.02em; }
 .ab-cta { padding: 5px 8px; border: 1px solid #c9cdc0; border-radius: 5px; color: #23261d; }
-.ab-kicker { margin-top: 66px; color: #6d7a2e; font-size: 7px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
+.ab-kicker { margin-top: 66px; color: #3B82F6; font-size: 7px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
 .ab-heading { margin-top: 13px; font-size: clamp(24px, 4vw, 42px); font-weight: 620; letter-spacing: -0.05em; line-height: 0.95; }
-.ab-heading span { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #728c2e; }
+.ab-heading span { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: #3B82F6; }
 .ab-copy { margin-top: 14px; max-width: 300px; color: #656a5c; font-size: 9px; line-height: 1.6; }
 .ab-actions { display: flex; align-items: center; gap: 16px; margin-top: 20px; color: #555a4e; font-size: 8px; }
 .ab-selwrap { position: relative; display: inline-flex; }
-.ab-primary { display: inline-flex; padding: 7px 11px; border-radius: 6px; background: #c9f14f; color: #131705; font-weight: 650; }
+.ab-primary { display: inline-flex; padding: 7px 11px; border-radius: 6px; background: #3B82F6; color: #131705; font-weight: 650; }
 .ab-link { margin-left: 2px; }
 .ab-sel {
   position: absolute;
   inset: -7px -9px;
-  border: 1px solid #728c2e;
+  border: 1px solid var(--border);
   box-shadow: 0 0 0 9999px rgb(114 140 46 / 0.045);
   animation: sel-pulse 3s ease-in-out infinite;
 }
-.ab-sel b { position: absolute; width: 7px; height: 7px; background: #728c2e; }
+.ab-sel b { position: absolute; width: 7px; height: 7px; background: #3B82F6; }
 .ab-sel b:nth-child(1) { top: -4px; left: -4px; }
 .ab-sel b:nth-child(2) { top: -4px; right: -4px; }
 .ab-sel b:nth-child(3) { bottom: -4px; left: -4px; }
@@ -904,7 +957,7 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
   font-style: normal;
   font-size: 6.5px;
   font-weight: 600;
-  background: #728c2e;
+  background: #3B82F6;
   color: #f8f8f3;
   padding: 1.5px 5px;
   border-radius: 3px;
@@ -1090,97 +1143,220 @@ const marqueeWords = ['Generate', 'Improve', 'Components', 'Tokens & styles', 'R
 .icoframe :deep(svg) { width: 16px; height: 16px; }
 
 /* ============ AI CARDS ============ */
+/* ============ AI CARDS ============ */
 .ai-grid {
   display: grid;
-  grid-template-columns: 1.35fr repeat(3, 1fr);
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--color-border, #2a2a2a);
-  border-radius: 16px;
-  background: var(--color-border, #2a2a2a);
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 48px;
 }
 .ai-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 250px;
-  background: var(--color-canvas, #0f0f0f);
-  padding: 23px;
-  transition: background 220ms ease;
+  min-height: 280px;
+  background: var(--color-panel-secondary, #1B1E22);
+  border: 1px solid var(--color-border, #292D33);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
-.ai-card:hover { background: color-mix(in srgb, var(--color-panel-secondary, #171717) 55%, var(--color-canvas, #0f0f0f)); }
-.ai-card.featured {
-  background: linear-gradient(150deg, var(--zx-tint), var(--color-canvas, #0f0f0f) 55%);
-  border: 0;
-}
-.ai-card.featured::before, .ai-card.featured::after {
+.ai-card::before {
   content: '';
   position: absolute;
-  width: 11px;
-  height: 11px;
-  border: 0 solid var(--zx-text);
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--zx-dim), transparent);
+  opacity: 0;
+  transition: opacity 300ms ease;
 }
-.ai-card.featured::before { top: 9px; left: 9px; border-top-width: 1.5px; border-left-width: 1.5px; }
-.ai-card.featured::after { bottom: 9px; right: 9px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
-
-.ai-card-top { display: flex; align-items: center; justify-content: space-between; }
-.ai-index { color: var(--color-muted, #888); font-size: 9px; }
-
-.gen-visual { display: flex; flex-direction: column; gap: 7px; margin: auto 0 14px; font-size: 8px; color: var(--color-muted, #888); }
-.gen-prompt { font-style: italic; }
-.gen-arrow { color: var(--zx-text); }
-.gen-board {
-  position: relative;
-  width: 74px;
+.ai-card:hover {
+  border-color: color-mix(in srgb, var(--zx) 30%, var(--color-border));
+  background: color-mix(in srgb, var(--color-panel-secondary) 90%, var(--color-canvas));
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px color-mix(in srgb, var(--zx) 15%, transparent);
+}
+.ai-card:hover::before { opacity: 1; }
+.ai-card.featured {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--zx) 8%, transparent), var(--color-panel-secondary) 60%);
+  border-color: color-mix(in srgb, var(--zx) 25%, var(--color-border));
+}
+.ai-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
   height: 44px;
-  border: 1px dashed var(--zx-dim);
-  border-radius: 4px;
-  background: var(--zx-tint);
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--zx-tint), color-mix(in srgb, var(--zx) 12%, transparent));
+  color: var(--zx-text);
+  margin-bottom: auto;
+  position: relative;
 }
-.gen-board b { position: absolute; width: 6px; height: 6px; background: var(--zx-text); }
-.gen-board b:nth-child(1) { top: -3px; left: -3px; }
-.gen-board b:nth-child(2) { top: -3px; right: -3px; }
-.gen-board b:nth-child(3) { bottom: -3px; left: -3px; }
-.gen-board b:nth-child(4) { bottom: -3px; right: -3px; }
-
-.ai-card-copy { margin-top: auto; }
-.ai-card-copy h3 { font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
-.ai-card-copy p { margin-top: 7px; max-width: 240px; color: var(--color-muted, #888); font-size: 12px; line-height: 1.65; }
-.ai-card-line {
-  display: block;
-  margin-top: 16px;
-  width: 26px;
-  height: 2px;
-  border-radius: 99px;
-  background: var(--zx-text);
+.ai-card-icon::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--zx), transparent);
+  opacity: 0.15;
+  z-index: -1;
+}
+.ai-card-index {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--zx-text);
+  letter-spacing: 0.08em;
+  margin-top: 24px;
+  margin-bottom: 6px;
+}
+.ai-card-title {
+  font-size: 18px;
+  font-weight: 650;
+  color: var(--color-surface, #F5F7FA);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.ai-card-desc {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted, #737A85);
+  line-height: 1.5;
+}
+.ai-card-details {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-muted, #737A85);
+  line-height: 1.6;
   opacity: 0.7;
-  transition: width 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  flex: 1;
 }
-.ai-card:hover .ai-card-line { width: 64px; }
+.ai-card-accent {
+  position: absolute;
+  bottom: 0;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--zx), transparent);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ai-card:hover .ai-card-accent {
+  opacity: 0.8;
+  transform: scaleX(1);
+}
 
 /* ============ FEATURE CARDS ============ */
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--color-border, #2a2a2a);
-  border-radius: 16px;
-  background: var(--color-border, #2a2a2a);
+  gap: 12px;
+  margin-top: 48px;
 }
 .feature-card {
-  min-height: 148px;
-  background: var(--color-canvas, #0f0f0f);
-  padding: 22px;
-  transition: background 220ms ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  background: var(--color-panel-secondary, #1B1E22);
+  border: 1px solid var(--color-border, #292D33);
+  border-radius: 16px;
+  padding: 28px 24px;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
-.feature-card:hover { background: color-mix(in srgb, var(--color-panel-secondary, #171717) 55%, var(--color-canvas, #0f0f0f)); }
-.feature-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
-.feature-arrow { color: var(--color-muted, #888); opacity: 0; transform: translate(-4px, 4px); transition: all 0.25s ease; }
-.feature-card:hover .feature-arrow { opacity: 1; transform: none; color: var(--zx-text); }
-.feature-card h3 { font-size: 13px; font-weight: 650; }
-.feature-card p { margin-top: 6px; color: var(--color-muted, #888); font-size: 11px; line-height: 1.6; max-width: 30ch; }
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--zx-dim), transparent);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.feature-card:hover {
+  border-color: color-mix(in srgb, var(--zx) 30%, var(--color-border));
+  background: color-mix(in srgb, var(--color-panel-secondary) 90%, var(--color-canvas));
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px color-mix(in srgb, var(--zx) 15%, transparent);
+}
+.feature-card:hover::before { opacity: 1; }
+.feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--zx-tint), color-mix(in srgb, var(--zx) 12%, transparent));
+  color: var(--zx-text);
+  margin-bottom: 20px;
+  position: relative;
+}
+.feature-icon::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--zx), transparent);
+  opacity: 0.15;
+  z-index: -1;
+}
+.feature-card h3 {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--color-surface, #F5F7FA);
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.feature-card p {
+  font-size: 13px;
+  color: var(--color-muted, #737A85);
+  line-height: 1.6;
+}
+.feature-details {
+  font-size: 12px;
+  color: var(--color-muted, #737A85);
+  line-height: 1.6;
+  opacity: 0.7;
+  margin-top: 4px;
+  flex: 1;
+}
+
+/* ============ SLIDER SHOWCASE ============ */
+.slider-showcase {
+  margin-top: 40px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--color-border, #292D33);
+}
+.feature-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--color-border, #292D33);
+  color: var(--color-muted, #737A85);
+  margin-top: 20px;
+  align-self: flex-start;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.feature-card:hover .feature-arrow {
+  background: linear-gradient(135deg, var(--zx-tint), color-mix(in srgb, var(--zx) 12%, transparent));
+  color: var(--zx-text);
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--zx) 20%, transparent);
+}
 
 /* ============ WORKFLOW ============ */
 .workflow-shell { padding-top: 30px; }
