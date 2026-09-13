@@ -25,13 +25,14 @@ import EditorWorkspace from '@/components/editor/EditorWorkspace.vue'
 import FontStatusBanner from '@/components/font-status/FontStatusBanner.vue'
 import HomeWorkspace from '@/components/home/HomeWorkspace.vue'
 import SafariBanner from '@/components/SafariBanner.vue'
+import TopBar from '@/components/TopBar.vue'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog.vue'
 import TabBar from '@/components/TabBar.vue'
 
 const route = useRoute()
 const createdInitialTab = tabCount() === 0
 const shouldCreateHome =
-  route.path === '/' &&
+  (route.path === '/' || route.path === '/editor') &&
   !appRuntimeConfig.test &&
   !route.meta.demo &&
   (isTauri() || appRuntimeConfig.recentFiles)
@@ -104,6 +105,9 @@ onUnmounted(() => {
     <CommandPalette />
     <TabBar />
     <HomeWorkspace v-show="activeTab?.kind === 'home'" @new-document="createDocumentInCurrentTab" />
-    <EditorWorkspace v-if="activeTab?.kind !== 'home'" />
+    <template v-if="activeTab?.kind !== 'home'">
+      <TopBar />
+      <EditorWorkspace />
+    </template>
   </div>
 </template>

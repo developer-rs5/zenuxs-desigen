@@ -17,6 +17,7 @@ import { useNotificationMessages } from '@/app/i18n/notifications'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { toast } from '@/app/shell/ui'
 import { activeTab } from '@/app/tabs'
+import AiCopilotEmptyState from '@/components/chat/AiCopilotEmptyState.vue'
 import ACPPermissionDialog from '@/components/chat/ACPPermissionDialog.vue'
 import ChatHistory from '@/components/chat/ChatHistory.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
@@ -194,57 +195,81 @@ async function handleCopyACPLog() {
 </script>
 
 <template>
-  <div data-test-id="chat-panel" class="flex min-w-0 flex-1 flex-col overflow-hidden select-text">
-    <ChatHistory
-      :saved="history.conversations.value.some((row) => row.id === history.current.value?.id)"
-      :debug="true"
-      :acp-debug="IS_DEV && hasACPDebugEntries()"
-      @copy-debug="handleCopyDebug"
-      @copy-a-c-p-debug="handleCopyACPLog"
-      :conversations="historyOptions"
-      :selected-id="history.current.value?.id"
-      :disabled="history.busy.value"
-      @create="historyAction(history.newChat)"
-      @select="historyAction(() => history.open($event))"
-      @rename="renameConversation"
-      @delete="historyAction(() => history.remove($event))"
-    />
-    <p v-if="diagnosticNotice" role="status" class="px-3 py-2 text-xs text-muted">
-      {{ diagnosticNotice }}
-    </p>
-    <p v-if="history.storageError.value" role="alert" class="px-3 py-2 text-xs text-red-400">
-      {{ ai.chatStorageFailed }}
-    </p>
-    <ProviderSetup v-if="!isConfigured" />
-
-    <template v-if="isConfigured || messages.length">
-      <p
-        v-if="history.current.value?.interrupted && status === 'ready'"
-        role="status"
-        class="px-3 py-2 text-xs text-muted"
-      >
-        {{ ai.chatInterrupted }}
+  <div data-test-id="chat-panel" class="flex min-h-0 flex-1 flex-col overflow-hidden select-text">
+    <!-- ZONE 1: Header (fixed) - Chat history, new chat controls -->
+    <div class="shrink-0">
+      <ChatHistory
+        :saved="history.conversations.value.some((row) => row.id === history.current.value?.id)"
+        :debug="true"
+        :acp-debug="IS_DEV && hasACPDebugEntries()"
+        @copy-debug="handleCopyDebug"
+        @copy-a-c-p-debug="handleCopyACPLog"
+        :conversations="historyOptions"
+        :selected-id="history.current.value?.id"
+        :disabled="history.busy.value"
+        @create="historyAction(history.newChat)"
+        @select="historyAction(() => history.open($event))"
+        @rename="renameConversation"
+        @delete="historyAction(() => history.remove($event))"
+      />
+      <p v-if="diagnosticNotice" role="status" class="px-3 py-2 text-xs text-muted">
+        {{ diagnosticNotice }}
       </p>
-      <ChatTranscript
-        :messages="messages"
-        :status="status"
-        :show-continue="showContinue"
-        @continue="
+      <p v-if="history.storageError.value" role="alert" class="px-3 py-2 text-xs text-red-400">
+        {{ ai.chatStorageFailed }}
+      </p>
+    </div>
+
+    <!-- ZONE 2: Content (scrollable) - AI copilot or chat transcript -->
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      <ProviderSetup v-if="!isConfigured" />
+
+      <!-- AI Copilot empty state when no messages -->
+      <AiCopilotEmptyState
+        v-if="isConfigured && messages.length === 0"
+        @submit="
           submission.submit({
-            modelText: 'Continue where you left off',
-            displayText: 'Continue where you left off',
+            modelText: $event,
+            displayText: $event,
             images: [],
             nodes: []
           })
         "
       />
 
-      <p v-if="agentHistoryReadOnly" role="status" class="px-3 py-2 text-xs text-muted">
-        {{ ai.chatAgentReadOnly }}
-      </p>
-      <p v-if="history.readOnly.value" role="status" class="px-3 py-2 text-xs text-muted">
-        {{ ai.chatReadOnly }}
-      </p>
+      <template v-if="(isConfigured && messages.length > 0) || messages.length">
+        <p
+          v-if="history.current.value?.interrupted && status === 'ready'"
+          role="status"
+          class="px-3 py-2 text-xs text-muted"
+        >
+          {{ ai.chatInterrupted }}
+        </p>
+        <ChatTranscript
+          :messages="messages"
+          :status="status"
+          :show-continue="showContinue"
+          @continue="
+            submission.submit({
+              modelText: 'Continue where you left off',
+              displayText: 'Continue where you left off',
+              images: [],
+              nodes: []
+            })
+          "
+        />
+
+        <p v-if="agentHistoryReadOnly" role="status" class="px-3 py-2 text-xs text-muted">
+          {{ ai.chatAgentReadOnly }}
+        </p>
+        <p v-if="history.readOnly.value" role="status" class="px-3 py-2 text-xs text-muted">
+          {{ ai.chatReadOnly }}
+        </p>
+      </template>
+    </div>
+
+    <!-- ZONE 3: Composer (fixed) - Input, model selector, skills -->
+    <div class="shrink-0">
       <ChatInput
         v-if="isConfigured && !agentHistoryReadOnly && !history.readOnly.value"
         :status="status"
@@ -253,8 +278,8 @@ async function handleCopyACPLog() {
         @stop="handleStop"
         @error="toast.error"
       />
+    </div>
 
-      <ACPPermissionDialog />
-    </template>
+    <ACPPermissionDialog />
   </div>
 </template>
