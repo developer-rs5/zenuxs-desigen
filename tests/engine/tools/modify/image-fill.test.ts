@@ -18,7 +18,7 @@ describe('set_image_fill tool', () => {
     'set_image_fill tool'
   )
 
-  test('sets an IMAGE fill with correct imageHash and scaleMode', () => {
+  test('sets an IMAGE fill with correct imageHash and scaleMode', async () => {
     const { figma } = setup()
     const shape = expectDefined(
       ALL_TOOLS.find((t) => t.name === 'create_shape'),
@@ -33,7 +33,7 @@ describe('set_image_fill tool', () => {
     }) as { id: string }
 
     const b64 = PNG_MAGIC.toBase64()
-    const result = tool.execute(figma, { id: node.id, image_data: b64 }) as {
+    const result = (await tool.execute(figma, { id: node.id, image_data: b64 })) as {
       id: string
       imageHash: string
       scaleMode: string
@@ -53,15 +53,15 @@ describe('set_image_fill tool', () => {
     expect(fills[0].imageScaleMode).toBe('FILL')
   })
 
-  test('returns error for non-existent node', () => {
+  test('returns error for non-existent node', async () => {
     const { figma } = setup()
-    const result = tool.execute(figma, { id: 'nonexistent', image_data: PNG_MAGIC.toBase64() }) as {
+    const result = (await tool.execute(figma, { id: 'nonexistent', image_data: PNG_MAGIC.toBase64() })) as {
       error: string
     }
     expect(result.error).toContain('not found')
   })
 
-  test('default scale mode is FILL', () => {
+  test('default scale mode is FILL', async () => {
     const { figma } = setup()
     const shape = expectDefined(
       ALL_TOOLS.find((t) => t.name === 'create_shape'),
@@ -71,13 +71,13 @@ describe('set_image_fill tool', () => {
       id: string
     }
 
-    const result = tool.execute(figma, { id: node.id, image_data: PNG_MAGIC.toBase64() }) as {
+    const result = (await tool.execute(figma, { id: node.id, image_data: PNG_MAGIC.toBase64() })) as {
       scaleMode: string
     }
     expect(result.scaleMode).toBe('FILL')
   })
 
-  test('all scale modes work', () => {
+  test('all scale modes work', async () => {
     const modes = ['FILL', 'FIT', 'CROP', 'TILE'] as const
     for (const mode of modes) {
       const { figma } = setup()
@@ -93,11 +93,11 @@ describe('set_image_fill tool', () => {
         height: 50
       }) as { id: string }
 
-      const result = tool.execute(figma, {
+      const result = (await tool.execute(figma, {
         id: node.id,
         image_data: PNG_MAGIC.toBase64(),
         scale_mode: mode
-      }) as { scaleMode: string }
+      })) as { scaleMode: string }
       expect(result.scaleMode).toBe(mode)
 
       const fills = expectDefined(figma.getNodeById(node.id), 'image-filled node').fills as Array<{
@@ -107,7 +107,7 @@ describe('set_image_fill tool', () => {
     }
   })
 
-  test('image data is stored in graph.images', () => {
+  test('image data is stored in graph.images', async () => {
     const { graph, figma } = setup()
     const shape = expectDefined(
       ALL_TOOLS.find((t) => t.name === 'create_shape'),
@@ -117,9 +117,22 @@ describe('set_image_fill tool', () => {
       id: string
     }
 
-    const result = tool.execute(figma, { id: node.id, image_data: PNG_MAGIC.toBase64() }) as {
+    const result = (await tool.execute(figma, { id: node.id, image_data: PNG_MAGIC.toBase64() })) as {
       imageHash: string
     }
     expect(graph.images.get(result.imageHash)).toEqual(PNG_MAGIC)
+  })
+
+  test('error returned when neither url nor image_data provided', async () => {
+    const { figma } = setup()
+    const shape = expectDefined(
+      ALL_TOOLS.find((t) => t.name === 'create_shape'),
+      'create_shape tool'
+    )
+    const node = shape.execute(figma, { type: 'RECTANGLE', x: 0, y: 0, width: 50, height: 50 }) as {
+      id: string
+    }
+    const result = (await tool.execute(figma, { id: node.id })) as { error: string }
+    expect(result.error).toContain('must be provided')
   })
 })

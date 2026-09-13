@@ -45,7 +45,7 @@ export const commandMessageDefaults = {
   paletteSearchPlaceholder: 'Type a command or search…',
   paletteAriaLabel: 'Command palette',
   paletteSearchAriaLabel: 'Search commands',
-  paletteDescription: 'Search and run OpenPencil commands.',
+  paletteDescription: 'Search and run Zenuxs Desigen commands.',
   paletteNoCommands: 'No commands found.',
   paletteBack: 'Back'
 } as const

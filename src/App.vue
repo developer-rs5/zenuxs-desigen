@@ -23,7 +23,7 @@ const store = useEditorStore()
 const { updates, locale } = useI18n()
 
 useHead({
-  titleTemplate: (title) => (title ? `${title} — OpenPencil` : 'OpenPencil'),
+  titleTemplate: (title) => (title ? `${title} — Zenuxs Desigen` : 'Zenuxs Desigen'),
   htmlAttrs: { lang: locale }
 })
 

@@ -95,13 +95,19 @@ export const setStroke = defineTool({
 export const setImageFill = defineTool({
   name: 'set_image_fill',
   mutates: true,
-  description: 'Set an image fill on a node from base64-encoded image data.',
+  description:
+    'Set an image fill on a node from a public image URL (http/https) or base64-encoded image data. Prefer providing a public image URL via "url" or "image_data" to save bandwidth and storage.',
   params: {
     id: { type: 'string', description: 'Node ID', required: true },
+    url: {
+      type: 'string',
+      description:
+        'Public image URL (http:// or https://) to fetch and set as node fill. Preferred over base64 string.'
+    },
     image_data: {
       type: 'string',
-      description: 'Base64-encoded image bytes (PNG, JPEG, or WEBP)',
-      required: true
+      description:
+        'Public image URL (http/https) or Base64-encoded image bytes (PNG, JPEG, or WEBP).'
     },
     scale_mode: {
       type: 'string',
@@ -110,10 +116,37 @@ export const setImageFill = defineTool({
       enum: ['FILL', 'FIT', 'CROP', 'TILE']
     }
   },
-  execute: (figma, { id, image_data, scale_mode }) => {
+  execute: async (figma, { id, url, image_data, scale_mode }) => {
     const node = figma.getNodeById(id)
     if (!node) return { error: `Node "${id}" not found` }
-    const bytes = decodeBase64(image_data)
+
+    const targetUrl =
+      url ||
+      (typeof image_data === 'string' && (image_data.startsWith('http://') || image_data.startsWith('https://'))
+        ? image_data
+        : undefined)
+
+    let bytes: Uint8Array
+    if (targetUrl) {
+      try {
+        const response = await fetch(targetUrl)
+        if (!response.ok) {
+          return { error: `Failed to download image from URL (HTTP ${response.status}): ${targetUrl}` }
+        }
+        bytes = new Uint8Array(await response.arrayBuffer())
+      } catch (err) {
+        return { error: `Failed to fetch image from URL: ${err instanceof Error ? err.message : String(err)}` }
+      }
+    } else if (image_data) {
+      try {
+        bytes = decodeBase64(image_data)
+      } catch (err) {
+        return { error: `Invalid base64 image data: ${err instanceof Error ? err.message : String(err)}` }
+      }
+    } else {
+      return { error: 'Either "url" or "image_data" must be provided.' }
+    }
+
     const image = figma.createImage(bytes)
     const mode = (scale_mode ?? 'FILL') as 'FILL' | 'FIT' | 'CROP' | 'TILE'
     node.fills = [

@@ -10,6 +10,7 @@ import GeneralSettingsPanel from '@/components/settings/general/GeneralSettingsP
 import MCPConnectionsSection from '@/components/settings/mcp/MCPConnectionsSection.vue'
 import MCPSettingsPanel from '@/components/settings/mcp/MCPSettingsPanel.vue'
 import ModelsPanel from '@/components/settings/models/ModelsPanel.vue'
+import SkillsSettingsSection from '@/components/settings/skills/SkillsSettingsSection.vue'
 import StockPhotoKeysSection from '@/components/settings/provider/StockPhotoKeysSection.vue'
 import StorageSettingsPanel from '@/components/settings/storage/StorageSettingsPanel.vue'
 import UsageSettingsPanel from '@/components/settings/usage/UsageSettingsPanel.vue'
@@ -60,6 +61,10 @@ function onOpenChange(open: boolean): void {
           <template #leading><icon-lucide-sparkles class="size-3.5" /></template>
           {{ settings.aiAndAgents }}
         </AppTabsTrigger>
+        <AppTabsTrigger value="skills" data-test-id="settings-section-skills">
+          <template #leading><icon-lucide-wand-2 class="size-3.5" /></template>
+          Skills
+        </AppTabsTrigger>
         <AppTabsTrigger value="usage" data-test-id="settings-section-usage">
           <template #leading><icon-lucide-chart-no-axes-combined class="size-3.5" /></template>
           {{ settings.usage }}
@@ -90,6 +95,13 @@ function onOpenChange(open: boolean): void {
           <section class="flex h-full flex-col" data-test-id="settings-ai-panel">
             <ModelsPanel />
             <ChatSettingsSection />
+          </section>
+        </AppDialogBody>
+      </AppTabsContent>
+      <AppTabsContent value="skills" as-child>
+        <AppDialogBody>
+          <section class="flex h-full flex-col" data-test-id="settings-skills-panel">
+            <SkillsSettingsSection />
           </section>
         </AppDialogBody>
       </AppTabsContent>

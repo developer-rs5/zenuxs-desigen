@@ -24,7 +24,7 @@ export const diagnosticsMessageDefaults = {
   retention: 'Diagnostics retention',
   retentionDescription: 'Keep up to this many recent events locally.',
   description:
-    'Store technical events locally to help troubleshoot OpenPencil. Prompts, design content, credentials, and API keys are excluded.',
+    'Store technical events locally to help troubleshoot Zenuxs Desigen. Prompts, design content, credentials, and API keys are excluded.',
   localDiagnostics: 'Local diagnostics',
   localDiagnosticsDescription: 'Keep recent technical events on this device.',
   usageHistory: 'Usage history',

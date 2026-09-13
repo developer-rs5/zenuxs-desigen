@@ -3,6 +3,7 @@ import { ref } from 'vue'
 export type SettingsSection =
   | 'general'
   | 'ai'
+  | 'skills'
   | 'usage'
   | 'diagnostics'
   | 'mcp'

@@ -12,6 +12,7 @@ import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import { buildReasoningProviderOptions, type AIProviderOptions } from '@/app/ai/chat/reasoning'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
 import { createAIModelRuntime, resolveModelConnectionAPIKey } from '@/app/ai/models'
+import { getActiveSkillsPrompt } from '@/app/ai/skills'
 import { MAX_AGENT_STEPS, createAITools, recordStep, resetRunSteps } from '@/app/ai/tools'
 import {
   recordChatCompleted,
@@ -91,9 +92,12 @@ export function createToolLoopTransport({
     buildReasoningProviderOptions(providerID, reasoningEffort)
   )
 
+  const skillsPrompt = getActiveSkillsPrompt()
+  const instructions = skillsPrompt ? `${SYSTEM_PROMPT}\n\n${skillsPrompt}` : SYSTEM_PROMPT
+
   const agent = new ToolLoopAgent({
     model,
-    instructions: SYSTEM_PROMPT,
+    instructions,
     tools,
     stopWhen: stepCountIs(MAX_AGENT_STEPS),
     maxOutputTokens,
