@@ -20,7 +20,7 @@ export async function initAuth(): Promise<UserInfo | null> {
     }
     const initPromise = oauthClient.init()
     const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500))
-    const session = await Promise.race([initPromise, timeoutPromise])
+    await Promise.race([initPromise, timeoutPromise])
     if (oauthClient.isAuthenticated()) {
       const info = await oauthClient.getUserInfo()
       currentUser.value = info

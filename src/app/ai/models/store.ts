@@ -132,7 +132,7 @@ function curatedModelCapabilities(
   const model = AI_PROVIDERS.find((provider) => provider.id === providerID)?.models.find(
     (candidate) => candidate.id === modelID
   )
-  const baseCaps = model?.capabilities ? [...model.capabilities] : (isVisionCapableModel(modelID) ? ['tools', 'vision'] : ['tools'])
+  const baseCaps: AIModelCapability[] = model?.capabilities ? [...model.capabilities] : (isVisionCapableModel(modelID) ? ['tools', 'vision'] : ['tools'])
   if (isVisionCapableModel(modelID) && !baseCaps.includes('vision')) {
     baseCaps.push('vision')
   }
