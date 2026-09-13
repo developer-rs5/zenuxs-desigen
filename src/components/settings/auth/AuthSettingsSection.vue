@@ -52,9 +52,12 @@ onMounted(() => {
             Sign out
           </AppButton>
         </div>
-        <div v-else>
-          <AppButton color="primary" variant="solid" size="sm" @click="loginWithZenuxs">
+        <div v-else class="flex items-center gap-2">
+          <AppButton color="primary" variant="solid" size="sm" @click="loginWithZenuxs('ui')">
             Sign in with Zenuxs
+          </AppButton>
+          <AppButton color="neutral" variant="outline" size="sm" @click="loginWithZenuxs('redirect')">
+            Redirect Login
           </AppButton>
         </div>
       </div>

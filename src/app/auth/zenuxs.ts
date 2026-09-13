@@ -14,8 +14,13 @@ export const isAuthenticated = ref(oauthClient.isAuthenticated())
 
 export async function initAuth(): Promise<UserInfo | null> {
   try {
-    const session = await oauthClient.init()
-    if (session && oauthClient.isAuthenticated()) {
+    if (typeof window !== 'undefined' && (window.location.search.includes('code=') || window.location.search.includes('access_token='))) {
+      await oauthClient.handleCallback()
+    }
+    const initPromise = oauthClient.init()
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500))
+    const session = await Promise.race([initPromise, timeoutPromise])
+    if (oauthClient.isAuthenticated()) {
       const info = await oauthClient.getUserInfo()
       currentUser.value = info
       isAuthenticated.value = true
@@ -28,10 +33,10 @@ export async function initAuth(): Promise<UserInfo | null> {
   return null
 }
 
-export async function loginWithZenuxs(): Promise<UserInfo | null> {
+export async function loginWithZenuxs(loginMode: 'popup' | 'redirect' | 'ui' = 'ui'): Promise<UserInfo | null> {
   try {
-    const res = await oauthClient.login({ mode: 'popup' })
-    if (res && 'access_token' in res) {
+    const res = await oauthClient.login({ mode: loginMode })
+    if (res && typeof res === 'object' && 'access_token' in res) {
       const info = await oauthClient.getUserInfo()
       currentUser.value = info
       isAuthenticated.value = true
@@ -39,7 +44,10 @@ export async function loginWithZenuxs(): Promise<UserInfo | null> {
       return info
     }
   } catch (err) {
-    console.error('[Zenuxs OAuth] Login failed:', err)
+    console.error('[Zenuxs OAuth] Popup/UI login failed, attempting redirect:', err)
+    if (loginMode !== 'redirect') {
+      await oauthClient.login({ mode: 'redirect' })
+    }
   }
   return null
 }
