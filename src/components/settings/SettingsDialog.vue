@@ -4,6 +4,7 @@ import { DialogClose } from 'reka-ui'
 import { useI18n, useViewportKind } from '@open-pencil/vue'
 
 import { settingsDialogOpen, settingsDialogSection } from '@/app/settings/dialog'
+import AuthSettingsSection from '@/components/settings/auth/AuthSettingsSection.vue'
 import ChatSettingsSection from '@/components/settings/chat/ChatSettingsSection.vue'
 import DiagnosticsSettingsPanel from '@/components/settings/diagnostics/DiagnosticsSettingsPanel.vue'
 import GeneralSettingsPanel from '@/components/settings/general/GeneralSettingsPanel.vue'
@@ -81,12 +82,19 @@ function onOpenChange(open: boolean): void {
           <template #leading><icon-lucide-image class="size-3.5" /></template>
           {{ settings.media }}
         </AppTabsTrigger>
+        <AppTabsTrigger value="account" data-test-id="settings-section-account">
+          <template #leading><icon-lucide-user-check class="size-3.5" /></template>
+          Account & Cloud
+        </AppTabsTrigger>
         <AppTabsTrigger value="storage" data-test-id="settings-section-storage">
           <template #leading><icon-lucide-cloud class="size-3.5" /></template>
           {{ settings.storage }}
         </AppTabsTrigger>
       </AppTabsList>
 
+      <AppTabsContent value="account" as-child>
+        <AppDialogBody><AuthSettingsSection /></AppDialogBody>
+      </AppTabsContent>
       <AppTabsContent value="general" as-child>
         <AppDialogBody><GeneralSettingsPanel /></AppDialogBody>
       </AppTabsContent>
