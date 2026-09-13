@@ -12,6 +12,8 @@ export const oauthClient = new ZenuxOAuth({
 
 export const currentUser = ref<UserInfo | null>(null)
 export const isAuthenticated = ref(oauthClient.isAuthenticated())
+/** True once initAuth() has completed at least once. Prevents premature redirects. */
+export const authReady = ref(false)
 
 export async function initAuth(): Promise<UserInfo | null> {
   try {
@@ -30,6 +32,8 @@ export async function initAuth(): Promise<UserInfo | null> {
     }
   } catch (err) {
     console.warn('[Zenuxs OAuth] Init check skipped/failed:', err)
+  } finally {
+    authReady.value = true
   }
   return null
 }
