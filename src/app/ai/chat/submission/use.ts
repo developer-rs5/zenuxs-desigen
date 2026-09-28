@@ -37,6 +37,13 @@ interface SubmissionOptions {
   openModelSettings: () => void
 }
 
+function blobToDataUri(data: Uint8Array, mediaType: string): string {
+  let binary = ''
+  for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i])
+  const b64 = btoa(binary)
+  return `data:${mediaType};base64,${b64}`
+}
+
 export function useChatSubmission(options: SubmissionOptions) {
   const isPreparingAttachments = ref(false)
   let operationVersion = 0
@@ -48,6 +55,43 @@ export function useChatSubmission(options: SubmissionOptions) {
       (candidate) => candidate.role === 'user' && !previousIds.has(candidate.id)
     )
     if (message) setVisibleMessageText(message.id, submission.displayText)
+  }
+
+  async function sendWithVisionAnalysis(
+    currentChat: ChatInstance,
+    submission: ChatSubmission,
+    messageId: string,
+    preparedImages: Awaited<ReturnType<typeof prepareImageAttachment>>[],
+    nodeAttachments: ReturnType<typeof snapshotNode>[],
+    version: number
+  ): Promise<void> {
+    const editor = options.getEditor()
+    try {
+      const findings = await analyzeAttachedImages(editor, submission.modelText, preparedImages)
+      if (version !== operationVersion || options.chat.value !== currentChat) return
+
+      const normalizedImages = preparedImagePresentations(
+        messageId,
+        submission.images,
+        preparedImages
+      )
+      setMessageAttachments(messageId, [...nodeAttachments, ...normalizedImages])
+      await currentChat
+        .sendMessage({
+          messageId,
+          text: designMessageWithImageFindings(
+            submission.modelText,
+            submission.images.map((image) => image.file.name),
+            findings
+          )
+        })
+        .catch(() => undefined)
+    } catch {
+      // Vision analysis failed — send a text-only message as last resort
+      await currentChat
+        .sendMessage({ messageId, text: submission.modelText })
+        .catch(() => undefined)
+    }
   }
 
   async function sendAttachments(
@@ -79,38 +123,54 @@ export function useChatSubmission(options: SubmissionOptions) {
     const preparedImages = await Promise.all(
       submission.images.map((image) => prepareImageAttachment(image.file))
     )
-    const findings = await analyzeAttachedImages(editor, submission.modelText, preparedImages)
     if (version !== operationVersion || options.chat.value !== currentChat) return
 
-    const normalizedImages = preparedImagePresentations(
-      messageId,
-      submission.images,
-      preparedImages
-    )
-    setMessageAttachments(messageId, [...nodeAttachments, ...normalizedImages])
+    // Convert images to FileUIPart data URIs for direct model input
+    const imageFiles = preparedImages.map((image, index) => ({
+      type: 'file' as const,
+      mediaType: image.mediaType,
+      filename: submission.images[index]?.file.name || `image-${index + 1}`,
+      url: blobToDataUri(image.data, image.mediaType)
+    }))
+
+    // Send images directly to the design model — skip Vision model middleman
     await currentChat
       .sendMessage({
         messageId,
-        text: designMessageWithImageFindings(
-          submission.modelText,
-          submission.images.map((image) => image.file.name),
-          findings
+        text: submission.modelText,
+        files: imageFiles
+      })
+      .catch((error: unknown) => {
+        // If direct image sending fails (model doesn't support images),
+        // fall back to Vision model analysis with text findings
+        if (version !== operationVersion || options.chat.value !== currentChat) return
+        void sendWithVisionAnalysis(
+          currentChat, submission, messageId, preparedImages, nodeAttachments, version
         )
       })
-      .catch(() => undefined)
   }
 
-  function reportSubmissionError(error: unknown): void {
+function reportSubmissionError(error: unknown): void {
     console.error('Chat error:', error)
     const errMessage = error instanceof Error ? error.message : String(error)
     if (error instanceof VisionModelUnavailableError || /vision|image input|credential/i.test(errMessage)) {
       options.reportError(options.messages.value.visionUnavailable || 'Configure a Vision-capable model (GPT-4o, Claude 3.5, Gemini) and check API key in Settings.', {
-        label: options.messages.value.openSettings,
+        label: options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
         run: options.openModelSettings
       })
       return
     }
-    options.reportError(options.messages.value.requestFailed)
+    if (/401|unauthorized|api.key|invalid_api_key|authentication/i.test(errMessage)) {
+      options.reportError('Authentication failed. Check your API key in Settings.', {
+        label: options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
+        run: options.openModelSettings
+      })
+      return
+    }
+    options.reportError(options.messages.value.requestFailed || 'The model request failed. Check the provider settings and try again.', {
+      label: options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
+      run: options.openModelSettings
+    })
   }
 
   async function submit(submission: ChatSubmission): Promise<void> {

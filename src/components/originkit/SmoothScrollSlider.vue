@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 
 interface Slide {
   src: string | null
@@ -45,13 +45,6 @@ const width = ref(0)
 
 const MAX_SCALE = 2.5
 const MIN_SCALE = 0.1
-
-function resolveSrc(val: string | { src?: string } | null | undefined): string | null {
-  if (!val) return null
-  if (typeof val === 'string') return val || null
-  const src = val.src
-  return typeof src === 'string' && src ? src : null
-}
 
 function imageOf(item: string | ImageInput): string | null {
   if (typeof item === 'string') return item || null
@@ -113,9 +106,8 @@ function placeholderFill(i: number) {
 }
 
 let raf = 0
-let lastTime = 0
 
-function tick(now: number) {
+function tick() {
   raf = requestAnimationFrame(tick)
   const c = step.value
   if (!slides.value.length || c <= 0 || width.value <= 0) return

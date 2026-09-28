@@ -139,6 +139,18 @@ async function remove() {
           />
         </ProviderSettingsField>
 
+        <!-- Vision capability — prominent for custom models -->
+        <div
+          v-if="providerDef.supportsCustomModel && selectedModelValue === CUSTOM_MODEL_VALUE"
+          class="flex items-center justify-between rounded border border-border px-2.5 py-2"
+        >
+          <div>
+            <span class="text-[11px] text-surface">{{ ai.modelCapabilityVision }}</span>
+            <p class="mt-0.5 text-[10px] text-muted">Enable if this model supports image input</p>
+          </div>
+          <AppSwitch v-model="visionEnabled" :label="ai.modelCapabilityVision" />
+        </div>
+
         <div class="flex items-center gap-2 pt-1">
           <p class="text-[10px] font-medium uppercase tracking-wide text-muted">
             {{ ai.connectionSettings }}

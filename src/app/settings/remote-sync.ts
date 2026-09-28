@@ -1,20 +1,24 @@
-import { currentUser } from '@/app/auth/zenuxs'
 import { aiModelSettings } from '@/app/ai/models/store'
 import { appCredentialServices } from '@/app/settings/credentials/app'
 import { credentialRef } from '@/app/settings/credentials/reference'
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
 
-export async function fetchRemoteSettings(): Promise<void> {
-  const sub = currentUser.value?.sub
-  if (!sub) return
+type SyncResult = 'ok' | 'skipped' | 'failed'
+
+function syncFailed(): SyncResult {
+  return 'failed'
+}
+
+export async function fetchRemoteSettings(sub?: string): Promise<SyncResult> {
+  if (!sub) return 'skipped'
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/settings?ownerSub=${encodeURIComponent(sub)}`)
-    if (!res.ok) return
+    if (!res.ok) return syncFailed()
     const data = await res.json()
     const settings = data.settings
-    if (!settings) return
+    if (!settings) return 'ok'
 
     // Apply remote AI Model settings to reactive store & local cache
     if (settings.aiModelSettings && typeof settings.aiModelSettings === 'object') {
@@ -33,17 +37,18 @@ export async function fetchRemoteSettings(): Promise<void> {
         }
       }
     }
+    return 'ok'
   } catch (err) {
     console.warn('[Remote Settings Sync] Fetch error (using local cache):', err)
+    return syncFailed()
   }
 }
 
-export async function pushRemoteSettings(credentials?: Record<string, string>): Promise<void> {
-  const sub = currentUser.value?.sub
-  if (!sub) return
+export async function pushRemoteSettings(sub?: string, credentials?: Record<string, string>): Promise<SyncResult> {
+  if (!sub) return 'skipped'
 
   try {
-    await fetch(`${BACKEND_URL}/api/settings`, {
+    const res = await fetch(`${BACKEND_URL}/api/settings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -55,7 +60,9 @@ export async function pushRemoteSettings(credentials?: Record<string, string>): 
         ...(credentials && { credentials })
       })
     })
+    return res.ok ? 'ok' : syncFailed()
   } catch (err) {
     console.warn('[Remote Settings Sync] Push error:', err)
+    return syncFailed()
   }
 }

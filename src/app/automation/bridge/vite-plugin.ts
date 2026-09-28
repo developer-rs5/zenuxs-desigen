@@ -150,6 +150,13 @@ export function automationPlugin(
   authToken: string | null,
   options: AutomationPluginOptions
 ): Plugin {
+  /*
+   * The dev MCP child is a convenience for automation scripting. On Windows,
+   * bun's workspace linker can fail to hoist its deps (sucrase), which kills
+   * the child and blocks `vite` at startup. Allow disabling it explicitly so
+   * the app dev server can run without the MCP sidecar.
+   */
+  const disabled = process.env.OPENPENCIL_AUTOMATION_DISABLED === '1'
   let child: ReturnType<typeof spawn> | null = null
   let lifecycle = Promise.resolve()
   let configuration: DevMCPConfiguration = {
@@ -185,6 +192,7 @@ export function automationPlugin(
   }
 
   async function startChild(): Promise<void> {
+    if (disabled) return
     const runtimeDir = join(tmpdir(), 'open-pencil-mcp', safeRuntimeId(options.runtimeId))
     await mkdir(runtimeDir, { recursive: true, mode: 0o700 })
     const socketPath = platformHasUnixSockets() ? join(runtimeDir, 'mcp.sock') : null
@@ -231,7 +239,7 @@ export function automationPlugin(
       if (child === spawned) child = null
     })
 
-    await waitForAutomationHealth(options.browserURL)
+    if (!disabled) await waitForAutomationHealth(options.browserURL)
   }
 
   async function restartChild(nextConfiguration: DevMCPConfiguration): Promise<void> {

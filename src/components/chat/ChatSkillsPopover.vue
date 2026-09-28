@@ -32,14 +32,7 @@ function openSettings() {
         :class="activeAISkills.length > 0 ? 'text-surface' : 'text-muted'"
         :aria-label="`AI Skills: ${activeAISkills.length} active`"
       >
-        <icon-lucide-wand-2 class="size-3 text-accent" />
-        <span class="hidden sm:inline">Skills</span>
-        <span
-          class="flex size-3.5 items-center justify-center rounded-full text-[9px] font-semibold"
-          :class="activeAISkills.length > 0 ? 'bg-accent text-white' : 'bg-muted/20 text-muted'"
-        >
-          {{ activeAISkills.length }}
-        </span>
+        <icon-lucide-wand-2 class="size-3.5 text-accent" />
       </button>
     </PopoverTrigger>
 

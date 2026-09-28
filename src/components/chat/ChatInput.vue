@@ -2,24 +2,22 @@
 import { computed } from 'vue'
 
 import { ACP_AGENTS } from '@open-pencil/core/constants'
-import { useI18n, useSelectionState } from '@open-pencil/vue'
+import { useSelectionState } from '@open-pencil/vue'
 
 import { MAX_IMAGE_ATTACHMENTS } from '@/app/ai/attachment/image/types'
 import type { ChatSubmission } from '@/app/ai/chat/submission/types'
 import { useAIChat } from '@/app/ai/chat/use'
-import { designModelProfile } from '@/app/ai/models'
+import { designModelProfile, resolveAIModelRole } from '@/app/ai/models'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import ChatNodePreview from '@/components/chat/ChatNodePreview.vue'
 import ChatProfileSelect from '@/components/chat/ChatProfileSelect.vue'
 import ChatSkillsPopover from '@/components/chat/ChatSkillsPopover.vue'
 import { useAttachmentDrafts } from '@/components/chat/input/useAttachments'
-import IconButton from '@/components/ui/button/IconButton.vue'
 import { useTextareaAutosize } from '@vueuse/core'
 import { ref } from 'vue'
 
 const { providerID, providerDef, modelID, customModelID } = useAIChat()
 const { editor, selectedIds } = useSelectionState()
-const { ai } = useI18n()
 
 const { status, disabled = false } = defineProps<{
   status: 'ready' | 'submitted' | 'streaming' | 'error'
@@ -46,7 +44,6 @@ const {
   removeImage,
   removeNode: removeReferencedNode,
   toggleSelection: toggleCurrentSelection,
-  handlePaste,
   takeSubmission
 } = attachments
 
@@ -81,6 +78,8 @@ const selectedProfileName = computed(
   () => designModelProfile.value?.name ?? selectedModelName.value
 )
 
+const hasVisionModel = computed(() => resolveAIModelRole('vision') !== null)
+
 function handleInputKeydown(event: KeyboardEvent) {
   if (event.code !== 'Enter' || event.shiftKey || event.isComposing) return
   event.preventDefault()
@@ -93,7 +92,7 @@ function handleSubmit(event: Event) {
   if (isStreaming.value) return
   const text = input.value.trim()
   if (!text) return
-  emit('submit', takeSubmission({ modelText: text, displayText: text, images: [], nodes: [] }))
+  emit('submit', takeSubmission(text))
   input.value = ''
   triggerResize()
 }
@@ -197,23 +196,27 @@ function handleSubmit(event: Event) {
           v-else
           class="flex size-7 items-center justify-center rounded-lg bg-[#3B82F6] text-white transition-colors hover:bg-[#2563EB] disabled:opacity-40"
           :disabled="!input.trim()"
-          @click="handleSubmit($event as any)"
+          @click="handleSubmit"
         >
           <icon-lucide-send class="size-3.5" />
         </button>
       </div>
     </div>
 
-    <!-- Bottom actions -->
-    <div class="flex items-center gap-2">
-      <button class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5 text-[11px] text-[#9CA3AF] transition-colors hover:bg-[#252830] hover:text-[#F5F7FA]">
-        <icon-lucide-lightbulb class="size-3.5 text-[#FCD34D]" />
-        <span>Smart suggestions</span>
-      </button>
-      <button class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5 text-[11px] text-[#9CA3AF] transition-colors hover:bg-[#252830] hover:text-[#F5F7FA]">
-        <icon-lucide-mouse-pointer-2 class="size-3.5" />
-        <span>Use selected element</span>
+    <!-- Vision warning -->
+    <div
+      v-if="images.length > 0 && !hasVisionModel"
+      class="flex items-center gap-2 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-2 text-[11px] text-[#FCD34D]"
+    >
+      <icon-lucide-alert-triangle class="size-3.5 shrink-0" />
+      <span class="flex-1">No vision model configured — images won't be analyzed.</span>
+      <button
+        class="shrink-0 font-medium underline underline-offset-2 transition-colors hover:text-[#FDE68A]"
+        @click="openSettingsDialog('ai')"
+      >
+        Settings
       </button>
     </div>
+
   </div>
 </template>

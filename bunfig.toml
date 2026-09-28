@@ -5,3 +5,5 @@
 # tests/helpers/mcp/discovery-isolation.ts for the rationale.
 [test]
 preload = ["./tests/helpers/mcp/discovery-isolation.ts"]
+[install]
+backend = "copyfile"

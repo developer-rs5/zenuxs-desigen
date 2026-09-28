@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type { Chat } from '@ai-sdk/vue'
-import { useClipboard } from '@vueuse/core'
 import type { UIMessage } from 'ai'
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuRoot,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from 'reka-ui'
 import { computed, markRaw, ref, shallowRef, watch } from 'vue'
 
 import { useI18n } from '@open-pencil/vue'
 
-import { getACPDebugText, hasACPDebugEntries } from '@/app/ai/acp/transport'
-import { chatDocumentId } from '@/app/ai/chat/history/document'
 import { useChatSubmission } from '@/app/ai/chat/submission/use'
 import { useAIChat } from '@/app/ai/chat/use'
 import { copyChatLog } from '@/app/ai/debug'
@@ -19,15 +24,11 @@ import { toast } from '@/app/shell/ui'
 import { activeTab } from '@/app/tabs'
 import AiCopilotEmptyState from '@/components/chat/AiCopilotEmptyState.vue'
 import ACPPermissionDialog from '@/components/chat/ACPPermissionDialog.vue'
-import ChatHistory from '@/components/chat/ChatHistory.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ChatTranscript from '@/components/chat/ChatTranscript.vue'
 import ProviderSetup from '@/components/chat/ProviderSetup.vue'
 
-const IS_DEV = import.meta.env.DEV
-
 const { isConfigured, ensureChat, history, chatFailure, clearChatFailure } = useAIChat()
-const { copy } = useClipboard()
 const { ai } = useI18n()
 const notifications = useNotificationMessages()
 
@@ -63,15 +64,6 @@ void ensureChat()
   })
 
 const messages = computed(() => chat.value?.messages ?? history.messages.value)
-const historyOptions = computed(() => {
-  const current = history.current.value
-  const rows = [...history.conversations.value]
-  if (current && !rows.some((row) => row.id === current.id)) rows.unshift(current)
-  return rows.map((conversation) => ({
-    ...conversation,
-    available: conversation.documentId === chatDocumentId(getActiveEditorStore())
-  }))
-})
 const agentHistoryReadOnly = computed(
   () => !chat.value && messages.value.length > 0 && history.current.value?.backend !== 'direct'
 )
@@ -90,12 +82,29 @@ async function historyAction(action: () => Promise<unknown>) {
   }
 }
 
-async function renameConversation(id: string, title: string) {
+const renamingId = ref<string | null>(null)
+const renameDraft = ref('')
+
+function startRename(id: string, currentTitle: string) {
+  renamingId.value = id
+  renameDraft.value = currentTitle
+}
+
+async function commitRename() {
+  const id = renamingId.value
+  if (!id) return
+  const next = renameDraft.value.trim()
+  renamingId.value = null
+  if (!next) return
   try {
-    await history.rename(id, title)
+    await history.rename(id, next)
   } catch {
     toast.error(ai.value.chatHistoryFailed)
   }
+}
+
+function cancelRename() {
+  renamingId.value = null
 }
 
 const failureMessage = computed(() => {
@@ -186,12 +195,6 @@ async function copyDiagnostics(operation: () => Promise<void>) {
 async function handleCopyDebug() {
   await copyDiagnostics(() => copyChatLog(messages.value, chatFailure.value))
 }
-
-async function handleCopyACPLog() {
-  const text = getACPDebugText()
-  if (!text) return
-  await copyDiagnostics(() => copy(text))
-}
 </script>
 
 <template>
@@ -204,13 +207,62 @@ async function handleCopyACPLog() {
           <span class="text-[14px] font-semibold text-[#F5F7FA]">Zenux Ai</span>
         </div>
         <div class="flex items-center gap-1">
-          <button class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]">
-            <icon-lucide-plus class="size-3" />
-            <span>New chat</span>
+          <button
+            class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
+            title="New chat"
+            @click="historyAction(() => history.newChat())"
+          >
+            <icon-lucide-plus class="size-4" />
           </button>
-          <button class="flex size-6 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]">
-            <icon-lucide-ellipsis class="size-3.5" />
-          </button>
+          <DropdownMenuRoot v-if="history.current.value">
+            <DropdownMenuTrigger
+              class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
+            >
+              <icon-lucide-ellipsis class="size-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuContent
+                align="end"
+                :side-offset="4"
+                class="z-50 min-w-[160px] rounded-xl border border-[#292D33] bg-[#1B1E22] p-1 shadow-xl"
+              >
+                <DropdownMenuItem
+              v-if="renamingId !== history.current.value?.id"
+              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
+              @click="startRename(history.current.value!.id, history.current.value!.title)"
+            >
+              <icon-lucide-pencil class="size-3.5 text-[#9CA3AF]" />
+              Rename
+            </DropdownMenuItem>
+
+            <div v-else class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5">
+              <input
+                v-model="renameDraft"
+                class="w-24 bg-transparent text-[12px] text-[#F5F7FA] outline-none"
+                placeholder="New name"
+                @keydown.enter="commitRename"
+                @keydown.esc="cancelRename"
+                @blur="commitRename"
+              />
+            </div>
+                <DropdownMenuItem
+                  class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
+                  @click="handleCopyDebug"
+                >
+                  <icon-lucide-copy class="size-3.5 text-[#9CA3AF]" />
+                  Copy chat log
+                </DropdownMenuItem>
+                <DropdownMenuSeparator class="my-1 h-px bg-[#292D33]" />
+                <DropdownMenuItem
+                  class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#EF4444] outline-none hover:bg-[#1E2126]"
+                  @click="historyAction(() => history.remove(history.current.value!.id))"
+                >
+                  <icon-lucide-trash-2 class="size-3.5" />
+                  Delete chat
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenuPortal>
+          </DropdownMenuRoot>
         </div>
       </div>
       <p class="mt-1 text-[11px] text-[#9CA3AF]">Your design partner, powered by AI.</p>

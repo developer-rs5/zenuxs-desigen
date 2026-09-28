@@ -2,7 +2,7 @@
 import { useHead } from '@unhead/vue'
 import { useEventListener } from '@vueuse/core'
 import { onMounted, onUnmounted, provide, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { startMCPRuntime, stopMCPRuntime } from '@/app/automation/mcp/runtime'
 import { exposeCollaborationActions } from '@/app/browser-bridge'
@@ -82,7 +82,11 @@ async function bindAssociatedFileOpen(): Promise<void> {
 }
 
 onMounted(async () => {
-  await startMCPRuntime(getActiveStore)
+  try {
+    await startMCPRuntime(getActiveStore)
+  } catch (error) {
+    console.warn('[MCP] Runtime unavailable:', error instanceof Error ? error.message : error)
+  }
 
   try {
     await bindAssociatedFileOpen()
