@@ -147,5 +147,7 @@
   "reasoningCollapsed": "Standardmäßig eingeklappt",
   "reasoningWhileThinking": "Beim Nachdenken ausklappen",
   "reasoningExpanded": "Standardmäßig ausgeklappt",
-  "jumpToLatest": "Zum neuesten Beitrag"
+  "jumpToLatest": "Zum neuesten Beitrag",
+  "chatAgentImagesUnsupported": "Dieser Agent empfängt nur Text, daher wurden die angehängten Bilder nicht gesendet. Wechsle zu einem direkten Modell, um Referenzbilder zu verwenden.",
+  "chatModelImagesUnsupported": "Das ausgewählte Design-Modell kann keine Bilder lesen, daher wurde der Anhang nicht gesendet. Weise in den Einstellungen ein Modell mit Bildunterstützung zu."
 }

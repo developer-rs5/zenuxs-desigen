@@ -79,10 +79,14 @@ const splitterStyles = tv(splitterTheme)({ direction: 'vertical' })
         >
           <span class="text-[11px] font-semibold text-surface">{{ panels.layers }}</span>
           <div class="flex items-center gap-0.5">
-            <button class="flex size-5 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface">
+            <button
+              class="flex size-5 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+            >
               <icon-lucide-search class="size-3" />
             </button>
-            <button class="flex size-5 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface">
+            <button
+              class="flex size-5 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+            >
               <icon-lucide-plus class="size-3" />
             </button>
           </div>

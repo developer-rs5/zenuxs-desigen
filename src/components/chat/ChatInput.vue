@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useTextareaAutosize } from '@vueuse/core'
 import { computed } from 'vue'
+import { ref } from 'vue'
 
 import { ACP_AGENTS } from '@open-pencil/core/constants'
 import { useSelectionState } from '@open-pencil/vue'
@@ -13,8 +15,6 @@ import ChatNodePreview from '@/components/chat/ChatNodePreview.vue'
 import ChatProfileSelect from '@/components/chat/ChatProfileSelect.vue'
 import ChatSkillsPopover from '@/components/chat/ChatSkillsPopover.vue'
 import { useAttachmentDrafts } from '@/components/chat/input/useAttachments'
-import { useTextareaAutosize } from '@vueuse/core'
-import { ref } from 'vue'
 
 const { providerID, providerDef, modelID, customModelID } = useAIChat()
 const { editor, selectedIds } = useSelectionState()
@@ -114,7 +114,10 @@ function handleSubmit(event: Event) {
         <span class="min-w-0 flex-1 truncate text-[10px] text-[#F5F7FA]">
           {{ node.name || node.type }}
         </span>
-        <button class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]" @click="removeReferencedNode(node.id)">
+        <button
+          class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]"
+          @click="removeReferencedNode(node.id)"
+        >
           <icon-lucide-x class="size-3" />
         </button>
       </div>
@@ -123,16 +126,27 @@ function handleSubmit(event: Event) {
         :key="image.previewURL"
         class="flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-[#292D33] bg-[#1B1E22] p-1.5"
       >
-        <img :src="image.previewURL" :alt="image.file.name" class="size-8 shrink-0 rounded border border-[#292D33] object-cover" />
-        <span class="min-w-0 flex-1 truncate text-[10px] text-[#F5F7FA]">{{ image.file.name }}</span>
-        <button class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]" @click="removeImage(index)">
+        <img
+          :src="image.previewURL"
+          :alt="image.file.name"
+          class="size-8 shrink-0 rounded border border-[#292D33] object-cover"
+        />
+        <span class="min-w-0 flex-1 truncate text-[10px] text-[#F5F7FA]">{{
+          image.file.name
+        }}</span>
+        <button
+          class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]"
+          @click="removeImage(index)"
+        >
           <icon-lucide-x class="size-3" />
         </button>
       </div>
     </div>
 
     <!-- Input area -->
-    <div class="flex flex-col rounded-xl border border-[#292D33] bg-[#1B1E22] transition-colors focus-within:border-[#3B82F6]/50">
+    <div
+      class="flex flex-col rounded-xl border border-[#292D33] bg-[#1B1E22] transition-colors focus-within:border-[#3B82F6]/50"
+    >
       <textarea
         ref="textarea"
         v-model="input"
@@ -217,6 +231,5 @@ function handleSubmit(event: Event) {
         Settings
       </button>
     </div>
-
   </div>
 </template>

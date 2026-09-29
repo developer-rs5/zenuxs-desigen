@@ -15,7 +15,11 @@ import {
 import { snapshotNode } from '@/app/ai/attachment/node/snapshot'
 import { setMessageAttachments } from '@/app/ai/attachment/presentation/store'
 import { setVisibleMessageText } from '@/app/ai/chat/presentation'
-import type { ChatSubmission } from '@/app/ai/chat/submission/types'
+import {
+  designModelCapabilities,
+  resolveImageSupport
+} from '@/app/ai/chat/submission/image-support'
+import type { ChatSubmission, ImageSupport } from '@/app/ai/chat/submission/types'
 import type { EditorStore } from '@/app/editor/active-store'
 
 export type ChatInstance = Pick<Chat<UIMessage>, 'messages' | 'sendMessage' | 'stop'>
@@ -24,6 +28,9 @@ interface SubmissionMessages {
   openSettings: string
   requestFailed: string
   visionUnavailable: string
+  openProviderSettingsAction?: string
+  agentImagesUnsupported?: string
+  modelImagesUnsupported?: string
 }
 
 interface SubmissionOptions {
@@ -32,6 +39,9 @@ interface SubmissionOptions {
   flush?: () => Promise<void>
   clearFailure: () => void
   getEditor: () => EditorStore
+  providerID: () => string
+  /** Overridable so the routing decision can be exercised without configured credentials. */
+  imageSupport?: () => ImageSupport
   messages: Ref<SubmissionMessages>
   reportError: (message: string, action?: { label: string; run: () => void }) => void
   openModelSettings: () => void
@@ -75,7 +85,10 @@ export function useChatSubmission(options: SubmissionOptions) {
         submission.images,
         preparedImages
       )
-      setMessageAttachments(messageId, [...nodeAttachments, ...normalizedImages])
+      setMessageAttachments(messageId, [
+        ...nodeAttachments.filter((attachment) => attachment !== null),
+        ...normalizedImages
+      ])
       await currentChat
         .sendMessage({
           messageId,
@@ -120,12 +133,41 @@ export function useChatSubmission(options: SubmissionOptions) {
       return
     }
 
+    const support = options.imageSupport
+      ? options.imageSupport()
+      : resolveImageSupport(options.providerID(), designModelCapabilities())
+    if (support.kind === 'unsupported') {
+      options.reportError(
+        support.reason === 'agent-transport'
+          ? (options.messages.value.agentImagesUnsupported ??
+              'This agent cannot read image attachments. Switch to a direct model to use reference images.')
+          : (options.messages.value.modelImagesUnsupported ??
+              'The selected Design model cannot read images. Assign a vision-capable model in Settings.')
+      )
+      await currentChat
+        .sendMessage({ messageId, text: submission.modelText })
+        .catch(() => undefined)
+      return
+    }
+
     const preparedImages = await Promise.all(
       submission.images.map((image) => prepareImageAttachment(image.file))
     )
     if (version !== operationVersion || options.chat.value !== currentChat) return
 
-    // Convert images to FileUIPart data URIs for direct model input
+    if (support.kind === 'vision-model') {
+      await sendWithVisionAnalysis(
+        currentChat,
+        submission,
+        messageId,
+        preparedImages,
+        nodeAttachments,
+        version
+      )
+      return
+    }
+
+    // Direct multimodal: the Design model receives the images as file parts.
     const imageFiles = preparedImages.map((image, index) => ({
       type: 'file' as const,
       mediaType: image.mediaType,
@@ -133,44 +175,51 @@ export function useChatSubmission(options: SubmissionOptions) {
       url: blobToDataUri(image.data, image.mediaType)
     }))
 
-    // Send images directly to the design model — skip Vision model middleman
     await currentChat
       .sendMessage({
         messageId,
         text: submission.modelText,
         files: imageFiles
       })
-      .catch((error: unknown) => {
-        // If direct image sending fails (model doesn't support images),
-        // fall back to Vision model analysis with text findings
-        if (version !== operationVersion || options.chat.value !== currentChat) return
-        void sendWithVisionAnalysis(
-          currentChat, submission, messageId, preparedImages, nodeAttachments, version
-        )
-      })
+      .catch(() => undefined)
   }
 
-function reportSubmissionError(error: unknown): void {
+  function reportSubmissionError(error: unknown): void {
     console.error('Chat error:', error)
     const errMessage = error instanceof Error ? error.message : String(error)
-    if (error instanceof VisionModelUnavailableError || /vision|image input|credential/i.test(errMessage)) {
-      options.reportError(options.messages.value.visionUnavailable || 'Configure a Vision-capable model (GPT-4o, Claude 3.5, Gemini) and check API key in Settings.', {
-        label: options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
-        run: options.openModelSettings
-      })
+    if (
+      error instanceof VisionModelUnavailableError ||
+      /vision|image input|credential/i.test(errMessage)
+    ) {
+      options.reportError(
+        options.messages.value.visionUnavailable ||
+          'Configure a Vision-capable model (GPT-4o, Claude 3.5, Gemini) and check API key in Settings.',
+        {
+          label:
+            options.messages.value.openProviderSettingsAction ||
+            options.messages.value.openSettings,
+          run: options.openModelSettings
+        }
+      )
       return
     }
     if (/401|unauthorized|api.key|invalid_api_key|authentication/i.test(errMessage)) {
       options.reportError('Authentication failed. Check your API key in Settings.', {
-        label: options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
+        label:
+          options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
         run: options.openModelSettings
       })
       return
     }
-    options.reportError(options.messages.value.requestFailed || 'The model request failed. Check the provider settings and try again.', {
-      label: options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
-      run: options.openModelSettings
-    })
+    options.reportError(
+      options.messages.value.requestFailed ||
+        'The model request failed. Check the provider settings and try again.',
+      {
+        label:
+          options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
+        run: options.openModelSettings
+      }
+    )
   }
 
   async function submit(submission: ChatSubmission): Promise<void> {

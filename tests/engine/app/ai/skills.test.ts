@@ -40,7 +40,9 @@ describe('AI Skills System', () => {
     expect(tasteSkill?.isDefault).toBe(true)
     expect(tasteSkill?.sourceUrl).toBe('https://github.com/Leonxlnx/taste-skill')
     expect(tasteSkill?.tags).toContain('anti-slop')
-    expect(tasteSkill?.promptContent).toContain('=== TASTE SKILL (ANTI-SLOP FRONTEND FRAMEWORK) ===')
+    expect(tasteSkill?.promptContent).toContain(
+      '=== TASTE SKILL (ANTI-SLOP FRONTEND FRAMEWORK) ==='
+    )
   })
 
   it('computes active skills correctly', () => {

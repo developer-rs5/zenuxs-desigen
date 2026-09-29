@@ -25,9 +25,9 @@ import EditorWorkspace from '@/components/editor/EditorWorkspace.vue'
 import FontStatusBanner from '@/components/font-status/FontStatusBanner.vue'
 import HomeWorkspace from '@/components/home/HomeWorkspace.vue'
 import SafariBanner from '@/components/SafariBanner.vue'
-import TopBar from '@/components/TopBar.vue'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog.vue'
 import TabBar from '@/components/TabBar.vue'
+import TopBar from '@/components/TopBar.vue'
 
 const route = useRoute()
 const createdInitialTab = tabCount() === 0

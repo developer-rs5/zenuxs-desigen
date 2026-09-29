@@ -1,54 +1,59 @@
-import { currentUser } from '@/app/auth/zenuxs'
+/**
+ * Remote design-document storage.
+ *
+ * Ownership is resolved by the backend from the session cookie; the previous
+ * version sent `ownerSub` in the query string, a header, and the body, and
+ * listed *all* documents when no subject was available.
+ */
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'
+import { apiRequest, SessionRequestError } from '@/app/auth/api'
 
 export interface RemoteServerDocumentHeader {
   documentId: string
   ownerSub: string
   title: string
   version: number
-  previewDataUrl?: string
+  previewDataURL?: string
   updatedAt: string
 }
 
+function isUnauthorized(error: unknown): boolean {
+  return error instanceof SessionRequestError && (error.status === 401 || error.status === 403)
+}
+
+/** Lists the signed-in user's documents. Throws when the session has ended. */
 export async function listRemoteDocuments(): Promise<RemoteServerDocumentHeader[]> {
-  const sub = currentUser.value?.sub || ''
-  const url = sub
-    ? `${BACKEND_URL}/api/documents?ownerSub=${encodeURIComponent(sub)}`
-    : `${BACKEND_URL}/api/documents`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`HTTP ${res.status} listing documents`)
-  const data = await res.json()
-  return data.documents || []
+  try {
+    const result = await apiRequest<{ documents: RemoteServerDocumentHeader[] }>('/api/documents')
+    return result.documents ?? []
+  } catch (error) {
+    if (isUnauthorized(error)) return []
+    throw error
+  }
 }
 
+/** Fetches one of the signed-in user's documents. */
 export async function fetchRemoteDocument(documentId: string): Promise<Record<string, unknown>> {
-  const res = await fetch(`${BACKEND_URL}/api/documents/${encodeURIComponent(documentId)}`)
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching document`)
-  const data = await res.json()
-  return data.document?.payload || {}
+  const result = await apiRequest<{ document: { payload: Record<string, unknown> } }>(
+    `/api/documents/${encodeURIComponent(documentId)}`
+  )
+  return result.document?.payload ?? {}
 }
 
+/** Saves a document owned by the signed-in user. */
 export async function saveRemoteDocument(
   documentId: string,
   title: string,
   payload: Record<string, unknown>,
-  previewDataUrl?: string
+  previewDataURL?: string
 ): Promise<void> {
-  const sub = currentUser.value?.sub || 'anonymous'
-  const res = await fetch(`${BACKEND_URL}/api/documents`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-user-sub': sub
-    },
-    body: JSON.stringify({
-      documentId,
-      title,
-      payload,
-      previewDataUrl,
-      ownerSub: sub
-    })
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} saving document`)
+  const body: Record<string, unknown> = { documentId, title, payload }
+  if (previewDataURL !== undefined) body.previewDataURL = previewDataURL
+
+  await apiRequest('/api/documents', { method: 'POST', body })
+}
+
+/** Deletes a document owned by the signed-in user. */
+export async function deleteRemoteDocument(documentId: string): Promise<void> {
+  await apiRequest(`/api/documents/${encodeURIComponent(documentId)}`, { method: 'DELETE' })
 }

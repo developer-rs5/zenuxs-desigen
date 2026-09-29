@@ -11,31 +11,34 @@ interface ImageInput {
   offsetY?: number
 }
 
-const props = withDefaults(defineProps<{
-  images?: (string | ImageInput)[]
-  slideWidth?: number
-  slideHeight?: number
-  spacing?: number
-  direction?: 'right' | 'left'
-  smoothness?: number
-  radius?: number
-  dim?: number
-  background?: string
-  sensitivity?: number
-  loop?: boolean
-}>(), {
-  images: () => [],
-  slideWidth: 400,
-  slideHeight: 400,
-  spacing: 2,
-  direction: 'right',
-  smoothness: 10,
-  radius: 16,
-  dim: 10,
-  background: '#000000',
-  sensitivity: 5,
-  loop: true
-})
+const props = withDefaults(
+  defineProps<{
+    images?: (string | ImageInput)[]
+    slideWidth?: number
+    slideHeight?: number
+    spacing?: number
+    direction?: 'right' | 'left'
+    smoothness?: number
+    radius?: number
+    dim?: number
+    background?: string
+    sensitivity?: number
+    loop?: boolean
+  }>(),
+  {
+    images: () => [],
+    slideWidth: 400,
+    slideHeight: 400,
+    spacing: 2,
+    direction: 'right',
+    smoothness: 10,
+    radius: 16,
+    dim: 10,
+    background: '#000000',
+    sensitivity: 5,
+    loop: true
+  }
+)
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const nodes = ref<(HTMLDivElement | null)[]>([])
@@ -67,7 +70,7 @@ function offsetOf(item: string | ImageInput): number {
 
 const source = computed<Slide[]>(() => {
   const resolved: Slide[] = []
-  for (const item of (props.images ?? [])) {
+  for (const item of props.images ?? []) {
     const src = imageOf(item)
     if (src) resolved.push({ src, offsetY: offsetOf(item) })
   }
@@ -226,7 +229,11 @@ onMounted(() => {
     <div
       v-for="(slide, i) in slides"
       :key="i"
-      :ref="(el: any) => { nodes[i] = el as HTMLDivElement }"
+      :ref="
+        (el: any) => {
+          nodes[i] = el as HTMLDivElement
+        }
+      "
       class="slider-slide"
       :style="{
         width: slideWidth + 'px',

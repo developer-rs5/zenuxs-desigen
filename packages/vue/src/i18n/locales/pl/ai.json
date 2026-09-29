@@ -147,5 +147,7 @@
   "reasoningCollapsed": "Domyślnie zwinięte",
   "reasoningWhileThinking": "Rozwijaj podczas rozumowania",
   "reasoningExpanded": "Domyślnie rozwinięte",
-  "jumpToLatest": "Przejdź do najnowszej wiadomości"
+  "jumpToLatest": "Przejdź do najnowszej wiadomości",
+  "chatAgentImagesUnsupported": "Ten agent przyjmuje tylko tekst, więc załączone obrazy nie zostały wysłane. Przełącz się na model bezpośredni, aby używać obrazów referencyjnych.",
+  "chatModelImagesUnsupported": "Wybrany model projektu nie odczytuje obrazów, więc załącznik nie został wysłany. Przypisz model z obsługą obrazu w ustawieniach."
 }

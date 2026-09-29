@@ -147,5 +147,7 @@
   "reasoningCollapsed": "既定で折りたたむ",
   "reasoningWhileThinking": "思考中に展開",
   "reasoningExpanded": "既定で展開",
-  "jumpToLatest": "最新へ移動"
+  "jumpToLatest": "最新へ移動",
+  "chatAgentImagesUnsupported": "このエージェントはテキストのみを受け取るため、添付画像は送信されませんでした。参照画像を使用するには直接モデルに切り替えてください。",
+  "chatModelImagesUnsupported": "選択したデザインモデルは画像を読めないため、添付ファイルは送信されませんでした。設定で画像対応モデルを割り当ててください。"
 }

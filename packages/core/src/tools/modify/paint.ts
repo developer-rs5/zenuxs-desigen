@@ -122,7 +122,8 @@ export const setImageFill = defineTool({
 
     const targetUrl =
       url ||
-      (typeof image_data === 'string' && (image_data.startsWith('http://') || image_data.startsWith('https://'))
+      (typeof image_data === 'string' &&
+      (image_data.startsWith('http://') || image_data.startsWith('https://'))
         ? image_data
         : undefined)
 
@@ -131,17 +132,23 @@ export const setImageFill = defineTool({
       try {
         const response = await fetch(targetUrl)
         if (!response.ok) {
-          return { error: `Failed to download image from URL (HTTP ${response.status}): ${targetUrl}` }
+          return {
+            error: `Failed to download image from URL (HTTP ${response.status}): ${targetUrl}`
+          }
         }
         bytes = new Uint8Array(await response.arrayBuffer())
       } catch (err) {
-        return { error: `Failed to fetch image from URL: ${err instanceof Error ? err.message : String(err)}` }
+        return {
+          error: `Failed to fetch image from URL: ${err instanceof Error ? err.message : String(err)}`
+        }
       }
     } else if (image_data) {
       try {
         bytes = decodeBase64(image_data)
       } catch (err) {
-        return { error: `Invalid base64 image data: ${err instanceof Error ? err.message : String(err)}` }
+        return {
+          error: `Invalid base64 image data: ${err instanceof Error ? err.message : String(err)}`
+        }
       }
     } else {
       return { error: 'Either "url" or "image_data" must be provided.' }

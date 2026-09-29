@@ -7,3 +7,11 @@ export interface ChatSubmission {
   images: ImageAttachmentDraft[]
   nodes: ReferencedNode[]
 }
+
+export type ImageSupportReason = 'agent-transport' | 'no-vision-capability'
+
+/** How the active Design model can consume attached images. */
+export type ImageSupport =
+  | { kind: 'direct' }
+  | { kind: 'vision-model' }
+  | { kind: 'unsupported'; reason: ImageSupportReason }

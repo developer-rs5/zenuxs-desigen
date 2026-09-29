@@ -55,7 +55,10 @@ describe('set_image_fill tool', () => {
 
   test('returns error for non-existent node', async () => {
     const { figma } = setup()
-    const result = (await tool.execute(figma, { id: 'nonexistent', image_data: PNG_MAGIC.toBase64() })) as {
+    const result = (await tool.execute(figma, {
+      id: 'nonexistent',
+      image_data: PNG_MAGIC.toBase64()
+    })) as {
       error: string
     }
     expect(result.error).toContain('not found')
@@ -71,7 +74,10 @@ describe('set_image_fill tool', () => {
       id: string
     }
 
-    const result = (await tool.execute(figma, { id: node.id, image_data: PNG_MAGIC.toBase64() })) as {
+    const result = (await tool.execute(figma, {
+      id: node.id,
+      image_data: PNG_MAGIC.toBase64()
+    })) as {
       scaleMode: string
     }
     expect(result.scaleMode).toBe('FILL')
@@ -117,7 +123,10 @@ describe('set_image_fill tool', () => {
       id: string
     }
 
-    const result = (await tool.execute(figma, { id: node.id, image_data: PNG_MAGIC.toBase64() })) as {
+    const result = (await tool.execute(figma, {
+      id: node.id,
+      image_data: PNG_MAGIC.toBase64()
+    })) as {
       imageHash: string
     }
     expect(graph.images.get(result.imageHash)).toEqual(PNG_MAGIC)

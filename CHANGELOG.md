@@ -46,6 +46,7 @@
 
 ### Fixed
 
+- Send attached reference images to a vision-capable Design model as real multimodal content instead of dropping them silently, and report a clear error when the selected model or agent cannot read images.
 - Preserve edited instance text, including cleared labels, when saving and reopening `.fig` files.
 - Honor `.pen` frame layout defaults and sizing and padding shorthands so imported auto-layout frames keep their computed dimensions and child positions. (#564)
 - Avoid macOS Keychain prompts during credential status checks and pause repeated credential access after failures until explicitly retried from Settings.

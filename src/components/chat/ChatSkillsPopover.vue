@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  PopoverContent,
-  PopoverPortal,
-  PopoverRoot,
-  PopoverTrigger
-} from 'reka-ui'
+import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { ref } from 'vue'
 
 import { activeAISkills, aiSkills, toggleAISkill } from '@/app/ai/skills'
@@ -14,7 +9,9 @@ import { usePopoverUI } from '@/components/ui/overlay/popover'
 import AppSwitch from '@/components/ui/toggle/AppSwitch.vue'
 
 const open = ref(false)
-const cls = usePopoverUI({ content: 'z-[100] w-72 rounded-xl border border-border bg-panel p-3 shadow-xl' })
+const cls = usePopoverUI({
+  content: 'z-[100] w-72 rounded-xl border border-border bg-panel p-3 shadow-xl'
+})
 
 function openSettings() {
   open.value = false
@@ -37,12 +34,7 @@ function openSettings() {
     </PopoverTrigger>
 
     <PopoverPortal>
-      <PopoverContent
-        align="start"
-        side="top"
-        :side-offset="6"
-        :class="cls.content"
-      >
+      <PopoverContent align="start" side="top" :side-offset="6" :class="cls.content">
         <div class="flex items-center justify-between border-b border-border pb-2">
           <div class="flex items-center gap-1.5">
             <icon-lucide-sparkles class="size-3.5 text-accent" />
@@ -60,7 +52,9 @@ function openSettings() {
             class="flex items-center justify-between gap-2 py-2"
           >
             <div class="flex min-w-0 flex-1 flex-col">
-              <span class="truncate text-xs font-medium text-surface">{{ skill.displayName || skill.name }}</span>
+              <span class="truncate text-xs font-medium text-surface">{{
+                skill.displayName || skill.name
+              }}</span>
               <span class="line-clamp-1 text-[10px] text-muted">{{ skill.description }}</span>
             </div>
             <AppSwitch
@@ -74,12 +68,7 @@ function openSettings() {
 
         <div class="mt-2 flex items-center justify-between border-t border-border pt-2 text-[11px]">
           <span class="text-[10px] text-muted">Taste Skill & UI/UX Pro Max</span>
-          <AppButton
-            variant="ghost"
-            size="xs"
-            class="h-6 text-[11px]"
-            @click="openSettings"
-          >
+          <AppButton variant="ghost" size="xs" class="h-6 text-[11px]" @click="openSettings">
             Settings
             <icon-lucide-arrow-right class="ml-1 size-3" />
           </AppButton>

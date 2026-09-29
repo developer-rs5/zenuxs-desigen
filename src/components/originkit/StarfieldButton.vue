@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 
-const props = withDefaults(defineProps<{
-  borderColor?: string
-  borderWidth?: number
-  faceBackground?: string
-  lightCount?: number
-  lightSize?: number
-  lightColor?: string
-  padding?: string
-  borderRadius?: string
-  as?: string
-}>(), {
-  borderColor: 'rgba(255,255,255,0.1)',
-  borderWidth: 1,
-  faceBackground: 'transparent',
-  lightCount: 20,
-  lightSize: 80,
-  lightColor: 'rgba(255,255,255,0.3)',
-  padding: '12px 24px',
-  borderRadius: '12px',
-  as: 'button'
-})
+const props = withDefaults(
+  defineProps<{
+    borderColor?: string
+    borderWidth?: number
+    faceBackground?: string
+    lightCount?: number
+    lightSize?: number
+    lightColor?: string
+    padding?: string
+    borderRadius?: string
+    as?: string
+  }>(),
+  {
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    faceBackground: 'transparent',
+    lightCount: 20,
+    lightSize: 80,
+    lightColor: 'rgba(255,255,255,0.3)',
+    padding: '12px 24px',
+    borderRadius: '12px',
+    as: 'button'
+  }
+)
 
 const emit = defineEmits<{
   click: [event: MouseEvent]
@@ -34,9 +37,21 @@ const isPressed = ref(false)
 const animProgress = ref(0)
 
 let raf = 0
-let stars: Array<{ x: number; y: number; size: number; speed: number; opacity: number; angle: number }> = []
+let stars: Array<{
+  x: number
+  y: number
+  size: number
+  speed: number
+  opacity: number
+  angle: number
+}> = []
 const canvasWidth = ref(0)
 const canvasHeight = ref(0)
+
+function handleMouseLeave() {
+  isHovered.value = false
+  isPressed.value = false
+}
 
 function initStars() {
   if (!canvasWidth.value || !canvasHeight.value) return
@@ -144,9 +159,15 @@ const faceStyle = computed(() => ({
   <div
     ref="containerRef"
     class="starfield-btn"
-    :style="{ position: 'relative', padding: '0', cursor: 'pointer', overflow: 'visible', userSelect: 'none' }"
+    :style="{
+      position: 'relative',
+      padding: '0',
+      cursor: 'pointer',
+      overflow: 'visible',
+      userSelect: 'none'
+    }"
     @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false; isPressed = false"
+    @mouseleave="handleMouseLeave"
     @mousedown="isPressed = true"
     @mouseup="isPressed = false"
     @click="emit('click', $event)"

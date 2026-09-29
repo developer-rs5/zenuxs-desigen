@@ -147,5 +147,7 @@
   "reasoningCollapsed": "默认折叠",
   "reasoningWhileThinking": "思考时展开",
   "reasoningExpanded": "默认展开",
-  "jumpToLatest": "跳转到最新消息"
+  "jumpToLatest": "跳转到最新消息",
+  "chatAgentImagesUnsupported": "该智能体只接收文本，附件图片未发送。使用参考图请切换为直连模型。",
+  "chatModelImagesUnsupported": "当前设计模型无法读取图片，附件未发送。请在设置中指定支持视觉的模型。"
 }

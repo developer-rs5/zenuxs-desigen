@@ -25,9 +25,15 @@ function normalizeStoredSkills(stored: unknown): AISkill[] {
     if (item && typeof item === 'object' && 'name' in item && typeof item.name === 'string') {
       const candidate = item as Partial<AISkill> & { name: string; id?: string }
       const identifier = candidate.id || candidate.name
-      if (candidate.isDefault || defaults.some((d) => d.id === identifier || d.name === identifier)) {
+      if (
+        candidate.isDefault ||
+        defaults.some((d) => d.id === identifier || d.name === identifier)
+      ) {
         storedMap.set(identifier, candidate)
-      } else if (typeof candidate.name === 'string' && typeof candidate.promptContent === 'string') {
+      } else if (
+        typeof candidate.name === 'string' &&
+        typeof candidate.promptContent === 'string'
+      ) {
         customSkills.push({
           id: candidate.id || generateSkillId(),
           name: candidate.name,

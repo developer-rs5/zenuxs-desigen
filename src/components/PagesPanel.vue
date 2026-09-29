@@ -87,9 +87,13 @@ function setupPageRowRef(
   <PageListRoot v-slot="{ pages, currentPageId, isDivider, actions }">
     <div data-test-id="pages-panel" :class="baseStyles.panel()">
       <div class="flex shrink-0 items-center justify-between px-3 py-2">
-        <span data-test-id="pages-header" class="text-[11px] font-semibold text-surface">{{ panels.pages }}</span>
+        <span data-test-id="pages-header" class="text-[11px] font-semibold text-surface">{{
+          panels.pages
+        }}</span>
         <div class="flex items-center gap-0.5">
-          <button class="flex size-5 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface">
+          <button
+            class="flex size-5 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+          >
             <icon-lucide-search class="size-3" />
           </button>
           <IconButton :label="panels.addPage" data-test-id="pages-add" @click="actions.add()">

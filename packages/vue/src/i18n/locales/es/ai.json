@@ -147,5 +147,7 @@
   "reasoningCollapsed": "Contraído por defecto",
   "reasoningWhileThinking": "Expandir al razonar",
   "reasoningExpanded": "Expandido por defecto",
-  "jumpToLatest": "Ir al último mensaje"
+  "jumpToLatest": "Ir al último mensaje",
+  "chatAgentImagesUnsupported": "Este agente solo recibe texto, por lo que las imágenes adjuntas no se enviaron. Cambia a un modelo directo para usar imágenes de referencia.",
+  "chatModelImagesUnsupported": "El modelo de diseño seleccionado no puede leer imágenes, por lo que no se envió el archivo adjunto. Asigna un modelo con capacidad de visión en Ajustes."
 }

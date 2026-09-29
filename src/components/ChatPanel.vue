@@ -22,13 +22,13 @@ import { useNotificationMessages } from '@/app/i18n/notifications'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { toast } from '@/app/shell/ui'
 import { activeTab } from '@/app/tabs'
-import AiCopilotEmptyState from '@/components/chat/AiCopilotEmptyState.vue'
 import ACPPermissionDialog from '@/components/chat/ACPPermissionDialog.vue'
+import AiCopilotEmptyState from '@/components/chat/AiCopilotEmptyState.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ChatTranscript from '@/components/chat/ChatTranscript.vue'
 import ProviderSetup from '@/components/chat/ProviderSetup.vue'
 
-const { isConfigured, ensureChat, history, chatFailure, clearChatFailure } = useAIChat()
+const { isConfigured, ensureChat, history, chatFailure, clearChatFailure, providerID } = useAIChat()
 const { ai } = useI18n()
 const notifications = useNotificationMessages()
 
@@ -39,10 +39,13 @@ const submission = useChatSubmission({
   flush: history.flush,
   clearFailure: clearChatFailure,
   getEditor: getActiveEditorStore,
+  providerID: () => providerID.value,
   messages: computed(() => ({
     openSettings: ai.value.openProviderSettingsAction,
     requestFailed: ai.value.chatRequestFailed,
-    visionUnavailable: ai.value.visionModelUnavailable
+    visionUnavailable: ai.value.visionModelUnavailable,
+    agentImagesUnsupported: ai.value.chatAgentImagesUnsupported,
+    modelImagesUnsupported: ai.value.chatModelImagesUnsupported
   })),
   reportError: toast.error,
   openModelSettings: () => openSettingsDialog('ai')
@@ -227,24 +230,24 @@ async function handleCopyDebug() {
                 class="z-50 min-w-[160px] rounded-xl border border-[#292D33] bg-[#1B1E22] p-1 shadow-xl"
               >
                 <DropdownMenuItem
-              v-if="renamingId !== history.current.value?.id"
-              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
-              @click="startRename(history.current.value!.id, history.current.value!.title)"
-            >
-              <icon-lucide-pencil class="size-3.5 text-[#9CA3AF]" />
-              Rename
-            </DropdownMenuItem>
+                  v-if="renamingId !== history.current.value?.id"
+                  class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
+                  @click="startRename(history.current.value!.id, history.current.value!.title)"
+                >
+                  <icon-lucide-pencil class="size-3.5 text-[#9CA3AF]" />
+                  Rename
+                </DropdownMenuItem>
 
-            <div v-else class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5">
-              <input
-                v-model="renameDraft"
-                class="w-24 bg-transparent text-[12px] text-[#F5F7FA] outline-none"
-                placeholder="New name"
-                @keydown.enter="commitRename"
-                @keydown.esc="cancelRename"
-                @blur="commitRename"
-              />
-            </div>
+                <div v-else class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5">
+                  <input
+                    v-model="renameDraft"
+                    class="w-24 bg-transparent text-[12px] text-[#F5F7FA] outline-none"
+                    placeholder="New name"
+                    @keydown.enter="commitRename"
+                    @keydown.esc="cancelRename"
+                    @blur="commitRename"
+                  />
+                </div>
                 <DropdownMenuItem
                   class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
                   @click="handleCopyDebug"

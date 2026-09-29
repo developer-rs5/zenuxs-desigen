@@ -34,8 +34,7 @@ export async function analyzeAttachedImages(
   if (runtime?.kind !== 'direct') throw new VisionModelUnavailableError()
 
   const content: Array<
-    | { type: 'text'; text: string }
-    | { type: 'file'; data: Uint8Array; mediaType: string }
+    { type: 'text'; text: string } | { type: 'file'; data: Uint8Array; mediaType: string }
   > = [
     {
       type: 'text',

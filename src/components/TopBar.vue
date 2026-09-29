@@ -1,18 +1,5 @@
 <script setup lang="ts">
 import { templateRef } from '@vueuse/core'
-import { ref, watch } from 'vue'
-
-import { useI18n } from '@open-pencil/vue'
-
-import { useEditorStore } from '@/app/editor/active-store'
-import { currentUser } from '@/app/auth/zenuxs'
-import { fetchRemoteSettings, pushRemoteSettings } from '@/app/settings/remote-sync'
-import { openSettingsDialog } from '@/app/settings/dialog'
-import { useDocumentNameRename } from '@/app/shell/menu/document-name'
-import { useAppTheme } from '@/app/shell/theme'
-import Tip from '@/components/ui/overlay/Tip.vue'
-import CollabSharePopover from '@/components/CollabPanel/CollabSharePopover.vue'
-import { provideCollabPanel } from '@/components/CollabPanel/context'
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,7 +8,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from 'reka-ui'
+import { ref, watch } from 'vue'
+
+import { useI18n } from '@open-pencil/vue'
+
+import { currentUser } from '@/app/auth/zenuxs'
+import { useEditorStore } from '@/app/editor/active-store'
+import { openSettingsDialog } from '@/app/settings/dialog'
+import { fetchRemoteSettings, pushRemoteSettings } from '@/app/settings/remote-sync'
+import { useDocumentNameRename } from '@/app/shell/menu/document-name'
+import { useAppTheme } from '@/app/shell/theme'
 import { toast } from '@/app/shell/ui'
+import CollabSharePopover from '@/components/CollabPanel/CollabSharePopover.vue'
+import { provideCollabPanel } from '@/components/CollabPanel/context'
+import Tip from '@/components/ui/overlay/Tip.vue'
 
 provideCollabPanel()
 
@@ -61,11 +61,15 @@ async function handleSync() {
   <div class="flex h-[48px] shrink-0 items-center border-b border-[#292D33] bg-[#17191C] px-4">
     <!-- Left: Logo + Brand + Beta -->
     <div class="flex items-center gap-2.5">
-      <div class="flex size-7 items-center justify-center rounded-lg bg-[#3B82F6] text-[12px] font-bold text-white">
+      <div
+        class="flex size-7 items-center justify-center rounded-lg bg-[#3B82F6] text-[12px] font-bold text-white"
+      >
         Z
       </div>
       <span class="text-[15px] font-semibold text-[#F5F7FA]">ZenuxsDesign</span>
-      <span class="rounded-full bg-[#3B82F6]/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#3B82F6]">
+      <span
+        class="rounded-full bg-[#3B82F6]/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#3B82F6]"
+      >
         BETA
       </span>
     </div>
@@ -122,7 +126,9 @@ async function handleSync() {
       </Tip>
 
       <Tip label="Preview">
-        <button class="flex size-8 items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]">
+        <button
+          class="flex size-8 items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
+        >
           <icon-lucide-play class="size-[18px]" />
         </button>
       </Tip>
@@ -168,7 +174,6 @@ async function handleSync() {
           </DropdownMenuContent>
         </DropdownMenuPortal>
       </DropdownMenuRoot>
-
     </div>
   </div>
 </template>

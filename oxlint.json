@@ -460,7 +460,9 @@
     {
       "files": [
         "packages/cli/src/**",
-        "packages/mcp/src/**"
+        "packages/mcp/src/**",
+        "packages/server/src/index.ts",
+        "packages/server/src/db/connection.ts"
       ],
       "rules": {
         "no-console": "off"
@@ -478,7 +480,8 @@
       "files": [
         "tests/e2e/perf/basic.spec.ts",
         "tests/e2e/viewport/zoom-pan.spec.ts",
-        "tests/engine/visual-*.ts"
+        "tests/engine/visual-*.ts",
+        "packages/server/tests/adversarial-repro.ts"
       ],
       "rules": {
         "no-console": "off"

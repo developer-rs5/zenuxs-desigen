@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<GlassIconProps>(), {
   depth: 32,
   size: 60,
   speed: 100,
-  direction: 'Clockwise',
+  direction: 'Clockwise'
 })
 
 const DUMMY_BACKDROP =
@@ -88,7 +88,7 @@ const DEFAULT_FONT: Required<FontValue> = {
   fontWeight: 700,
   fontStyle: 'normal',
   letterSpacing: 0,
-  lineHeight: 1.1,
+  lineHeight: 1.1
 }
 const DEFAULT_BACKDROP: Required<BackdropGroup> = {
   type: 'Image',
@@ -96,17 +96,30 @@ const DEFAULT_BACKDROP: Required<BackdropGroup> = {
   video: '',
   text: 'LIQUID\nGLASS',
   font: DEFAULT_FONT,
-  textColor: '#FFFFFF',
+  textColor: '#FFFFFF'
 }
 const DEFAULT_GLASS: Required<GlassGroup> = { tint: '#FFFFFF', chromatic: 25, frost: 50 }
-const DEFAULT_ORIENT: Required<OrientGroup> = { angleX: 0, angleY: 0, angleZ: 0, offsetX: 0, offsetY: 0 }
+const DEFAULT_ORIENT: Required<OrientGroup> = {
+  angleX: 0,
+  angleY: 0,
+  angleZ: 0,
+  offsetX: 0,
+  offsetY: 0
+}
 
-function parseColor(input: string | undefined, fallback: [number, number, number]): [number, number, number] {
+function parseColor(
+  input: string | undefined,
+  fallback: [number, number, number]
+): [number, number, number] {
   if (!input) return fallback
   const s = input.trim()
   if (s[0] === '#') {
     let h = s.slice(1)
-    if (h.length === 3 || h.length === 4) h = h.split('').map(c => c + c).join('')
+    if (h.length === 3 || h.length === 4)
+      h = h
+        .split('')
+        .map((c) => c + c)
+        .join('')
     if (h.length >= 6) {
       const r = parseInt(h.slice(0, 2), 16) / 255
       const g = parseInt(h.slice(2, 4), 16) / 255
@@ -117,7 +130,7 @@ function parseColor(input: string | undefined, fallback: [number, number, number
   }
   const m = s.match(/rgba?\(([^)]+)\)/i)
   if (m) {
-    const p = m[1].split(',').map(v => parseFloat(v))
+    const p = m[1].split(',').map((v) => parseFloat(v))
     if (p.length >= 3) return [p[0] / 255, p[1] / 255, p[2] / 255]
   }
   return fallback
@@ -145,17 +158,28 @@ function rotYX(yaw: number, pitch: number): Float32Array {
   const cx = Math.cos(pitch)
   const sx = Math.sin(pitch)
   const m = new Float32Array(9)
-  m[0] = cy; m[2] = -sy
-  m[3] = sy * sx; m[4] = cx; m[5] = cy * sx
-  m[6] = sy * cx; m[7] = -sx; m[8] = cy * cx
+  m[0] = cy
+  m[2] = -sy
+  m[3] = sy * sx
+  m[4] = cx
+  m[5] = cy * sx
+  m[6] = sy * cx
+  m[7] = -sx
+  m[8] = cy * cx
   return m
 }
 
 function transpose3(m: Float32Array): Float32Array {
   const o = new Float32Array(9)
-  o[0] = m[0]; o[1] = m[3]; o[2] = m[6]
-  o[3] = m[1]; o[4] = m[4]; o[5] = m[7]
-  o[6] = m[2]; o[7] = m[5]; o[8] = m[8]
+  o[0] = m[0]
+  o[1] = m[3]
+  o[2] = m[6]
+  o[3] = m[1]
+  o[4] = m[4]
+  o[5] = m[7]
+  o[6] = m[2]
+  o[7] = m[5]
+  o[8] = m[8]
   return o
 }
 
@@ -268,7 +292,8 @@ function bakeSDF(alpha: Uint8ClampedArray, w: number, h: number): Uint8Array {
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       let s = 0
-      for (let k = -2; k <= 2; k++) s += K[k + 2] * signed[y * w + Math.min(w - 1, Math.max(0, x + k))]
+      for (let k = -2; k <= 2; k++)
+        s += K[k + 2] * signed[y * w + Math.min(w - 1, Math.max(0, x + k))]
       tmp[y * w + x] = s
     }
   for (let y = 0; y < h; y++)
@@ -550,9 +575,13 @@ let live = {
   size: props.size,
   speed: props.speed,
   direction: props.direction,
-  bd: { ...DEFAULT_BACKDROP, ...(props.backdrop ?? {}), font: { ...DEFAULT_FONT, ...(props.backdrop?.font ?? {}) } },
+  bd: {
+    ...DEFAULT_BACKDROP,
+    ...(props.backdrop ?? {}),
+    font: { ...DEFAULT_FONT, ...(props.backdrop?.font ?? {}) }
+  },
   gl3: { ...DEFAULT_GLASS, ...(props.glass ?? {}) },
-  or: { ...DEFAULT_ORIENT, ...(props.orient ?? {}) },
+  or: { ...DEFAULT_ORIENT, ...(props.orient ?? {}) }
 }
 
 function syncLive() {
@@ -564,9 +593,13 @@ function syncLive() {
     size: props.size,
     speed: props.speed,
     direction: props.direction,
-    bd: { ...DEFAULT_BACKDROP, ...(props.backdrop ?? {}), font: { ...DEFAULT_FONT, ...(props.backdrop?.font ?? {}) } },
+    bd: {
+      ...DEFAULT_BACKDROP,
+      ...(props.backdrop ?? {}),
+      font: { ...DEFAULT_FONT, ...(props.backdrop?.font ?? {}) }
+    },
     gl3: { ...DEFAULT_GLASS, ...(props.glass ?? {}) },
-    or: { ...DEFAULT_ORIENT, ...(props.orient ?? {}) },
+    or: { ...DEFAULT_ORIENT, ...(props.orient ?? {}) }
   }
 }
 
@@ -579,7 +612,8 @@ onMounted(() => {
   const host: HTMLDivElement = hostEl
 
   const opts = { antialias: false, alpha: true, premultipliedAlpha: true }
-  const ctx = (canvas.getContext('webgl2', opts) || canvas.getContext('webgl', opts)) as WebGLRenderingContext | null
+  const ctx = (canvas.getContext('webgl2', opts) ||
+    canvas.getContext('webgl', opts)) as WebGLRenderingContext | null
   if (!ctx) return
   const gl: WebGLRenderingContext = ctx
 
@@ -590,7 +624,7 @@ onMounted(() => {
   const uPlatePass = {
     plate: gl.getUniformLocation(plateProg, 'uPlate'),
     fit: gl.getUniformLocation(plateProg, 'uPlateFit'),
-    res: gl.getUniformLocation(plateProg, 'uRes'),
+    res: gl.getUniformLocation(plateProg, 'uRes')
   }
   const u = {
     res: gl.getUniformLocation(glassProg, 'uRes'),
@@ -614,7 +648,7 @@ onMounted(() => {
     sdfUnits: gl.getUniformLocation(glassProg, 'uSdfUnits'),
     disp: gl.getUniformLocation(glassProg, 'uDisp'),
     frost: gl.getUniformLocation(glassProg, 'uFrost'),
-    tint: gl.getUniformLocation(glassProg, 'uTint'),
+    tint: gl.getUniformLocation(glassProg, 'uTint')
   }
   const aPlatePos = gl.getAttribLocation(plateProg, 'aPos')
   const aGlassPos = gl.getAttribLocation(glassProg, 'aPos')
@@ -630,7 +664,17 @@ onMounted(() => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 0]))
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([0, 0, 0, 0])
+    )
     return t
   }
   const plateTex = makeTex(gl.CLAMP_TO_EDGE)
@@ -680,7 +724,7 @@ onMounted(() => {
       const scale = Math.min(
         (SDF_MAX - SDF_PAD * 2) / Math.max(img.width, 1),
         (SDF_MAX - SDF_PAD * 2) / Math.max(img.height, 1),
-        1,
+        1
       )
       const iw = Math.max(1, Math.round(img.width * scale))
       const ih = Math.max(1, Math.round(img.height * scale))
@@ -1005,7 +1049,7 @@ onMounted(() => {
       u.center,
       (o.offsetX / 100) * halfFrame * screenAspect,
       floatY + (o.offsetY / 100) * halfFrame,
-      -camDist,
+      -camDist
     )
     gl.uniform1f(u.scale, scale)
     gl.uniform1f(u.boundR, boundR)
@@ -1061,7 +1105,7 @@ onUnmounted(() => {
       overflow: 'hidden',
       background,
       touchAction: 'none',
-      ...style,
+      ...style
     }"
   >
     <canvas

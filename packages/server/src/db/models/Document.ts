@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose'
+import mongoose, { type Document, Schema } from 'mongoose'
 
 export interface IDesignDocument extends Document {
   documentId: string
@@ -23,4 +23,7 @@ const DesignDocumentSchema = new Schema<IDesignDocument>(
   { timestamps: true }
 )
 
-export const DesignDocument = mongoose.model<IDesignDocument>('DesignDocument', DesignDocumentSchema)
+export const DesignDocument = mongoose.model<IDesignDocument>(
+  'DesignDocument',
+  DesignDocumentSchema
+)

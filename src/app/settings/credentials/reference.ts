@@ -27,3 +27,29 @@ export function credentialRef(
   credentialKey(reference)
   return reference
 }
+
+export interface ParsedCredentialKey {
+  integrationId: string
+  profileId: string
+  field: string
+}
+
+/**
+ * Parses a key produced by `credentialKey()` back into its reference.
+ *
+ * Returns `null` for anything that is not a well-formed current-format key, so
+ * callers can ignore unknown or hostile values instead of guessing.
+ */
+export function parseCredentialKey(key: string): ParsedCredentialKey | null {
+  const segments = key.split(':')
+  // Current format is `v1:<integration>:<profile>:<field>`.
+  if (segments.length !== 4) return null
+  const [version, integrationId, profileId, field] = segments as [string, string, string, string]
+  if (version !== 'v1') return null
+  if (
+    ![integrationId, profileId, field].every((segment) => CREDENTIAL_SEGMENT_PATTERN.test(segment))
+  ) {
+    return null
+  }
+  return { integrationId, profileId, field }
+}

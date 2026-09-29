@@ -1,81 +1,118 @@
-import { Router } from 'express'
+/**
+ * Document endpoints.
+ *
+ * Previously the owner was taken from `?ownerSub=` / `x-user-sub`, the list
+ * returned every document in the collection to an anonymous caller, and reads
+ * and deletes were keyed on `documentId` alone. Any visitor could therefore
+ * read, overwrite, or destroy another user's design.
+ *
+ * The owner is now taken exclusively from the verified session, and every query
+ * is scoped by it. A document owned by somebody else is reported as missing so
+ * the response does not confirm that the id exists.
+ */
+
+import { Router, type Response } from 'express'
+import * as v from 'valibot'
+
+import type { SessionService } from '../auth/session-service.js'
 import { DesignDocument } from '../db/models/Document.js'
+import { requireSubject, type AuthenticatedRequest } from '../middleware/auth.js'
+import { documentIdSchema, documentSaveSchema, formatIssues } from '../validation/schemas.js'
 
-export const documentsRouter = Router()
+export interface DocumentsRouterDeps {
+  sessions: SessionService
+}
 
-/**
- * GET /api/documents
- * List all documents for a given owner or all documents if unauthenticated/public
- */
-documentsRouter.get('/', async (req, res) => {
-  try {
-    const ownerSub = (req.query.ownerSub as string) || (req.headers['x-user-sub'] as string)
-    const query = ownerSub ? { ownerSub } : {}
-    const docs = await DesignDocument.find(query).sort({ updatedAt: -1 }).select('-payload')
-    return res.json({ success: true, documents: docs })
-  } catch (error) {
-    console.error('[Documents List Error]', error)
-    return res.status(500).json({ error: 'Failed to list documents' })
-  }
-})
+export function createDocumentsRouter(_deps: DocumentsRouterDeps): Router {
+  const router = Router()
 
-/**
- * GET /api/documents/:id
- * Retrieve full document payload by ID
- */
-documentsRouter.get('/:id', async (req, res) => {
-  try {
-    const doc = await DesignDocument.findOne({ documentId: req.params.id })
-    if (!doc) return res.status(404).json({ error: 'Document not found' })
-    return res.json({ success: true, document: doc })
-  } catch (error) {
-    console.error('[Document Get Error]', error)
-    return res.status(500).json({ error: 'Failed to get document' })
-  }
-})
+  /** GET /api/documents — lists only the caller's own documents. */
+  router.get('/', async (req: AuthenticatedRequest, res: Response) => {
+    const sub = requireSubject(req)
+    const documents = await DesignDocument.find({ ownerSub: sub })
+      .sort({ updatedAt: -1 })
+      .select('-payload')
+    res.json({ success: true, documents })
+  })
 
-/**
- * POST /api/documents
- * Create or save a design document
- */
-documentsRouter.post('/', async (req, res) => {
-  try {
-    const { documentId, title, payload, previewDataUrl, ownerSub } = req.body
-    if (!documentId || !payload) {
-      return res.status(400).json({ error: 'Missing documentId or payload' })
+  /** GET /api/documents/:id — reads a document the caller owns. */
+  router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+    const parsed = v.safeParse(documentIdSchema, req.params.id)
+    if (!parsed.success) {
+      res.status(404).json({ error: 'Document not found' })
+      return
+    }
+    const document = await DesignDocument.findOne({
+      documentId: parsed.output,
+      ownerSub: requireSubject(req)
+    })
+    if (!document) {
+      res.status(404).json({ error: 'Document not found' })
+      return
+    }
+    res.json({ success: true, document })
+  })
+
+  /**
+   * POST /api/documents — creates or updates a document owned by the caller.
+   *
+   * The upsert is scoped by owner as well as id, and an id already held by
+   * another user is refused rather than taken over.
+   */
+  router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+    const sub = requireSubject(req)
+    const parsed = v.safeParse(documentSaveSchema, req.body)
+    if (!parsed.success) {
+      res
+        .status(400)
+        .json({ error: 'Invalid document payload', detail: formatIssues(parsed.issues) })
+      return
+    }
+    const { documentId, title, payload, previewDataURL } = parsed.output
+
+    const existing = await DesignDocument.findOne({ documentId }).select('ownerSub').lean()
+    if (existing && existing.ownerSub !== sub) {
+      res.status(409).json({ error: 'Document id already in use' })
+      return
     }
 
-    const sub = ownerSub || (req.headers['x-user-sub'] as string) || 'anonymous'
-    const doc = await DesignDocument.findOneAndUpdate(
-      { documentId },
+    const fields: Record<string, unknown> = {
+      title: title ?? 'Untitled Document',
+      payload
+    }
+    // The API uses canonical `previewDataURL`; the stored field keeps its
+    // original name so existing documents remain readable.
+    if (previewDataURL !== undefined) fields.previewDataUrl = previewDataURL
+
+    const document = await DesignDocument.findOneAndUpdate(
+      { documentId, ownerSub: sub },
       {
-        documentId,
-        ownerSub: sub,
-        title: title || 'Untitled Document',
-        payload,
-        ...(previewDataUrl && { previewDataUrl }),
-        $inc: { version: 1 }
+        $set: fields,
+        $setOnInsert: { documentId, ownerSub: sub }
       },
-      { upsert: true, new: true }
-    )
+      { upsert: true, new: true, runValidators: true }
+    ).lean()
 
-    return res.json({ success: true, document: doc })
-  } catch (error) {
-    console.error('[Document Save Error]', error)
-    return res.status(500).json({ error: 'Failed to save document' })
-  }
-})
+    res.json({ success: true, document })
+  })
 
-/**
- * DELETE /api/documents/:id
- * Delete a document by ID
- */
-documentsRouter.delete('/:id', async (req, res) => {
-  try {
-    const result = await DesignDocument.deleteOne({ documentId: req.params.id })
-    return res.json({ success: true, deletedCount: result.deletedCount })
-  } catch (error) {
-    console.error('[Document Delete Error]', error)
-    return res.status(500).json({ error: 'Failed to delete document' })
-  }
-})
+  /** DELETE /api/documents/:id — deletes a document the caller owns. */
+  router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+    const parsed = v.safeParse(documentIdSchema, req.params.id)
+    if (!parsed.success) {
+      res.status(404).json({ error: 'Document not found' })
+      return
+    }
+    const result = await DesignDocument.deleteOne({
+      documentId: parsed.output,
+      ownerSub: requireSubject(req)
+    })
+    if (result.deletedCount === 0) {
+      res.status(404).json({ error: 'Document not found' })
+      return
+    }
+    res.json({ success: true, deletedCount: result.deletedCount })
+  })
+
+  return router
+}

@@ -147,5 +147,7 @@
   "reasoningCollapsed": "Replié par défaut",
   "reasoningWhileThinking": "Déplier pendant le raisonnement",
   "reasoningExpanded": "Déplié par défaut",
-  "jumpToLatest": "Aller au dernier message"
+  "jumpToLatest": "Aller au dernier message",
+  "chatAgentImagesUnsupported": "Cet agent ne reçoit que du texte, les images jointes n’ont donc pas été envoyées. Passez à un modèle direct pour utiliser des images de référence.",
+  "chatModelImagesUnsupported": "Le modèle de design sélectionné ne peut pas lire les images, la pièce jointe n’a donc pas été envoyée. Attribuez un modèle avec vision dans les paramètres."
 }

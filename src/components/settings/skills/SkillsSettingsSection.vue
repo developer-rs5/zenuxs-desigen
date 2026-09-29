@@ -69,16 +69,12 @@ function onSkillToggle(skill: AISkill, value: boolean) {
       <SettingsSectionHeader>
         AI Skills & Design Frameworks
         <template #description>
-          Active skills inject specialized design rules, anti-slop guidelines, and UI/UX intelligence into AI generation prompts.
+          Active skills inject specialized design rules, anti-slop guidelines, and UI/UX
+          intelligence into AI generation prompts.
         </template>
       </SettingsSectionHeader>
       <div class="flex items-center gap-2">
-        <AppButton
-          variant="outline"
-          size="xs"
-          class="text-xs"
-          @click="resetAISkillsToDefaults"
-        >
+        <AppButton variant="outline" size="xs" class="text-xs" @click="resetAISkillsToDefaults">
           <icon-lucide-rotate-ccw class="mr-1 size-3" />
           Reset
         </AppButton>
@@ -175,7 +171,9 @@ function onSkillToggle(skill: AISkill, value: boolean) {
         <div class="flex items-start justify-between gap-3">
           <div class="flex min-w-0 flex-1 flex-col gap-1">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-xs font-semibold text-surface">{{ skill.displayName || skill.name }}</span>
+              <span class="text-xs font-semibold text-surface">{{
+                skill.displayName || skill.name
+              }}</span>
               <span
                 v-if="skill.isDefault"
                 class="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent"
@@ -188,10 +186,7 @@ function onSkillToggle(skill: AISkill, value: boolean) {
               >
                 v{{ skill.version }}
               </span>
-              <span
-                v-if="skill.author"
-                class="text-[10px] text-muted"
-              >
+              <span v-if="skill.author" class="text-[10px] text-muted">
                 by {{ skill.author }}
               </span>
               <a
@@ -235,11 +230,16 @@ function onSkillToggle(skill: AISkill, value: boolean) {
               <icon-lucide-trash-2 class="size-3 text-danger hover:text-danger/80" />
             </IconButton>
             <IconButton
-              :label="expandedSkillId === (skill.id || skill.name) ? 'Collapse rules' : 'Expand rules'"
+              :label="
+                expandedSkillId === (skill.id || skill.name) ? 'Collapse rules' : 'Expand rules'
+              "
               size="xs"
               @click="toggleExpand(skill.id || skill.name)"
             >
-              <icon-lucide-chevron-up v-if="expandedSkillId === (skill.id || skill.name)" class="size-3.5" />
+              <icon-lucide-chevron-up
+                v-if="expandedSkillId === (skill.id || skill.name)"
+                class="size-3.5"
+              />
               <icon-lucide-chevron-down v-else class="size-3.5" />
             </IconButton>
           </div>
@@ -255,7 +255,9 @@ function onSkillToggle(skill: AISkill, value: boolean) {
               Prompt Instructions Injected into AI
             </span>
           </div>
-          <pre class="max-h-56 overflow-y-auto whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-surface/90">{{ skill.promptContent }}</pre>
+          <pre
+            class="max-h-56 overflow-y-auto whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-surface/90"
+            >{{ skill.promptContent }}</pre>
         </div>
       </div>
     </SettingsGroup>

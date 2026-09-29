@@ -154,11 +154,16 @@ export const aiMessageDefaults = {
   chatOutputLimit:
     'The model ran out of output tokens while reasoning. Raise Max output tokens or lower reasoning effort.',
   chatModelNotFound: 'The selected model is unavailable. Choose another model in Settings.',
-  chatNetworkFailed: 'Zenuxs Desigen could not reach the provider. Check your connection and endpoint.',
+  chatNetworkFailed:
+    'Zenuxs Desigen could not reach the provider. Check your connection and endpoint.',
   chatRateLimited: 'The provider rate limit was reached. Wait a moment and try again.',
   chatRequestFailed: 'The model request failed. Check the provider settings and try again.',
   openProviderSettingsAction: 'Open settings',
   visionModelUnavailable: 'Choose a Vision model in Settings before attaching images.',
+  chatAgentImagesUnsupported:
+    'This agent only receives text, so attached images were not sent. Switch to a direct model to use reference images.',
+  chatModelImagesUnsupported:
+    'The selected Design model cannot read images, so the attachment was not sent. Assign a vision-capable model in Settings.',
   completions: 'Completions',
   responses: 'Responses'
 } as const
