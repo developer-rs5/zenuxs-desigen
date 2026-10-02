@@ -32,17 +32,40 @@ const secondImage: PreparedImageAttachment = {
 }
 
 describe('image attachment analysis', () => {
-  test('rejects unsupported and oversized source files', () => {
-    expect(validateImageAttachmentFile(new File(['x'], 'image.gif', { type: 'image/gif' }))).toBe(
-      'Choose a PNG, JPEG, or WebP image.'
-    )
+  test('rejects unsupported and oversized source files', async () => {
     expect(
-      validateImageAttachmentFile(
+      await validateImageAttachmentFile(new File(['x'], 'image.gif', { type: 'image/gif' }))
+    ).toBe('Choose a PNG, JPEG, or WebP image.')
+    expect(
+      await validateImageAttachmentFile(
         new File([new Uint8Array(20 * 1024 * 1024 + 1)], 'image.png', {
           type: 'image/png'
         })
       )
     ).toBe('Images must be 20 MB or smaller.')
+  })
+
+  test('judges content, not the declared MIME type', async () => {
+    // Text renamed to .png with a spoofed image type: no image magic bytes.
+    expect(
+      await validateImageAttachmentFile(new File(['hello'], 'fake.png', { type: 'image/png' }))
+    ).toBe('Choose a PNG, JPEG, or WebP image.')
+    // Declared type is wrong, but the bytes are a real PNG: accepted.
+    const pngBytes = Uint8Array.from(
+      Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        'base64'
+      )
+    )
+    expect(
+      await validateImageAttachmentFile(
+        new File([pngBytes], 'mislabelled.jpg', { type: 'image/jpeg' })
+      )
+    ).toBeNull()
+    // Empty file.
+    expect(
+      await validateImageAttachmentFile(new File([], 'empty.png', { type: 'image/png' }))
+    ).toBe('Choose a PNG, JPEG, or WebP image.')
   })
 
   test('fails with a controlled error without browser image APIs', async () => {

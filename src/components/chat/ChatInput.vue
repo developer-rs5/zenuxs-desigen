@@ -92,7 +92,15 @@ function handleSubmit(event: Event) {
   if (isStreaming.value) return
   const text = input.value.trim()
   if (!text) return
-  emit('submit', takeSubmission(text))
+  const snapshot = takeSubmission(text)
+  emit('submit', {
+    ...snapshot,
+    restore: () => {
+      attachments.restoreSubmission(snapshot)
+      input.value = text
+      triggerResize()
+    }
+  })
   input.value = ''
   triggerResize()
 }

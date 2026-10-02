@@ -49,7 +49,7 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
     reset: true
   })
 
-  function addImages(files: File[]): void {
+  async function addImages(files: File[]): Promise<void> {
     const available = MAX_IMAGE_ATTACHMENTS - images.value.length
     if (available <= 0) {
       options.reportError(`You can attach up to ${MAX_IMAGE_ATTACHMENTS} images.`)
@@ -57,7 +57,7 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
       return
     }
     for (const file of files.slice(0, available)) {
-      const validationError = validateImageAttachmentFile(file)
+      const validationError = await validateImageAttachmentFile(file)
       if (validationError) {
         options.reportError(validationError)
         continue
@@ -97,7 +97,7 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
     const pastedImages = files ? [...files].filter((file) => file.type.startsWith('image/')) : []
     if (pastedImages.length === 0) return
     event.preventDefault()
-    addImages(pastedImages)
+    void addImages(pastedImages)
   }
 
   function takeSubmission(text: string): ChatSubmission {
@@ -114,6 +114,12 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
     }
   }
 
+  /** Puts a taken submission back into the drafts after a recoverable failure. */
+  function restoreSubmission(snapshot: Pick<ChatSubmission, 'images' | 'nodes'>): void {
+    images.value = [...images.value, ...snapshot.images]
+    nodeIds.value = [...new Set([...nodeIds.value, ...snapshot.nodes.map((node) => node.id)])]
+  }
+
   function clear(): void {
     for (const image of images.value) revokeImagePreviewURL(image.previewURL)
     images.value = []
@@ -122,7 +128,7 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
   }
 
   onImageChange((files) => {
-    if (files) addImages([...files])
+    if (files) void addImages([...files])
   })
   onBeforeUnmount(clear)
 
@@ -137,6 +143,7 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
     removeNode,
     toggleSelection,
     handlePaste,
-    takeSubmission
+    takeSubmission,
+    restoreSubmission
   }
 }

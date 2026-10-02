@@ -7,7 +7,7 @@ import { ref } from 'vue'
 import { ACP_AGENTS } from '@open-pencil/core/constants'
 import type { ACPAgentID, AIProviderID } from '@open-pencil/core/constants'
 
-import { classifyAIChatError, type AIChatFailure } from '@/app/ai/chat/failure'
+import { classifyAIChatError, isAbortError, type AIChatFailure } from '@/app/ai/chat/failure'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import { buildReasoningProviderOptions, type AIProviderOptions } from '@/app/ai/chat/reasoning'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
@@ -278,6 +278,8 @@ export function createChatSessionManager({
         onError: (error) => {
           const reportedError = activeProviderError ?? error
           activeProviderError = null
+          // A user stop tears the stream down; it is control flow, not a failure.
+          if (isAbortError(reportedError)) return
           failure.value = classifyAIChatError(reportedError)
           recordChatFailed({
             errorName: reportedError instanceof Error ? reportedError.name : 'unknown'
