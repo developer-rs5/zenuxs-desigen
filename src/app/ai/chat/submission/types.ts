@@ -6,6 +6,11 @@ export interface ChatSubmission {
   displayText: string
   images: ImageAttachmentDraft[]
   nodes: ReferencedNode[]
+  /**
+   * Puts the prompt and drafts back into the composer when the submission
+   * fails before anything was sent. Optional so programmatic callers can omit it.
+   */
+  restore?: () => void
 }
 
 export type ImageSupportReason = 'agent-transport' | 'no-vision-capability'

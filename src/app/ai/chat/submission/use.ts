@@ -7,13 +7,19 @@ import {
   designMessageWithImageFindings,
   VisionModelUnavailableError
 } from '@/app/ai/attachment/image/analyze'
-import { prepareImageAttachment, revokeImagePreviewURL } from '@/app/ai/attachment/image/prepare'
+import {
+  ImageAttachmentError,
+  imageAttachmentErrorMessage,
+  prepareImageAttachment,
+  revokeImagePreviewURL
+} from '@/app/ai/attachment/image/prepare'
 import {
   imageDraftPresentations,
   preparedImagePresentations
 } from '@/app/ai/attachment/image/presentation'
 import { snapshotNode } from '@/app/ai/attachment/node/snapshot'
 import { setMessageAttachments } from '@/app/ai/attachment/presentation/store'
+import { isAbortError } from '@/app/ai/chat/failure'
 import { setVisibleMessageText } from '@/app/ai/chat/presentation'
 import {
   designModelCapabilities,
@@ -107,6 +113,18 @@ export function useChatSubmission(options: SubmissionOptions) {
     }
   }
 
+  /**
+   * Keeps a submission's prompt/drafts in the composer when nothing reached
+   * the transcript yet; revokes previews only for callers without a restore hook.
+   */
+  function retainSubmission(submission: ChatSubmission): void {
+    if (submission.restore) {
+      submission.restore()
+      return
+    }
+    for (const image of submission.images) revokeImagePreviewURL(image.previewURL)
+  }
+
   async function sendAttachments(
     currentChat: ChatInstance,
     submission: ChatSubmission,
@@ -114,6 +132,33 @@ export function useChatSubmission(options: SubmissionOptions) {
   ): Promise<void> {
     const messageId = crypto.randomUUID()
     const editor = options.getEditor()
+
+    const support =
+      submission.images.length === 0
+        ? ({ kind: 'direct' } as const)
+        : options.imageSupport
+          ? options.imageSupport()
+          : resolveImageSupport(options.providerID(), designModelCapabilities())
+
+    // Prepare before touching chat state so a failed preparation can leave the
+    // composer exactly as the user left it.
+    let preparedImages: Awaited<ReturnType<typeof prepareImageAttachment>>[] = []
+    if (submission.images.length > 0 && support.kind !== 'unsupported') {
+      try {
+        preparedImages = await Promise.all(
+          submission.images.map((image) => prepareImageAttachment(image.file))
+        )
+      } catch (error) {
+        retainSubmission(submission)
+        options.reportError(imageAttachmentErrorMessage(error))
+        return
+      }
+      if (version !== operationVersion || options.chat.value !== currentChat) {
+        retainSubmission(submission)
+        return
+      }
+    }
+
     const nodeAttachments = submission.nodes
       .map((node) => snapshotNode(editor, messageId, node))
       .filter((attachment) => attachment !== null)
@@ -133,9 +178,6 @@ export function useChatSubmission(options: SubmissionOptions) {
       return
     }
 
-    const support = options.imageSupport
-      ? options.imageSupport()
-      : resolveImageSupport(options.providerID(), designModelCapabilities())
     if (support.kind === 'unsupported') {
       options.reportError(
         support.reason === 'agent-transport'
@@ -149,11 +191,6 @@ export function useChatSubmission(options: SubmissionOptions) {
         .catch(() => undefined)
       return
     }
-
-    const preparedImages = await Promise.all(
-      submission.images.map((image) => prepareImageAttachment(image.file))
-    )
-    if (version !== operationVersion || options.chat.value !== currentChat) return
 
     if (support.kind === 'vision-model') {
       await sendWithVisionAnalysis(
@@ -185,7 +222,13 @@ export function useChatSubmission(options: SubmissionOptions) {
   }
 
   function reportSubmissionError(error: unknown): void {
+    // A user stop is normal control flow, not an application failure.
+    if (isAbortError(error)) return
     console.error('Chat error:', error)
+    if (error instanceof ImageAttachmentError) {
+      options.reportError(error.message)
+      return
+    }
     const errMessage = error instanceof Error ? error.message : String(error)
     if (
       error instanceof VisionModelUnavailableError ||
@@ -225,7 +268,7 @@ export function useChatSubmission(options: SubmissionOptions) {
   async function submit(submission: ChatSubmission): Promise<void> {
     const status = options.chat.value?.status ?? 'ready'
     if (status === 'streaming' || status === 'submitted' || isPreparingAttachments.value) {
-      for (const image of submission.images) revokeImagePreviewURL(image.previewURL)
+      retainSubmission(submission)
       if (submission.images.length > 0) options.reportError(options.messages.value.requestFailed)
       return
     }
@@ -237,7 +280,7 @@ export function useChatSubmission(options: SubmissionOptions) {
       const currentChat = await options.ensureChat()
       if (currentChat && version === operationVersion) options.chat.value = markRaw(currentChat)
       if (!currentChat || version !== operationVersion) {
-        for (const image of submission.images) revokeImagePreviewURL(image.previewURL)
+        retainSubmission(submission)
         if (submission.images.length > 0) options.reportError(options.messages.value.requestFailed)
         return
       }

@@ -1,6 +1,7 @@
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
 
+import { isAbortError } from '@/app/ai/chat/failure'
 import { isTauri } from '@/app/tauri/env'
 import type { ToastVariant } from '@/components/ui/feedback/toast'
 
@@ -65,6 +66,15 @@ function remove(id: number) {
   toasts.value = toasts.value.filter((t) => t.id !== id)
 }
 
+/**
+ * Stop/abort and AI SDK stream-teardown rejections are control flow: the chat
+ * layer already surfaces a classified failure, so raw reasons stay out of toasts.
+ */
+function isStreamControlFlowRejection(reason: unknown): boolean {
+  if (isAbortError(reason)) return true
+  return reason instanceof Error && reason.name === 'AI_NoOutputGeneratedError'
+}
+
 function setupGlobalErrorHandler() {
   if (errorHandlersInitialized) return
   errorHandlersInitialized = true
@@ -73,6 +83,10 @@ function setupGlobalErrorHandler() {
     error(e.message || 'An unexpected error occurred')
   })
   useEventListener(window, 'unhandledrejection', (e) => {
+    if (isStreamControlFlowRejection(e.reason)) {
+      e.preventDefault()
+      return
+    }
     const msg = e.reason instanceof Error ? e.reason.message : String(e.reason)
     error(msg || 'An unexpected error occurred')
   })

@@ -108,6 +108,20 @@ export function classifyAIChatFinish(finishReason?: string): AIChatFailure | nul
   return finishReason === 'length' ? { reason: 'output-limit' } : null
 }
 
+/**
+ * Whether an error is an intentional stop/abort (user stop, navigation, or a
+ * torn-down stream) rather than an application failure.
+ */
+export function isAbortError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false
+  const { name, message } = error as { name?: unknown; message?: unknown }
+  if (name === 'AbortError') return true
+  return (
+    typeof message === 'string' &&
+    /signal is aborted|operation was aborted|user aborted|request aborted/i.test(message)
+  )
+}
+
 export function classifyAIChatError(error: unknown): AIChatFailure {
   return {
     reason: failureReason(error),
