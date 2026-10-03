@@ -94,12 +94,15 @@ const hasVisionModel = computed(() => resolveAIModelRole('vision') !== null)
 function handleInputKeydown(event: KeyboardEvent) {
   if (event.code !== 'Enter' || event.shiftKey || event.isComposing) return
   event.preventDefault()
-  const target = event.currentTarget
-  if (target instanceof HTMLElement) target.closest('form')?.requestSubmit()
+  submitInput()
 }
 
 function handleSubmit(event: Event) {
   event.preventDefault()
+  submitInput()
+}
+
+function submitInput(): void {
   if (isStreaming.value) return
   const text = input.value.trim()
   if (!text) return

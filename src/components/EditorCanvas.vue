@@ -26,6 +26,7 @@ import {
   useTextEdit
 } from '@open-pencil/vue'
 
+import { chatBuilding } from '@/app/ai/chat/build-state'
 import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
@@ -33,6 +34,7 @@ import { createCanvasContextSelection } from '@/app/editor/canvas/context-select
 import { appRuntimeConfig } from '@/app/runtime/config'
 import PreparationOverlay from '@/components/preparation/canvas/Overlay.vue'
 
+import AIBuildOverlay from './canvas/AIBuildOverlay.vue'
 import CanvasMenu from './canvas/CanvasMenu.vue'
 import CanvasLabelEditor from './canvas/labels/CanvasLabelEditor.vue'
 import { canvasLabelPresentation } from './canvas/labels/presentation'
@@ -251,6 +253,7 @@ const cursor = computed(() => toolCursor(store.state.activeTool, cursorOverride.
           v-if="store.state.preparation && store.state.preparation.kind !== 'font-retry'"
           :preparation="store.state.preparation"
         />
+        <AIBuildOverlay v-if="chatBuilding && isActivePane" />
       </div>
     </ContextMenuTrigger>
 

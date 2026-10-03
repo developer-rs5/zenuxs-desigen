@@ -4,7 +4,7 @@ export class ChatHarness {
   constructor(readonly page: Page) {}
 
   get input() {
-    return this.page.getByRole('textbox', { name: 'Describe a change' })
+    return this.page.getByRole('textbox', { name: 'Describe what you want...' })
   }
 
   get chatTab() {
@@ -36,7 +36,8 @@ export class ChatHarness {
   }
 
   async open(): Promise<void> {
-    await this.page.goto('/')
+    // The landing page lives at `/`; the chat panel only exists in the editor.
+    await this.page.goto('/editor')
     await this.page.evaluate(async () => {
       const themeModulePath = '/src/app/shell/theme.ts'
       const themeModule = await import(themeModulePath)

@@ -34,6 +34,10 @@ export async function injectMockChatTransport(page: Page): Promise<void> {
         if (normalized.includes('missing agent')) {
           throw new Error('Mock agent unavailable')
         }
+        // Keep the request in-flight long enough for overlay assertions.
+        if (normalized.includes('slow build')) {
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+        }
 
         return new ReadableStream({
           start(controller) {

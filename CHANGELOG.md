@@ -8,6 +8,8 @@
 
 ### Added
 
+- Send selected canvas layers to AI chat from the context menu, auto-mention the current selection, and show an animated magic building indicator while AI responds.
+- Show a live-building overlay on the canvas while AI chat is responding, with skeleton elements appearing progressively under a traveling cursor.
 - Save AI conversations and attachment previews locally, switch between chats, rename or delete them, and browse saved transcripts across documents. Choose whether reasoning stays collapsed, expands while thinking, or stays expanded, with animated disclosure controls that respect reduced motion.
 
 - Add a searchable command palette for editor and application actions.
@@ -36,6 +38,7 @@
 
 ### Changed
 
+- Hide AI tool-call cards from the chat transcript so the magic building indicator is the only building state shown while AI responds.
 - Vertically center shaped section titles and allow renaming a section by double-clicking its canvas label.
 - Load supported online fonts before revealing imported pages, preserve substituted text during editing, and shape canvas labels with bundled Inter typography.
 - Upgrade CanvasKit to 0.41 and use immutable renderer paths through `PathBuilder`.

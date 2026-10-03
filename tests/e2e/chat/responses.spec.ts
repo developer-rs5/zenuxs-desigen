@@ -26,10 +26,12 @@ test('multipart assistant messages expose one copy action', async ({ configuredC
   )
 })
 
-test('tool calls render their result', async ({ configuredChat: chat }) => {
+test('tool calls stay hidden while their result still renders', async ({
+  configuredChat: chat
+}) => {
   await chat.submit('Create a frame')
-  await expect(chat.assistantMessage().getByText('Create Shape')).toBeVisible()
-  await expect(chat.assistantMessage().getByText('Done')).toBeVisible()
+  await expect(chat.assistantMessage().getByText('Create Shape')).toHaveCount(0)
+  await expect(chat.assistantMessage().getByText('Done')).toHaveCount(0)
   await expect(chat.assistantMessage().getByText('Created a frame', { exact: false })).toBeVisible()
 })
 

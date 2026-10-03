@@ -9,10 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from 'reka-ui'
-import { computed, markRaw, ref, shallowRef, watch } from 'vue'
+import { computed, markRaw, onUnmounted, ref, shallowRef, watch } from 'vue'
 
 import { useI18n } from '@open-pencil/vue'
 
+import { chatBuilding } from '@/app/ai/chat/build-state'
 import { useChatSubmission } from '@/app/ai/chat/submission/use'
 import { useAIChat } from '@/app/ai/chat/use'
 import { copyChatLog } from '@/app/ai/debug'
@@ -136,6 +137,17 @@ const failureHasSettingsAction = computed(() =>
   ['authentication', 'forbidden', 'model-not-found'].includes(chatFailure.value?.reason ?? '')
 )
 const status = computed(() => chat.value?.status ?? 'ready')
+// Signal the canvas overlay while AI is actively building.
+watch(
+  status,
+  (value) => {
+    chatBuilding.value = value === 'submitted' || value === 'streaming'
+  },
+  { immediate: true }
+)
+onUnmounted(() => {
+  chatBuilding.value = false
+})
 const showContinue = computed(() => {
   if (history.readOnly.value || agentHistoryReadOnly.value) return false
   if (status.value !== 'ready') return false
