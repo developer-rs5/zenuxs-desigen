@@ -22,6 +22,7 @@ export async function injectMockChatTransport(page: Page): Promise<void> {
         const unsafeMarkdown = normalized.includes('unsafe markdown')
         const multipleParts = normalized.includes('multiple parts')
         const reasoning = normalized.includes('reasoning')
+        const outputLimit = normalized.includes('exceed output limit')
 
         if (normalized.includes('expired key')) {
           return new ReadableStream({
@@ -42,6 +43,12 @@ export async function injectMockChatTransport(page: Page): Promise<void> {
         return new ReadableStream({
           start(controller) {
             controller.enqueue({ type: 'start', messageId })
+            // Simulates a run that exhausts its output budget with nothing rendered.
+            if (outputLimit) {
+              controller.enqueue({ type: 'finish', finishReason: 'length' })
+              controller.close()
+              return
+            }
             if (tool) enqueueToolCall(controller, messageId)
             if (reasoning) enqueueReasoning(controller)
             if (multipleParts) {

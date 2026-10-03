@@ -134,7 +134,9 @@ const failureMessage = computed(() => {
   }
 })
 const failureHasSettingsAction = computed(() =>
-  ['authentication', 'forbidden', 'model-not-found'].includes(chatFailure.value?.reason ?? '')
+  ['authentication', 'forbidden', 'model-not-found', 'output-limit'].includes(
+    chatFailure.value?.reason ?? ''
+  )
 )
 const status = computed(() => chat.value?.status ?? 'ready')
 // Signal the canvas overlay while AI is actively building.

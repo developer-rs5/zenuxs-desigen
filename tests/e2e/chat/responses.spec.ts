@@ -57,3 +57,21 @@ test('transport errors show a safe localized toast', async ({ configuredChat: ch
     })
   ).toBeVisible()
 })
+
+test('output-limit finishes explain the exhausted token budget', async ({
+  configuredChat: chat
+}) => {
+  await chat.submit('Trigger exceed output limit')
+
+  const toast = chat.page.getByTestId('toast-item').filter({
+    hasText: 'The model ran out of output tokens while reasoning.'
+  })
+  await expect(toast).toBeVisible()
+  await expect(
+    chat.page.getByTestId('toast-item').filter({
+      hasText: 'The model request failed. Check the provider settings and try again.'
+    })
+  ).toHaveCount(0)
+  await toast.getByRole('button', { name: 'Open settings' }).click()
+  await expect(chat.page.getByTestId('app-settings-dialog')).toBeVisible()
+})

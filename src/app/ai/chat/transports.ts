@@ -9,6 +9,7 @@ import type { ACPAgentID, AIProviderID } from '@open-pencil/core/constants'
 
 import {
   classifyAIChatError,
+  classifyAIChatFinish,
   hasVisibleAssistantOutput,
   isAbortError,
   type AIChatFailure
@@ -179,6 +180,14 @@ export function createChatSessionManager({
   }): void {
     if (isAbort || isDisconnect || isError) return
     recordChatCompleted({ finishReason: finishReason ?? null })
+    // An exhausted output budget (finishReason 'length') is the real cause even
+    // though the stream succeeded; report it before the empty-output fallback
+    // so users are not told to check provider settings for a token-limit stop.
+    const finishFailure = classifyAIChatFinish(finishReason)
+    if (finishFailure) {
+      failure.value = finishFailure
+      return
+    }
     // A successful stream can still carry no renderable output (empty content,
     // safety-filter truncation). Fail loudly instead of ending with no reply.
     if (!hasVisibleAssistantOutput(message)) {
