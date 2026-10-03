@@ -76,6 +76,7 @@ components.d.ts
 
 # Agent scratch space (reviews, plans, test artifacts)
 scratch/
+.mimosa/
 
 # OpenCode
 .opencode/

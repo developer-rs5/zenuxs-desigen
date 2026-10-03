@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 
 import { APICallError } from 'ai'
+import type { UIMessage } from 'ai'
 
 import {
   classifyAIChatError,
   classifyAIChatFinish,
+  hasVisibleAssistantOutput,
   isInsufficientCreditError
 } from '@/app/ai/chat/failure'
 
@@ -66,5 +68,37 @@ describe('AI chat failures', () => {
       reason: 'request-failed',
       detail: 'Provider unavailable'
     })
+  })
+
+  test('flags assistant finishes with no renderable output', () => {
+    const assistant = (parts: UIMessage['parts']): UIMessage => ({
+      id: 'assistant-1',
+      role: 'assistant',
+      parts
+    })
+
+    expect(hasVisibleAssistantOutput(assistant([]))).toBe(false)
+    expect(hasVisibleAssistantOutput(assistant([{ type: 'text', text: '' }]))).toBe(false)
+    expect(hasVisibleAssistantOutput(assistant([{ type: 'text', text: '   ' }]))).toBe(false)
+    expect(hasVisibleAssistantOutput(assistant([{ type: 'step-start' }]))).toBe(false)
+
+    expect(hasVisibleAssistantOutput(assistant([{ type: 'text', text: 'hello' }]))).toBe(true)
+    expect(hasVisibleAssistantOutput(assistant([{ type: 'reasoning', text: 'thinking' }]))).toBe(
+      true
+    )
+    expect(
+      hasVisibleAssistantOutput(
+        assistant([
+          {
+            type: 'dynamic-tool',
+            toolName: 'Calc',
+            toolCallId: 'tool-1',
+            state: 'output-available',
+            input: {},
+            output: 'ok'
+          }
+        ])
+      )
+    ).toBe(true)
   })
 })

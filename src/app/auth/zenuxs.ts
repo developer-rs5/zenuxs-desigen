@@ -33,6 +33,26 @@ export const oauthClient = new ZenuxOAuth({
   debug: false
 })
 
+interface OAuthLibraryError {
+  code?: string
+  details?: { status?: number }
+}
+
+// The library's auto-refresh retries every 30s. A refresh token the provider
+// has rejected (HTTP 400) will never succeed, so drop the local tokens instead
+// of hammering the token endpoint; the session cookie keeps the user signed in
+// and the next sign-in stores fresh tokens.
+oauthClient.on('error', (error: unknown) => {
+  const failure = error as OAuthLibraryError
+  if (failure?.code !== 'TOKEN_REFRESH_FAILED' || failure.details?.status !== 400) return
+  console.warn('[Auth] Refresh token rejected; clearing local OAuth tokens.')
+  try {
+    oauthClient.logout({ revoke: false })
+  } catch (logoutError) {
+    console.warn('[Auth] Local token clear failed:', logoutError)
+  }
+})
+
 export const currentUser = ref<UserInfo | null>(null)
 export const isAuthenticated = ref(false)
 /** True once initAuth() has settled. Prevents premature redirects. */

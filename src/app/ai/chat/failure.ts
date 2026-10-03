@@ -1,4 +1,5 @@
-import { APICallError } from 'ai'
+import { APICallError, isReasoningUIPart, isTextUIPart, isToolUIPart } from 'ai'
+import type { UIMessage } from 'ai'
 
 export type AIChatFailureReason =
   | 'authentication'
@@ -106,6 +107,19 @@ function failureReason(error: unknown): AIChatFailureReason {
 
 export function classifyAIChatFinish(finishReason?: string): AIChatFailure | null {
   return finishReason === 'length' ? { reason: 'output-limit' } : null
+}
+
+/**
+ * Whether an assistant message contains anything ChatMessage renders (non-empty
+ * text, reasoning, or tool chips). A 200 stream can finish with no such part —
+ * empty content, safety-filter truncation — leaving the transcript silent.
+ */
+export function hasVisibleAssistantOutput(message: UIMessage): boolean {
+  return message.parts.some((part) => {
+    if (isTextUIPart(part)) return part.text.trim().length > 0
+    if (isReasoningUIPart(part)) return part.text.trim().length > 0
+    return isToolUIPart(part)
+  })
 }
 
 /**

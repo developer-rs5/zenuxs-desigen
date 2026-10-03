@@ -7,7 +7,12 @@ import { ref } from 'vue'
 import { ACP_AGENTS } from '@open-pencil/core/constants'
 import type { ACPAgentID, AIProviderID } from '@open-pencil/core/constants'
 
-import { classifyAIChatError, isAbortError, type AIChatFailure } from '@/app/ai/chat/failure'
+import {
+  classifyAIChatError,
+  hasVisibleAssistantOutput,
+  isAbortError,
+  type AIChatFailure
+} from '@/app/ai/chat/failure'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import { buildReasoningProviderOptions, type AIProviderOptions } from '@/app/ai/chat/reasoning'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
@@ -126,9 +131,12 @@ export function createToolLoopTransport({
   return resumableTransport(
     new DirectChatTransport({
       agent,
+      // This return value becomes the tool chip's errorText and any stream
+      // error chunk, so it must name the actual failure — an invalid tool call
+      // or local tool exception is not a provider rejection.
       onError: (error) => {
         onError?.(error)
-        return 'The provider rejected the request.'
+        return error instanceof Error ? error.message : String(error)
       }
     }) as ChatTransport<UIMessage>
   )
@@ -157,18 +165,27 @@ export function createChatSessionManager({
   }
 
   function handleChatFinish({
+    message,
     finishReason,
     isAbort,
     isDisconnect,
     isError
   }: {
+    message: UIMessage
     finishReason?: FinishReason
     isAbort: boolean
     isDisconnect: boolean
     isError: boolean
   }): void {
-    if (!isAbort && !isDisconnect && !isError) {
-      recordChatCompleted({ finishReason: finishReason ?? null })
+    if (isAbort || isDisconnect || isError) return
+    recordChatCompleted({ finishReason: finishReason ?? null })
+    // A successful stream can still carry no renderable output (empty content,
+    // safety-filter truncation). Fail loudly instead of ending with no reply.
+    if (!hasVisibleAssistantOutput(message)) {
+      failure.value = {
+        reason: 'request-failed',
+        detail: 'The model returned an empty response.'
+      }
     }
   }
 

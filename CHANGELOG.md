@@ -46,6 +46,10 @@
 
 ### Fixed
 
+- Surface a visible error when the AI chat finishes with no reply content instead of returning silently, so empty or filtered model responses are no longer mistaken for a sent message.
+- Run the development MCP automation server by default again so the editor stops logging repeated connection failures on every page load.
+- Stop retrying an OAuth refresh token that the provider has rejected, keeping the user signed in through the session cookie instead of calling the token endpoint every 30 seconds.
+- Show the actual failure in AI chat tool errors instead of the generic "The provider rejected the request." message, which was also shown for invalid tool calls and local tool exceptions.
 - Reject corrupt, spoofed, and oversized image attachments at attach time with specific error messages, keep the prompt and drafts intact when image preparation fails, and treat stopped AI streams as normal control flow instead of surfacing raw internal errors.
 - Send attached reference images to a vision-capable Design model as real multimodal content instead of dropping them silently, and report a clear error when the selected model or agent cannot read images.
 - Preserve edited instance text, including cleared labels, when saving and reopening `.fig` files.

@@ -24,9 +24,8 @@
   ],
   "type": "module",
   "scripts": {
-    "dev": "OPENPENCIL_AUTOMATION_DISABLED=1 vite",
-    "dev:mcp": "vite",
-    "dev:portless": "OPENPENCIL_AUTOMATION_DISABLED=1 portless run vite",
+    "dev": "vite",
+    "dev:portless": "portless run vite",
     "build": "bun run build:packages && bun run lint && vite build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
