@@ -49,6 +49,7 @@
 
 ### Fixed
 
+- Paste images from clipboard HTML data URIs with Ctrl+V and insert copied raster images through the canvas context menu's Paste action instead of failing silently or reporting blocked clipboard access.
 - Surface a visible error when the AI chat finishes with no reply content instead of returning silently, so empty or filtered model responses are no longer mistaken for a sent message.
 - Run the development MCP automation server by default again so the editor stops logging repeated connection failures on every page load.
 - Stop retrying an OAuth refresh token that the provider has rejected, keeping the user signed in through the session cookie instead of calling the token endpoint every 30 seconds.

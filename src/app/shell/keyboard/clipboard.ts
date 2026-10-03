@@ -3,6 +3,7 @@ import { useEventListener } from '@vueuse/core'
 import { extractImageFilesFromClipboard } from '@open-pencil/vue'
 
 import type { EditorStore } from '@/app/editor/active-store'
+import { imageFilesFromClipboardHTML, isDesignClipboardHTML } from '@/app/editor/clipboard/html'
 import { getInMemoryClipboardHTML } from '@/app/editor/clipboard/memory'
 import { tauriSystemClipboard } from '@/app/editor/clipboard/system/tauri'
 import { hasDocumentTextSelection, isEditing } from '@/app/shell/keyboard/focus'
@@ -65,7 +66,11 @@ export function bindEditorClipboard(store: EditorStore) {
 
     const cursorPos = cursorPosition(store)
 
-    const imageFiles = extractImageFilesFromClipboard(e)
+    const html = e.clipboardData?.getData('text/html') ?? ''
+    const imageFiles = [
+      ...extractImageFilesFromClipboard(e),
+      ...(isDesignClipboardHTML(html) ? [] : imageFilesFromClipboardHTML(html))
+    ]
     if (imageFiles.length) {
       const cx = cursorPos?.x ?? (-store.state.panX + window.innerWidth / 2) / store.state.zoom
       const cy = cursorPos?.y ?? (-store.state.panY + window.innerHeight / 2) / store.state.zoom
@@ -73,7 +78,6 @@ export function bindEditorClipboard(store: EditorStore) {
       return
     }
 
-    const html = e.clipboardData?.getData('text/html') ?? ''
     if (html) {
       void store.pasteFromHTML(html, cursorPos)
       return

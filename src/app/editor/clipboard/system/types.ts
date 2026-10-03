@@ -19,4 +19,5 @@ export type BrowserClipboardReadResult =
 export interface BrowserClipboardIO {
   write(payload: ClipboardPayload): Promise<boolean>
   readHTML(): Promise<BrowserClipboardReadResult>
+  readImage?(): Promise<File | null>
 }

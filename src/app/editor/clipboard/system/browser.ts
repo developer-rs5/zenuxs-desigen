@@ -72,9 +72,43 @@ async function readBrowserClipboardHTML(): Promise<BrowserClipboardReadResult> {
   }
 }
 
+// Mirrors the raster types accepted by placeImageFiles; other image flavors are
+// skipped so a paste never reports success without inserting anything.
+const RASTER_IMAGE_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'image/avif'
+])
+
+async function readBrowserClipboardImage(): Promise<File | null> {
+  if (
+    typeof navigator === 'undefined' ||
+    typeof (navigator as Partial<Navigator>).clipboard?.read !== 'function'
+  ) {
+    return null
+  }
+  try {
+    const items = await navigator.clipboard.read()
+    for (const item of items) {
+      const type = item.types.find((candidate) => RASTER_IMAGE_TYPES.has(candidate))
+      if (!type) continue
+      const blob = await item.getType(type)
+      const extension = type === 'image/jpeg' ? 'jpg' : type.slice('image/'.length)
+      return new File([blob], `pasted-image.${extension}`, { type })
+    }
+    return null
+  } catch (error) {
+    console.warn('Browser clipboard image read failed', error)
+    return null
+  }
+}
+
 const browserClipboardIO: BrowserClipboardIO = {
   write: writeBrowserClipboard,
-  readHTML: readBrowserClipboardHTML
+  readHTML: readBrowserClipboardHTML,
+  readImage: readBrowserClipboardImage
 }
 
 async function copySelection(store: EditorStore, io: BrowserClipboardIO): Promise<boolean> {
@@ -106,6 +140,16 @@ async function pasteSelection(
     if (result.html && isDesignClipboardHTML(result.html)) {
       await store.pasteFromHTML(result.html, cursorPos)
       return true
+    }
+    if (io.readImage) {
+      const image = await io.readImage()
+      if (image) {
+        const { panX, panY, zoom } = store.state
+        const cx = cursorPos?.x ?? (-panX + window.innerWidth / 2) / zoom
+        const cy = cursorPos?.y ?? (-panY + window.innerHeight / 2) / zoom
+        await store.placeImageFiles([image], cx, cy)
+        return true
+      }
     }
     return false
   }
