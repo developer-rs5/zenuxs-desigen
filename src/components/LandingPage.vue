@@ -20,12 +20,11 @@ const postSignInRoute = computed(() => readRedirectTarget(route.query.redirect))
 
 let revealObserver: IntersectionObserver | undefined
 
-// SPA-navigate once auth resolves — avoids the cold-boot reload that rendered a
-// broken shell the first time around.
+// SPA-navigate once auth resolves if the visitor was redirected from a protected route.
 watch(
-  () => [authReady.value, isAuthenticated.value] as const,
-  ([ready, authed]) => {
-    if (ready && authed) router.push(postSignInRoute.value)
+  () => [authReady.value, isAuthenticated.value, route.query.redirect] as const,
+  ([ready, authed, redirect]) => {
+    if (ready && authed && redirect) router.push(postSignInRoute.value)
   },
   { immediate: true }
 )

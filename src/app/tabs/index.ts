@@ -54,6 +54,88 @@ function generateTabId(): string {
   return `tab-${nextTabId++}`
 }
 
+const SESSION_TABS_KEY = 'zenuxs:tabs:session'
+
+interface PersistedTabInfo {
+  id: string
+  kind: TabKind
+  documentId?: string
+  documentName?: string
+  providerId?: string
+}
+
+interface PersistedTabsSession {
+  activeId: string
+  tabs: PersistedTabInfo[]
+}
+
+export function persistTabsSession(): void {
+  try {
+    const tabs: PersistedTabInfo[] = tabsRef.value.map((tab) => {
+      const binding = tab.store.getStorageBinding()
+      return {
+        id: tab.id,
+        kind: tab.kind,
+        documentId: binding?.documentId,
+        documentName: tab.store.state.documentName,
+        providerId: binding?.providerId
+      }
+    })
+    const payload: PersistedTabsSession = {
+      activeId: activeTabId.value,
+      tabs
+    }
+    localStorage.setItem(SESSION_TABS_KEY, JSON.stringify(payload))
+  } catch {
+    // Ignore quota or private mode errors
+  }
+}
+
+export function initTabsSession(shouldCreateHome: boolean): Tab {
+  try {
+    const raw = localStorage.getItem(SESSION_TABS_KEY)
+    if (raw) {
+      const parsed: PersistedTabsSession = JSON.parse(raw)
+      if (parsed && Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
+        let activeTabToSwitch: Tab | undefined
+        for (const item of parsed.tabs) {
+          if (item.kind === 'home') {
+            const home = createHomeTab()
+            if (item.id === parsed.activeId) activeTabToSwitch = home
+          } else if (item.documentId) {
+            const s = createEditorStore()
+            s.state.documentName = item.documentName || 'Untitled'
+            const providerId = item.providerId || activeStorageProviderID.value
+            s.setStorageDocumentSource(
+              { providerId, documentId: item.documentId },
+              s.state.documentName
+            )
+            const tab: Tab = { id: generateTabId(), store: s, kind: 'document' }
+            tabsRef.value = [...tabsRef.value, tab]
+            if (item.id === parsed.activeId || !activeTabToSwitch) activeTabToSwitch = tab
+            void loadStorageDocumentIntoStore(s, {
+              id: item.documentId,
+              name: s.state.documentName,
+              updatedAt: ''
+            }).catch((err) => {
+              console.warn('[Tabs] Failed to restore document content:', err)
+            })
+          }
+        }
+        if (tabsRef.value.length > 0) {
+          const target = activeTabToSwitch ?? tabsRef.value[0]
+          activateTab(target)
+          return target
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('[Tabs] Failed to restore tabs session:', error)
+  }
+
+  return shouldCreateHome ? createHomeTab() : createTab()
+}
+
 const tabsRef = shallowRef<Tab[]>([])
 const activeTabId = shallowRef('')
 
@@ -124,6 +206,7 @@ export function leaveHome(tabId: string): void {
   if (tab.kind !== 'home') return
   ensureTabStorageBinding(tab.store)
   tabsRef.value = tabsRef.value.with(tabIndex, { ...tab, kind: 'document' })
+  persistTabsSession()
 }
 
 export function createDocumentInCurrentTab(): Tab {
@@ -151,6 +234,7 @@ function activateTab(tab: Tab) {
   setActiveEditorStore(tab.store)
   triggerRef(tabsRef)
   setOpenPencilStore(tab.store)
+  persistTabsSession()
 }
 
 export function switchTab(tabId: string) {
@@ -172,6 +256,7 @@ export async function closeTab(tabId: string): Promise<void> {
   await closingTab.store.persistRecoveryNow()
   closingTab.store.dispose()
   tabsRef.value = tabsRef.value.filter((t) => t.id !== tabId)
+  persistTabsSession()
 
   if (tabsRef.value.length === 0) {
     createHomeTab()
@@ -302,16 +387,11 @@ function failPreparation(
   })
 }
 
-export async function openStorageDocumentInNewTab(document: StorageDocument): Promise<void> {
+export async function loadStorageDocumentIntoStore(
+  store: EditorStore,
+  document: StorageDocument
+): Promise<void> {
   const providerId = activeStorageProviderID.value
-  const existing = findStorageTab(providerId, document.id)
-  if (existing) {
-    switchTab(existing.id)
-    rememberRecentStorageDocument(providerId, document.id, document.name)
-    return
-  }
-
-  const { store, created } = reusableTabStore()
   store.state.documentName = document.name
   const load = store.preparationController.begin({
     kind: 'storage-open',
@@ -322,13 +402,16 @@ export async function openStorageDocumentInNewTab(document: StorageDocument): Pr
     load.update({ phase: 'reading', detail: document.name })
     const local = getLocalCanvasStore()
     const localMetadata = await local.getMeta(document.id)
+    if (localMetadata?.name) {
+      store.state.documentName = localMetadata.name
+    }
     load.signal.throwIfAborted()
     const localBytes = localMetadata?.hasFig ? await local.readFig(document.id) : null
     load.signal.throwIfAborted()
     const localIsAuthoritative =
       localMetadata?.syncStatus !== 'synced' ||
       !document.metadataAuthoritative ||
-      localMetadata.updatedAt >= document.updatedAt
+      Boolean(localMetadata && localMetadata.updatedAt >= document.updatedAt)
     let bytes = localBytes && localIsAuthoritative ? localBytes : null
 
     if (!bytes) {
@@ -385,13 +468,30 @@ export async function openStorageDocumentInNewTab(document: StorageDocument): Pr
         })
       )
     }
+    throw error
+  } finally {
+    if (succeeded) load.complete()
+  }
+}
+
+export async function openStorageDocumentInNewTab(document: StorageDocument): Promise<void> {
+  const providerId = activeStorageProviderID.value
+  const existing = findStorageTab(providerId, document.id)
+  if (existing) {
+    switchTab(existing.id)
+    rememberRecentStorageDocument(providerId, document.id, document.name)
+    return
+  }
+
+  const { store, created } = reusableTabStore()
+  try {
+    await loadStorageDocumentIntoStore(store, document)
+  } catch (error) {
     if (created) {
       const tab = getTabForStore(store)
       if (tab) await closeTab(tab.id)
     }
     throw error
-  } finally {
-    if (succeeded) load.complete()
   }
 }
 

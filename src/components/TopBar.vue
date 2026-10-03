@@ -10,7 +10,7 @@ import {
 } from 'reka-ui'
 import { ref, watch } from 'vue'
 
-import { useI18n } from '@open-pencil/vue'
+import { useEditorCommands, useI18n } from '@open-pencil/vue'
 
 import { currentUser } from '@/app/auth/zenuxs'
 import { useEditorStore } from '@/app/editor/active-store'
@@ -26,6 +26,7 @@ import Tip from '@/components/ui/overlay/Tip.vue'
 provideCollabPanel()
 
 const store = useEditorStore()
+const { getCommand } = useEditorCommands()
 const { rename, editingName, startRename, commitRename } = useDocumentNameRename(store)
 const nameInput = templateRef<HTMLInputElement>('nameInput')
 const { settings } = useI18n()
@@ -82,6 +83,7 @@ async function handleSync() {
       <input
         v-if="editingName"
         ref="nameInput"
+        data-slot="document-title"
         class="min-w-0 max-w-[160px] rounded border border-[#3B82F6] bg-[#151719] px-2 py-0.5 text-[13px] text-[#F5F7FA] outline-none"
         :value="store.state.documentName"
         @blur="commitRename($event)"
@@ -89,7 +91,9 @@ async function handleSync() {
       />
       <span
         v-else
-        class="min-w-0 max-w-[160px] cursor-default truncate rounded px-2 py-0.5 text-[13px] text-[#F5F7FA] hover:bg-[#1E2126]"
+        data-slot="document-title"
+        class="min-w-0 max-w-[160px] cursor-pointer truncate rounded px-2 py-0.5 text-[13px] text-[#F5F7FA] hover:bg-[#1E2126]"
+        title="Double click to rename"
         @dblclick="startRename"
       >
         {{ store.state.documentName }}
@@ -125,9 +129,10 @@ async function handleSync() {
         </button>
       </Tip>
 
-      <Tip label="Preview">
+      <Tip label="Zoom to fit / Preview">
         <button
           class="flex size-8 items-center justify-center rounded-lg text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
+          @click="getCommand('view.zoomFit').run()"
         >
           <icon-lucide-play class="size-[18px]" />
         </button>

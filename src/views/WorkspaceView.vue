@@ -14,9 +14,8 @@ import { openFileFromPath, useEditorMenu } from '@/app/shell/menu/use'
 import {
   activeTab,
   createDocumentInCurrentTab,
-  createHomeTab,
-  createTab,
   getActiveStore,
+  initTabsSession,
   tabCount
 } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
@@ -37,7 +36,7 @@ const shouldCreateHome =
   !route.meta.demo &&
   (isTauri() || appRuntimeConfig.recentFiles)
 let firstTab = activeTab.value
-if (!firstTab) firstTab = shouldCreateHome ? createHomeTab() : createTab()
+if (!firstTab) firstTab = initTabsSession(shouldCreateHome)
 
 if (createdInitialTab && route.meta.demo && !appRuntimeConfig.test) {
   void createDemoShapes(firstTab.store)

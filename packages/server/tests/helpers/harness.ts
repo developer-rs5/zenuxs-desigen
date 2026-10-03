@@ -247,19 +247,33 @@ export async function createHarness(options: FakeProviderOptions = {}): Promise<
   }
 }
 
+let sharedMemoryServer: InstanceType<
+  (typeof import('mongodb-memory-server'))['MongoMemoryServer']
+> | null = null
+
 /** Connects Mongoose to an in-memory MongoDB for the duration of the suite. */
 export async function connectMemoryMongo(): Promise<void> {
   if (mongoose.connection.readyState === 1) return
-  const { MongoMemoryServer } = await import('mongodb-memory-server')
-  const memoryServer = await MongoMemoryServer.create()
-  await mongoose.connect(memoryServer.getUri('zenuxs-test'))
+  if (!sharedMemoryServer) {
+    const { resolve } = await import('node:path')
+    const { MongoMemoryServer } = await import('mongodb-memory-server')
+    const dbPath = resolve(process.cwd(), 'node_modules/.cache/mongodb-memory-server')
+    sharedMemoryServer = await MongoMemoryServer.create({
+      instance: { dbPath }
+    })
+  }
+  await mongoose.connect(sharedMemoryServer.getUri('zenuxs-test'))
   process.on('exit', () => {
-    void memoryServer.stop()
+    void sharedMemoryServer?.stop()
   })
 }
 
 export async function disconnectMongo(): Promise<void> {
   await mongoose.disconnect()
+  if (sharedMemoryServer) {
+    await sharedMemoryServer.stop()
+    sharedMemoryServer = null
+  }
 }
 
 export async function clearDatabase(): Promise<void> {
