@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { AlertDialogCancel, AlertDialogDescription, AlertDialogTitle } from 'reka-ui'
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
 
 import { useI18n } from '@open-pencil/vue'
 
 import type { RecoverySnapshotMeta } from '@/app/document/recovery'
-import { recoveryEnabled } from '@/app/document/recovery/preferences'
 import { useNotificationMessages } from '@/app/i18n/notifications'
 import { toast } from '@/app/shell/ui'
 import { formatStorageBytes } from '@/app/storage/format-bytes'
-import { discardRecoverySnapshot, listRecoverySnapshots, restoreRecoverySnapshot } from '@/app/tabs'
+import { discardRecoverySnapshot, restoreRecoverySnapshot } from '@/app/tabs'
 import AppButton from '@/components/ui/button/AppButton.vue'
 
 const { recovery, common } = useI18n()
 const notifications = useNotificationMessages()
-const route = useRoute()
 const snapshots = ref<RecoverySnapshotMeta[]>([])
 const busyId = ref<string | null>(null)
 const open = ref(false)
@@ -56,13 +53,7 @@ async function discard(snapshot: RecoverySnapshotMeta): Promise<void> {
 }
 
 onMounted(async () => {
-  if (route.path !== '/' || !recoveryEnabled.value) return
-  try {
-    snapshots.value = await listRecoverySnapshots()
-    open.value = snapshots.value.length > 0
-  } catch (error) {
-    console.warn('[Recovery] Failed to list snapshots:', error)
-  }
+  open.value = false
 })
 </script>
 

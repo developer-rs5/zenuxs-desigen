@@ -4,17 +4,26 @@ import { createRouter, createWebHistory, type RouteLocationRaw } from 'vue-route
 import { REDIRECT_QUERY_KEY, readRedirectTarget, signInRedirectFor } from '@/app/auth/redirect'
 import { authReady, isAuthenticated } from '@/app/auth/zenuxs'
 
-import LandingPage from './components/LandingPage.vue'
-import WorkspaceView from './views/WorkspaceView.vue'
-
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: LandingPage },
-    { path: '/editor', component: WorkspaceView, meta: { requiresAuth: true } },
+    { path: '/', component: () => import('./components/LandingPage.vue') },
+    {
+      path: '/editor',
+      component: () => import('./views/WorkspaceView.vue'),
+      meta: { requiresAuth: true }
+    },
     { path: '/storage', redirect: '/editor' },
-    { path: '/demo', component: WorkspaceView, meta: { demo: true, requiresAuth: true } },
-    { path: '/share/:roomId', component: WorkspaceView, meta: { requiresAuth: true } },
+    {
+      path: '/demo',
+      component: () => import('./views/WorkspaceView.vue'),
+      meta: { demo: true, requiresAuth: true }
+    },
+    {
+      path: '/share/:roomId',
+      component: () => import('./views/WorkspaceView.vue'),
+      meta: { requiresAuth: true }
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' }
   ]
 })

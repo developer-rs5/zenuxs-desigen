@@ -2,7 +2,7 @@
 import { useHead } from '@unhead/vue'
 import { useEventListener } from '@vueuse/core'
 import { TooltipProvider } from 'reka-ui'
-import { onMounted } from 'vue'
+import { defineAsyncComponent, onMounted } from 'vue'
 
 import { provideEditor, useI18n } from '@open-pencil/vue'
 
@@ -11,14 +11,21 @@ import { useEditorStore } from '@/app/editor/active-store'
 import { useAppTheme } from '@/app/shell/theme'
 import { toast } from '@/app/shell/ui'
 import { scheduleStartupUpdateCheck } from '@/app/shell/updater'
-import { kickSyncEngine } from '@/app/storage/sync'
-import { prepareForReload } from '@/app/tabs'
-import PublishLibraryDialog from '@/components/libraries/PublishLibraryDialog.vue'
-import LibraryUpdateReviewDialog from '@/components/libraries/review/LibraryUpdateReviewDialog.vue'
-import RecoveryDialog from '@/components/recovery/RecoveryDialog.vue'
-import SettingsDialog from '@/components/settings/SettingsDialog.vue'
 import AppShell from '@/components/Shell/AppShell.vue'
 import AppToast from '@/components/Shell/AppToast.vue'
+
+const SettingsDialog = defineAsyncComponent(
+  () => import('@/components/settings/SettingsDialog.vue')
+)
+const ProjectsDialog = defineAsyncComponent(
+  () => import('@/components/projects/ProjectsDialog.vue')
+)
+const PublishLibraryDialog = defineAsyncComponent(
+  () => import('@/components/libraries/PublishLibraryDialog.vue')
+)
+const LibraryUpdateReviewDialog = defineAsyncComponent(
+  () => import('@/components/libraries/review/LibraryUpdateReviewDialog.vue')
+)
 
 const store = useEditorStore()
 const { updates, locale } = useI18n()
@@ -31,13 +38,13 @@ useHead({
 provideEditor(store)
 useAppTheme()
 useEventListener(window, 'pagehide', () => {
-  void prepareForReload()
+  void import('@/app/tabs').then(({ prepareForReload }) => prepareForReload())
 })
 
 onMounted(() => {
   toast.setupGlobalErrorHandler()
   scheduleStartupUpdateCheck(updates)
-  void kickSyncEngine()
+  void import('@/app/storage/sync').then(({ kickSyncEngine }) => kickSyncEngine())
   void initAuth()
 })
 </script>
@@ -48,7 +55,7 @@ onMounted(() => {
       <RouterView />
     </AppShell>
     <SettingsDialog />
-    <RecoveryDialog />
+    <ProjectsDialog />
     <PublishLibraryDialog />
     <LibraryUpdateReviewDialog />
     <AppToast />

@@ -5,19 +5,12 @@ import type { StorageFieldID, StorageProviderID } from './types'
 
 export type StoragePreferences = Record<StorageProviderID, Record<StorageFieldID, string>>
 
+const storedPreferences = useLocalStorage<StoragePreferences>('open-pencil:storage:preferences', {})
+
 export const activeStorageProviderID = useLocalStorage<StorageProviderID>(
   'open-pencil:storage:provider',
   'server-mongodb'
 )
-
-if (
-  activeStorageProviderID.value === 's3-compatible' &&
-  !storagePreferencesComplete('s3-compatible')
-) {
-  activeStorageProviderID.value = 'server-mongodb'
-}
-
-const storedPreferences = useLocalStorage<StoragePreferences>('open-pencil:storage:preferences', {})
 
 export function readStoragePreferences(
   providerID: StorageProviderID
@@ -49,4 +42,11 @@ export function storagePreferencesComplete(providerID: StorageProviderID): boole
   return provider.preferenceFields.every(
     (field) => !field.required || Boolean(preferences[field.id]?.trim())
   )
+}
+
+if (
+  activeStorageProviderID.value === 's3-compatible' &&
+  !storagePreferencesComplete('s3-compatible')
+) {
+  activeStorageProviderID.value = 'server-mongodb'
 }

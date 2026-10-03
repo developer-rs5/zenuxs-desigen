@@ -14,6 +14,7 @@ import { useEditorCommands, useI18n } from '@open-pencil/vue'
 
 import { currentUser } from '@/app/auth/zenuxs'
 import { useEditorStore } from '@/app/editor/active-store'
+import { openProjectsDialog } from '@/app/projects/dialog'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { fetchRemoteSettings, pushRemoteSettings } from '@/app/settings/remote-sync'
 import { useDocumentNameRename } from '@/app/shell/menu/document-name'
@@ -76,7 +77,22 @@ async function handleSync() {
     </div>
 
     <!-- Divider -->
-    <div class="mx-4 h-5 w-px bg-[#292D33]" />
+    <div class="mx-3 h-5 w-px bg-[#292D33]" />
+
+    <!-- Projects Switcher Button (Antigravity / Stitch style) -->
+    <button
+      class="flex items-center gap-1.5 rounded-lg border border-[#292D33] bg-[#1E2126] px-2.5 py-1 text-[12px] font-medium text-[#F5F7FA] transition-colors hover:border-[#3B82F6]/50 hover:bg-[#252830]"
+      title="View all projects & create new project"
+      data-test-id="topbar-projects-button"
+      @click="openProjectsDialog"
+    >
+      <icon-lucide-folder class="size-3.5 text-[#3B82F6]" />
+      <span>Projects</span>
+      <icon-lucide-chevron-down class="size-3 text-[#9CA3AF]" />
+    </button>
+
+    <!-- Divider -->
+    <div class="mx-3 h-5 w-px bg-[#292D33]" />
 
     <!-- Center: Document name + save status -->
     <div class="flex items-center gap-2">
@@ -154,6 +170,13 @@ async function handleSync() {
             :side-offset="4"
             class="z-50 min-w-[180px] rounded-xl border border-[#292D33] bg-[#1B1E22] p-1 shadow-xl"
           >
+            <DropdownMenuItem
+              class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
+              @click="openProjectsDialog"
+            >
+              <icon-lucide-folder class="size-3.5 text-[#3B82F6]" />
+              Projects
+            </DropdownMenuItem>
             <DropdownMenuItem
               class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
               @click="openSettingsDialog()"

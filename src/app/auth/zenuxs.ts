@@ -23,7 +23,6 @@ import {
   SessionRequestError,
   type SessionUser
 } from '@/app/auth/api'
-import { fetchRemoteSettings } from '@/app/settings/remote-sync'
 import { IS_BROWSER } from '@/constants'
 
 const CLIENT_ID = import.meta.env.VITE_ZENUXS_OAUTH_CLIENT_ID || 'd5695548c45c3ae5'
@@ -126,6 +125,7 @@ async function establishServerSession(tokens: ServerTokenInput): Promise<Session
 /** Pulls the signed-in user's synced settings now that the session exists. */
 async function syncRemoteSettings(sub: string): Promise<void> {
   try {
+    const { fetchRemoteSettings } = await import('@/app/settings/remote-sync')
     await fetchRemoteSettings()
     void sub
   } catch (error) {

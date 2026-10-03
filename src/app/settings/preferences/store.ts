@@ -23,7 +23,7 @@ export interface AppPreferences {
 export const DEFAULT_APP_PREFERENCES: Readonly<AppPreferences> = {
   chat: { reasoningDisplay: 'collapsed' },
   version: 1,
-  recovery: { enabled: true },
+  recovery: { enabled: false },
   editing: {
     snapping: { ...DEFAULT_SNAPPING_PREFERENCES }
   },
