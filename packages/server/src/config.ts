@@ -60,7 +60,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     nodeEnv,
     isProduction: nodeEnv === 'production',
     port: readInt(env.PORT, DEFAULT_PORT),
-    mongoURI: env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/zenuxs-desigen',
+    mongoURI: env.MONGO_URL ?? env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017/zenuxs-desigen',
     issuer: (env.ZENUXS_ISSUER ?? DEFAULT_ISSUER).replace(/\/+$/, ''),
     clientId: env.ZENUXS_CLIENT_ID ?? DEFAULT_CLIENT_ID,
     allowedOrigins: readList(env.ALLOWED_ORIGINS, DEV_ORIGINS),

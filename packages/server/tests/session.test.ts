@@ -295,4 +295,24 @@ describe('logout', () => {
     const response = await harness.request('/api/auth/session', { method: 'DELETE' })
     expect([204, 403]).toContain(response.status)
   })
+
+  it('provisions a guest user session stored in MongoDB and restores it', async () => {
+    const response = await harness.request('/api/auth/guest', { method: 'POST' })
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as {
+      success: boolean
+      user: { sub: string; name: string }
+    }
+    expect(body.success).toBe(true)
+    expect(body.user.sub.startsWith('guest_')).toBe(true)
+
+    const cookies = response.headers
+      .getSetCookie()
+      .map((c) => c.split(';')[0])
+      .join('; ')
+    const restore = await harness.request('/api/auth/session', { cookies })
+    expect(restore.status).toBe(200)
+    const restoredBody = (await restore.json()) as { user: { sub: string } }
+    expect(restoredBody.user.sub).toBe(body.user.sub)
+  })
 })

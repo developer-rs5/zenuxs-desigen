@@ -26,6 +26,8 @@
   "scripts": {
     "dev": "vite",
     "dev:portless": "portless run vite",
+    "server": "bun packages/server/src/index.ts",
+    "server:dev": "bun packages/server/src/index.ts",
     "build": "bun run build:packages && bun run lint && vite build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",

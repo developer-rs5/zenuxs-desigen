@@ -5,6 +5,9 @@
  * middleware chain without binding a port.
  */
 
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import dotenv from 'dotenv'
 
 import { createApp } from './app.js'
@@ -12,6 +15,12 @@ import { loadConfig } from './config.js'
 import { connectDB } from './db/connection.js'
 
 dotenv.config()
+try {
+  const rootEnv = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../.env')
+  dotenv.config({ path: rootEnv })
+} catch {
+  // Ignore fallback failure if running in bundled/flat environment
+}
 
 async function start(): Promise<void> {
   const config = loadConfig()

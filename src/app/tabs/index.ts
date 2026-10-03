@@ -92,8 +92,18 @@ export function getTabsSnapshot(): Tab[] {
   return [...tabsRef.value]
 }
 
+export function ensureTabStorageBinding(store: EditorStore): void {
+  if (store.getStorageBinding() || store.getDocumentFilePath() || store.getSourceIdentity().handle)
+    return
+  const providerId = activeStorageProviderID.value
+  const documentId = crypto.randomUUID()
+  const documentName = store.state.documentName || 'Untitled'
+  store.setStorageDocumentSource({ providerId, documentId }, documentName)
+}
+
 export function createTab(store?: EditorStore, initialGraph?: SceneGraph): Tab {
   const s = store ?? createEditorStore(initialGraph)
+  ensureTabStorageBinding(s)
   const tab: Tab = { id: generateTabId(), store: s, kind: 'document' }
   tabsRef.value = [...tabsRef.value, tab]
   activateTab(tab)
@@ -112,6 +122,7 @@ export function leaveHome(tabId: string): void {
   if (tabIndex === -1) return
   const tab = tabsRef.value[tabIndex]
   if (tab.kind !== 'home') return
+  ensureTabStorageBinding(tab.store)
   tabsRef.value = tabsRef.value.with(tabIndex, { ...tab, kind: 'document' })
 }
 

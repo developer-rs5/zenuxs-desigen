@@ -32,7 +32,12 @@ export function createDocumentsRouter(_deps: DocumentsRouterDeps): Router {
     const documents = await DesignDocument.find({ ownerSub: sub })
       .sort({ updatedAt: -1 })
       .select('-payload')
-    res.json({ success: true, documents })
+      .lean()
+    const formatted = documents.map((doc) => ({
+      ...doc,
+      previewDataURL: doc.previewDataUrl ?? (doc as { previewDataURL?: string }).previewDataURL
+    }))
+    res.json({ success: true, documents: formatted })
   })
 
   /** GET /api/documents/:id — reads a document the caller owns. */
@@ -45,12 +50,17 @@ export function createDocumentsRouter(_deps: DocumentsRouterDeps): Router {
     const document = await DesignDocument.findOne({
       documentId: parsed.output,
       ownerSub: requireSubject(req)
-    })
+    }).lean()
     if (!document) {
       res.status(404).json({ error: 'Document not found' })
       return
     }
-    res.json({ success: true, document })
+    const formatted = {
+      ...document,
+      previewDataURL:
+        document.previewDataUrl ?? (document as { previewDataURL?: string }).previewDataURL
+    }
+    res.json({ success: true, document: formatted })
   })
 
   /**

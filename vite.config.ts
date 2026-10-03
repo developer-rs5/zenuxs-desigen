@@ -12,6 +12,7 @@ import { AUTOMATION_HTTP_PORT } from './packages/core/src/constants'
 import { devAutomationRoute } from './src/app/automation/bridge/portless-route'
 import { createOpenPencilAliases } from './vite/aliases'
 import { localAutomationToken, openPencilAutomationPlugin } from './vite/automation'
+import { openPencilBackendPlugin } from './vite/backend'
 import { copyCanvasKitAssetsPlugin } from './vite/canvaskit-assets'
 import { openPencilPwaPlugin } from './vite/pwa'
 import { rawMarkdownPlugin } from './vite/raw-markdown'
@@ -33,6 +34,7 @@ export default defineConfig(async ({ command }) => ({
     )
   },
   plugins: [
+    openPencilBackendPlugin(command),
     rawMarkdownPlugin(),
     copyCanvasKitAssetsPlugin(),
     tailwindcss(),

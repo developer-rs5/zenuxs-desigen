@@ -34,10 +34,21 @@ export async function listRemoteDocuments(): Promise<RemoteServerDocumentHeader[
 
 /** Fetches one of the signed-in user's documents. */
 export async function fetchRemoteDocument(documentId: string): Promise<Record<string, unknown>> {
-  const result = await apiRequest<{ document: { payload: Record<string, unknown> } }>(
-    `/api/documents/${encodeURIComponent(documentId)}`
-  )
-  return result.document?.payload ?? {}
+  const result = await apiRequest<{
+    document: {
+      documentId: string
+      title?: string
+      payload: Record<string, unknown>
+      previewDataURL?: string
+      previewDataUrl?: string
+    }
+  }>(`/api/documents/${encodeURIComponent(documentId)}`)
+  const doc = result.document
+  return {
+    ...(doc?.payload ?? {}),
+    title: doc?.title,
+    previewDataURL: doc?.previewDataURL ?? doc?.previewDataUrl
+  }
 }
 
 /** Saves a document owned by the signed-in user. */

@@ -1,5 +1,15 @@
 import { defineStorageProvider, StorageProviderRegistry } from './registry'
 import { createS3StorageAdapter } from './s3/adapter'
+import { createServerStorageAdapter } from './server/adapter'
+
+export const SERVER_STORAGE_PROVIDER = defineStorageProvider({
+  id: 'server-mongodb',
+  label: 'MongoDB Cloud',
+  description: 'Central MongoDB database storage for all projects, documents, and account data',
+  preferenceFields: [],
+  credentialFields: [],
+  createAdapter: createServerStorageAdapter
+})
 
 export const S3_STORAGE_PROVIDER = defineStorageProvider({
   id: 's3-compatible',
@@ -17,4 +27,7 @@ export const S3_STORAGE_PROVIDER = defineStorageProvider({
   createAdapter: createS3StorageAdapter
 })
 
-export const storageProviderRegistry = new StorageProviderRegistry([S3_STORAGE_PROVIDER])
+export const storageProviderRegistry = new StorageProviderRegistry([
+  SERVER_STORAGE_PROVIDER,
+  S3_STORAGE_PROVIDER
+])

@@ -9,7 +9,7 @@
 import * as v from 'valibot'
 
 /** Maximum accepted length for a document payload, in characters. */
-const MAX_PAYLOAD_LENGTH = 8_000_000
+const MAX_PAYLOAD_LENGTH = 15_000_000
 const MAX_TITLE_LENGTH = 200
 const MAX_CREDENTIAL_VALUE_LENGTH = 4096
 const MAX_CREDENTIAL_KEY_LENGTH = 200

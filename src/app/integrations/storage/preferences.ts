@@ -7,8 +7,15 @@ export type StoragePreferences = Record<StorageProviderID, Record<StorageFieldID
 
 export const activeStorageProviderID = useLocalStorage<StorageProviderID>(
   'open-pencil:storage:provider',
-  's3-compatible'
+  'server-mongodb'
 )
+
+if (
+  activeStorageProviderID.value === 's3-compatible' &&
+  !storagePreferencesComplete('s3-compatible')
+) {
+  activeStorageProviderID.value = 'server-mongodb'
+}
 
 const storedPreferences = useLocalStorage<StoragePreferences>('open-pencil:storage:preferences', {})
 

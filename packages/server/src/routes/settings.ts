@@ -45,12 +45,12 @@ export function createSettingsRouter(_deps: SettingsRouterDeps): Router {
   })
 
   /**
-   * POST /api/settings — upserts the caller's own settings.
+   * POST /api/settings & PUT /api/settings — upserts the caller's own settings.
    *
    * Uses `$set` per field so a partial update cannot be used to clear or inject
    * fields the caller did not intend to change.
    */
-  router.post('/', async (req: AuthenticatedRequest, res: Response) => {
+  const handleSaveSettings = async (req: AuthenticatedRequest, res: Response) => {
     const sub = requireSubject(req)
     const parsed = v.safeParse(settingsSaveSchema, req.body)
     if (!parsed.success) {
@@ -74,7 +74,10 @@ export function createSettingsRouter(_deps: SettingsRouterDeps): Router {
     ).lean()
 
     res.json({ success: true, settings })
-  })
+  }
+
+  router.post('/', handleSaveSettings)
+  router.put('/', handleSaveSettings)
 
   return router
 }

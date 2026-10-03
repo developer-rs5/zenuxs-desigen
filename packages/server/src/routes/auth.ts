@@ -7,13 +7,17 @@
  * server independently verifies against the identity provider.
  */
 
+import { randomUUID } from 'node:crypto'
+
 import { Router, type Request, type RequestHandler, type Response } from 'express'
 import * as v from 'valibot'
 
-import type { OidcVerifier } from '../auth/oidc.js'
+import type { OidcVerifier, VerifiedIdentity } from '../auth/oidc.js'
 import { readSessionCookie, type SessionService } from '../auth/session-service.js'
 import type { ServerConfig } from '../config.js'
+import { DesignDocument } from '../db/models/Document.js'
 import { User } from '../db/models/User.js'
+import { UserSettings } from '../db/models/UserSettings.js'
 import type { AuthenticatedRequest } from '../middleware/auth.js'
 import { createRateLimiter } from '../middleware/security.js'
 import { formatIssues, sessionCreateSchema } from '../validation/schemas.js'
@@ -78,6 +82,26 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
       { upsert: true, new: true }
     )
 
+    const previousGuestSub = (req as AuthenticatedRequest).auth?.sub
+    if (
+      previousGuestSub &&
+      previousGuestSub.startsWith('guest_') &&
+      previousGuestSub !== identity.sub
+    ) {
+      try {
+        await DesignDocument.updateMany(
+          { ownerSub: previousGuestSub },
+          { $set: { ownerSub: identity.sub } }
+        )
+        await UserSettings.updateMany(
+          { ownerSub: previousGuestSub },
+          { $set: { ownerSub: identity.sub } }
+        )
+      } catch (err) {
+        console.warn('[auth] Failed migrating guest data to user:', err)
+      }
+    }
+
     const { token, csrfToken, context } = await sessions.createSession({
       identity,
       userAgent: req.get('user-agent'),
@@ -92,6 +116,66 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
         name: user.name ?? null,
         email: user.email ?? null,
         picture: user.picture ?? null
+      },
+      expiresAt: context.expiresAt.toISOString(),
+      csrfHeaderName: config.csrfHeaderName
+    })
+  })
+
+  /**
+   * POST /api/auth/guest
+   *
+   * Provisions an anonymous guest account and session stored in MongoDB,
+   * allowing visitors to save projects and settings before signing in.
+   */
+  router.post('/guest', sessionRateLimit, async (req: Request, res: Response) => {
+    // If client already has a valid session (guest or registered), preserve it
+    const existingReq = req as AuthenticatedRequest
+    if (existingReq.auth?.sub) {
+      const existingUser = await User.findOne({ sub: existingReq.auth.sub })
+      if (existingUser) {
+        res.json({
+          success: true,
+          user: {
+            sub: existingUser.sub,
+            name: existingUser.name ?? 'Guest User',
+            email: existingUser.email ?? null,
+            picture: existingUser.picture ?? null
+          },
+          csrfHeaderName: config.csrfHeaderName
+        })
+        return
+      }
+    }
+
+    const guestSub = `guest_${randomUUID()}`
+    const identity: VerifiedIdentity = {
+      sub: guestSub,
+      name: 'Guest User'
+    }
+
+    const user = await User.create({
+      sub: guestSub,
+      name: identity.name,
+      email: null,
+      picture: null,
+      lastLoginAt: new Date()
+    })
+
+    const { token, csrfToken, context } = await sessions.createSession({
+      identity,
+      userAgent: req.get('user-agent'),
+      ip: req.ip
+    })
+    sessions.attachCookies(res, token, csrfToken)
+
+    res.json({
+      success: true,
+      user: {
+        sub: user.sub,
+        name: user.name ?? 'Guest User',
+        email: null,
+        picture: null
       },
       expiresAt: context.expiresAt.toISOString(),
       csrfHeaderName: config.csrfHeaderName

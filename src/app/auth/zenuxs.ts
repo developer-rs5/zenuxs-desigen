@@ -16,6 +16,7 @@ import { ref } from 'vue'
 import ZenuxOAuth, { type TokenResponse, type UserInfo } from 'zenuxs-oauth'
 
 import {
+  createGuestSession,
   createServerSession,
   destroyServerSession,
   fetchServerSession,
@@ -197,6 +198,17 @@ async function runInitAuth(): Promise<UserInfo | null> {
     if (restored) {
       setAuthenticated(toUserInfo(restored))
       return currentUser.value
+    }
+
+    // Auto-provision a guest session so all local work is backed by MongoDB
+    try {
+      const guest = await createGuestSession()
+      if (guest?.user) {
+        setAuthenticated(toUserInfo(guest.user))
+        return currentUser.value
+      }
+    } catch {
+      // Backend may be starting or offline
     }
 
     clearLocalAuthState()
