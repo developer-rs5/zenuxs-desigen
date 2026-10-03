@@ -3,6 +3,7 @@ import type { Ref } from 'vue'
 
 import { nodeToXPath } from '@open-pencil/core/xpath'
 
+import { sendNodesToAIChat } from '@/app/ai/chat/use'
 import type { EditorStore } from '@/app/editor/active-store'
 import { pasteClipboardToReplace } from '@/app/editor/clipboard/paste-to-replace'
 import { executeClipboardCommand } from '@/app/editor/clipboard/system'
@@ -92,6 +93,12 @@ export function createCanvasMenuActions(store: EditorStore, selectedIds: Ref<Set
     vectorizeImage: async () => {
       const nodeId = ids()[0]
       if (nodeId) await vectorizeImageNode(store, nodeId)
+    },
+    sendToAI: () => {
+      const nodeIds = ids()
+      if (nodeIds.length === 0) return
+      sendNodesToAIChat(store, nodeIds, (id) => nodeToXPath(store.graph, id))
+      toast.info('Sent element to AI')
     }
   }
 }

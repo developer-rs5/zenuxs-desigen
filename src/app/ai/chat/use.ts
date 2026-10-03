@@ -34,6 +34,33 @@ import {
 } from '@/app/settings/credentials/media'
 
 const activeTab = ref<'design' | 'code' | 'ai'>('design')
+const chatInputDraft = ref('')
+
+export function sendNodesToAIChat(
+  store: {
+    graph: { getNode: (id: string) => { name?: string; type?: string } | undefined }
+    state: { activeRibbonTab?: string; mobileDrawerSnap?: string }
+  },
+  nodeIds: string[],
+  xpathGetter?: (nodeId: string) => string | null
+) {
+  activeTab.value = 'ai'
+  if (store.state.activeRibbonTab !== undefined) {
+    store.state.activeRibbonTab = 'ai'
+    if (store.state.mobileDrawerSnap === 'closed') {
+      store.state.mobileDrawerSnap = 'half'
+    }
+  }
+
+  const firstId = nodeIds[0]
+  if (firstId) {
+    const node = store.graph.getNode(firstId)
+    const xpath = xpathGetter ? xpathGetter(firstId) : null
+    const name = node?.name ? `"${node.name}"` : 'selected element'
+    const xpathDesc = xpath ? ` (path: ${xpath})` : ''
+    chatInputDraft.value = `Redesign ${name}${xpathDesc}: `
+  }
+}
 
 const chatSession = createChatSessionManager({
   isConfigured,
@@ -87,6 +114,8 @@ export function useAIChat() {
     ensureChat: history.ensureChat,
     resetChat: history.newChat,
     chatFailure: chatSession.failure,
-    clearChatFailure: chatSession.clearFailure
+    clearChatFailure: chatSession.clearFailure,
+    chatInputDraft,
+    sendNodesToAIChat
   }
 }

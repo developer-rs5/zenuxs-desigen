@@ -103,56 +103,77 @@ function partKey(part: UIMessagePart<UIDataTypes, UITools>, index: number): stri
           />
 
           <!-- Tool call -->
-          <div v-if="isToolUIPart(part)" class="rounded-lg border border-border bg-canvas p-2">
-            <CollapsibleRoot>
-              <CollapsibleTrigger
-                class="flex w-full items-center gap-2 rounded px-1 py-0.5 hover:bg-hover"
-              >
-                <div
-                  class="flex size-4 items-center justify-center rounded-full"
-                  :class="{
-                    'bg-accent/20 text-accent': toolState(part) === 'pending',
-                    'bg-green-500/20 text-green-400': toolState(part) === 'done',
-                    'bg-red-500/20 text-red-400': toolState(part) === 'error'
-                  }"
+          <div
+            v-if="isToolUIPart(part)"
+            class="rounded-lg transition-all"
+            :class="
+              toolState(part) === 'pending'
+                ? 'magic-building-card'
+                : 'border border-border bg-canvas p-2'
+            "
+          >
+            <div
+              v-if="toolState(part) === 'pending'"
+              class="magic-building-conic"
+              aria-hidden="true"
+            />
+            <div :class="toolState(part) === 'pending' ? 'magic-building-inner !p-2' : ''">
+              <CollapsibleRoot>
+                <CollapsibleTrigger
+                  class="flex w-full items-center gap-2 rounded px-1 py-0.5 hover:bg-hover"
                 >
-                  <icon-lucide-loader-circle
-                    v-if="toolState(part) === 'pending'"
-                    class="size-3 animate-spin"
+                  <div
+                    class="flex size-4 items-center justify-center rounded-full"
+                    :class="{
+                      'bg-accent/20 text-accent': toolState(part) === 'pending',
+                      'bg-green-500/20 text-green-400': toolState(part) === 'done',
+                      'bg-red-500/20 text-red-400': toolState(part) === 'error'
+                    }"
+                  >
+                    <icon-lucide-sparkles
+                      v-if="toolState(part) === 'pending'"
+                      class="size-3 animate-spin text-[#3B82F6]"
+                      style="animation-duration: 3s"
+                    />
+                    <icon-lucide-check v-else-if="toolState(part) === 'done'" class="size-3" />
+                    <icon-lucide-triangle-alert v-else class="size-3" />
+                  </div>
+                  <span class="text-[11px] font-medium text-surface">
+                    {{ toolDisplayName(part) }}
+                  </span>
+                  <span class="text-[10px] text-muted">
+                    {{
+                      toolState(part) === 'pending'
+                        ? 'Building...'
+                        : toolState(part) === 'done'
+                          ? ai.toolFinished
+                          : ai.toolError
+                    }}
+                  </span>
+                  <icon-lucide-chevron-down
+                    v-if="toolState(part) !== 'pending'"
+                    class="ml-auto size-3 text-muted transition-transform [[data-state=open]>&]:rotate-180"
                   />
-                  <icon-lucide-check v-else-if="toolState(part) === 'done'" class="size-3" />
-                  <icon-lucide-triangle-alert v-else class="size-3" />
+                </CollapsibleTrigger>
+                <!-- Mini skeleton progress while building -->
+                <div v-if="toolState(part) === 'pending'" class="mt-2 flex flex-col gap-1 px-1">
+                  <div class="h-1.5 w-full magic-skeleton-bar" />
+                  <div class="h-1.5 w-3/4 magic-skeleton-bar" />
                 </div>
-                <span class="text-[11px] text-surface">
-                  {{ toolDisplayName(part) }}
-                </span>
-                <span class="text-[10px] text-muted">
-                  {{
-                    toolState(part) === 'pending'
-                      ? ai.toolRunning
-                      : toolState(part) === 'done'
-                        ? ai.toolFinished
-                        : ai.toolError
-                  }}
-                </span>
-                <icon-lucide-chevron-down
+                <CollapsibleContent
                   v-if="toolState(part) !== 'pending'"
-                  class="ml-auto size-3 text-muted transition-transform [[data-state=open]>&]:rotate-180"
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent
-                v-if="toolState(part) !== 'pending'"
-                class="data-[state=closed]:collapsible-up data-[state=open]:collapsible-down overflow-hidden text-[10px]"
-              >
-                <pre class="mt-1 overflow-x-auto rounded bg-input p-2 text-muted">{{
-                  part.state === 'output-error' && part.errorText
-                    ? part.errorText
-                    : hasErrorOutput(part)
-                      ? (part.output as { error: string }).error
-                      : JSON.stringify(part.output, null, 2)
-                }}</pre>
-              </CollapsibleContent>
-            </CollapsibleRoot>
+                  class="data-[state=closed]:collapsible-up data-[state=open]:collapsible-down overflow-hidden text-[10px]"
+                >
+                  <pre class="mt-1 overflow-x-auto rounded bg-input p-2 text-muted">{{
+                    part.state === 'output-error' && part.errorText
+                      ? part.errorText
+                      : hasErrorOutput(part)
+                        ? (part.output as { error: string }).error
+                        : JSON.stringify(part.output, null, 2)
+                  }}</pre>
+                </CollapsibleContent>
+              </CollapsibleRoot>
+            </div>
           </div>
 
           <!-- Text -->

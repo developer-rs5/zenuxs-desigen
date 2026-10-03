@@ -14,6 +14,7 @@ import IconCombine from '~icons/lucide/combine'
 import IconCopyMinus from '~icons/lucide/copy-minus'
 import IconCopyX from '~icons/lucide/copy-x'
 import IconListCollapse from '~icons/lucide/list-collapse'
+import IconSparkles from '~icons/lucide/sparkles'
 import IconSpline from '~icons/lucide/spline'
 import IconSquaresIntersect from '~icons/lucide/squares-intersect'
 import IconTypeOutline from '~icons/lucide/type-outline'
@@ -33,6 +34,7 @@ import { useEditorStore } from '@/app/editor/active-store'
 import { createCanvasMenuActions } from '@/app/editor/canvas/menu/actions'
 import { useCanvasContextMenu } from '@/app/editor/canvas/menu/context'
 import { canvasMenuItemClass, canvasMenuShortcutClass } from '@/app/editor/canvas/menu/model'
+import { CANVAS_SEND_TO_AI_TEST_ID } from '@/app/editor/canvas/menu/registry'
 import { appMenuShortcutLabel } from '@/app/shell/menu/shortcut'
 import AppShortcutText from '@/components/ui/menu/AppShortcutText.vue'
 import { menu, useMenuUI } from '@/components/ui/menu/menu'
@@ -152,6 +154,19 @@ function contextCommandIcon(id: EditorCommandId | undefined): Component | undefi
       >
         <span>{{ getCommand('selection.delete').label }}</span
         ><AppShortcutText>{{ editorCommandMetadata('selection.delete').shortcut }}</AppShortcutText>
+      </ContextMenuItem>
+
+      <ContextMenuSeparator :class="cls.sep" />
+      <ContextMenuItem
+        :data-test-id="CANVAS_SEND_TO_AI_TEST_ID"
+        :class="cls.item"
+        :disabled="!hasSelection"
+        @select="canvasMenuActions.sendToAI"
+      >
+        <span class="flex min-w-0 flex-1 items-center gap-2">
+          <IconSparkles class="size-3.5 shrink-0 text-[#3B82F6]" />
+          <span>Send to AI</span>
+        </span>
       </ContextMenuItem>
 
       <template v-for="(item, i) in contextMenu" :key="`menu-${i}`">

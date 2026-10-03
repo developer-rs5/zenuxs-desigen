@@ -1,5 +1,5 @@
 import { useFileDialog } from '@vueuse/core'
-import { computed, onBeforeUnmount, ref, type Ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch, type Ref } from 'vue'
 
 import type { Editor } from '@open-pencil/core/editor'
 
@@ -26,6 +26,21 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
   const images = ref<ImageAttachmentDraft[]>([])
   const nodeIds = ref<string[]>([])
   const nodes = computed(() => resolveReferencedNodes(options.editor.graph, nodeIds.value))
+
+  // Auto-sync canvas selection to AI chat referenced nodes
+  watch(
+    () => [...options.selectedIds.value],
+    (newSelected) => {
+      if (newSelected.length > 0) {
+        nodeIds.value = resolveReferencedNodes(options.editor.graph, newSelected).map(
+          (node) => node.id
+        )
+      } else {
+        nodeIds.value = []
+      }
+    },
+    { immediate: true }
+  )
   const selectedNodeIds = computed(() =>
     [...options.selectedIds.value].filter((id) => nodeIds.value.includes(id))
   )

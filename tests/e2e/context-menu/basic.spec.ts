@@ -74,6 +74,7 @@ test('context menu shows expected items', async () => {
   await expect(contextItem('context-cut')).toBeVisible()
   await expect(contextItem('context-duplicate')).toBeVisible()
   await expect(contextItem('context-delete')).toBeVisible()
+  await expect(contextItem('context-send-to-ai')).toBeVisible()
   await expect(contextItem('context-group')).toBeVisible()
   await expect(contextItem('context-bring-to-front')).toBeVisible()
   await expect(contextItem('context-send-to-back')).toBeVisible()
@@ -243,4 +244,21 @@ test('Copy/Paste as submenu exists', async () => {
   await expect(contextItem('context-copy-as-jsx')).toBeVisible()
 
   await editor.page.keyboard.press('Escape')
+})
+
+test('Send to AI via context menu switches to AI chat and pre-fills redesign draft', async () => {
+  await editor.canvas.clearCanvas()
+  await editor.canvas.drawRect(200, 200, 120, 80)
+  await editor.canvas.waitForRender()
+
+  await rightClickShape(250, 230)
+  const sendToAI = contextItem('context-send-to-ai')
+  await expect(sendToAI).toBeVisible()
+  await sendToAI.click()
+
+  const textarea = editor.page.locator('textarea[placeholder="Describe what you want..."]')
+  await expect(textarea).toBeVisible()
+  const val = await textarea.inputValue()
+  expect(val).toContain('Redesign')
+  expect(val).toContain('path:')
 })

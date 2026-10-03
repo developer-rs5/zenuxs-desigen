@@ -10,6 +10,7 @@ import AppButton from '@/components/ui/button/AppButton.vue'
 import IconButton from '@/components/ui/button/IconButton.vue'
 import AppPlaceholder from '@/components/ui/feedback/AppPlaceholder.vue'
 
+import ChatMagicBuilding from './ChatMagicBuilding.vue'
 import ChatMessage from './ChatMessage.vue'
 import { useScrollFollowing } from './transcript/useScrollFollowing'
 
@@ -70,24 +71,13 @@ const { arrivedState, resumeFollowing } = useScrollFollowing(
           :streaming="running && msg.role === 'assistant' && index === messages.length - 1"
         />
 
-        <!-- Thinking indicator: shown when AI is working but no visible activity -->
-        <div v-if="isThinking" data-test-id="chat-typing-indicator" class="flex gap-2">
-          <div
-            class="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted/20 text-[10px] font-bold text-muted"
-          >
-            AI
-          </div>
-          <div class="flex items-center gap-1 py-2">
-            <span class="size-1.5 animate-bounce rounded-full bg-muted" />
-            <span
-              class="size-1.5 animate-bounce rounded-full bg-muted"
-              :style="{ animationDelay: '150ms' }"
-            />
-            <span
-              class="size-1.5 animate-bounce rounded-full bg-muted"
-              :style="{ animationDelay: '300ms' }"
-            />
-          </div>
+        <!-- Magic Building 360° skeleton loading indicator -->
+        <div
+          v-if="isThinking"
+          data-test-id="chat-typing-indicator"
+          class="flex flex-col gap-1.5 w-full"
+        >
+          <ChatMagicBuilding />
         </div>
 
         <!-- Continue button when step limit reached -->

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useTextareaAutosize } from '@vueuse/core'
-import { computed } from 'vue'
-import { ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import { ACP_AGENTS } from '@open-pencil/core/constants'
 import { useSelectionState } from '@open-pencil/vue'
@@ -16,7 +15,7 @@ import ChatProfileSelect from '@/components/chat/ChatProfileSelect.vue'
 import ChatSkillsPopover from '@/components/chat/ChatSkillsPopover.vue'
 import { useAttachmentDrafts } from '@/components/chat/input/useAttachments'
 
-const { providerID, providerDef, modelID, customModelID } = useAIChat()
+const { providerID, providerDef, modelID, customModelID, chatInputDraft } = useAIChat()
 const { editor, selectedIds } = useSelectionState()
 
 const { status, disabled = false } = defineProps<{
@@ -50,6 +49,18 @@ const {
 const textarea = ref<HTMLTextAreaElement>()
 const input = ref('')
 const { triggerResize } = useTextareaAutosize({ element: textarea, input, maxHeight: 120 })
+
+watch(chatInputDraft, (draft) => {
+  if (draft) {
+    input.value = draft
+    triggerResize()
+    chatInputDraft.value = ''
+    void nextTick(() => {
+      textarea.value?.focus()
+      textarea.value?.setSelectionRange(input.value.length, input.value.length)
+    })
+  }
+})
 
 const isStreaming = computed(() => disabled || status === 'streaming' || status === 'submitted')
 const isAgentProvider = computed(
