@@ -274,67 +274,24 @@ zenuxs-auth {
   .magic-building-lower-glow,
   .magic-skeleton-bar,
   .magic-skeleton-box,
-  .ai-build-block,
-  .ai-build-block::after,
-  .ai-build-cursor {
+  .ai-build-block::after {
     animation: none !important;
   }
 }
 
-/* ===== Canvas AI live-building overlay ===== */
-@keyframes ai-build-cycle {
-  0% {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-  6% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  84% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  94%,
-  100% {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-}
-
-@keyframes ai-build-cursor-path {
-  0% {
-    transform: translate(6%, 4%);
-  }
-  14% {
-    transform: translate(56%, 8%);
-  }
-  28% {
-    transform: translate(72%, 34%);
-  }
-  44% {
-    transform: translate(32%, 54%);
-  }
-  60% {
-    transform: translate(66%, 74%);
-  }
-  76% {
-    transform: translate(14%, 68%);
-  }
-  90% {
-    transform: translate(42%, 26%);
-  }
-  100% {
-    transform: translate(6%, 4%);
-  }
-}
-
+/* ===== Canvas AI live-building overlay =====
+   Skeleton placeholder inside the frame the AI is filling; geometry comes from
+   the overlay component, shimmer is the only animation. */
 .ai-build-block {
   position: absolute;
   border: 1px dashed rgba(59, 130, 246, 0.45);
   border-radius: 6px;
   background: rgba(59, 130, 246, 0.08);
-  animation: ai-build-cycle 7s ease-in-out infinite;
+}
+
+/* Real children now cover this placeholder — fade it out. */
+.ai-build-block[data-covered='true'] {
+  opacity: 0;
 }
 
 .ai-build-block::after {
@@ -350,52 +307,4 @@ zenuxs-auth {
   );
   background-size: 200% 100%;
   animation: magic-shimmer 2.2s ease-in-out infinite;
-}
-
-.ai-build-block-1 {
-  left: 4%;
-  top: 6%;
-  width: 92%;
-  height: 10%;
-}
-
-.ai-build-block-2 {
-  left: 4%;
-  top: 22%;
-  width: 22%;
-  height: 72%;
-  animation-delay: 0.35s;
-}
-
-.ai-build-block-3 {
-  left: 30%;
-  top: 22%;
-  width: 66%;
-  height: 34%;
-  animation-delay: 0.7s;
-}
-
-.ai-build-block-4 {
-  left: 30%;
-  top: 62%;
-  width: 31%;
-  height: 32%;
-  animation-delay: 1.05s;
-}
-
-.ai-build-block-5 {
-  left: 65%;
-  top: 62%;
-  width: 31%;
-  height: 32%;
-  animation-delay: 1.4s;
-}
-
-.ai-build-cursor {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform: translate(6%, 4%);
-  animation: ai-build-cursor-path 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
 }

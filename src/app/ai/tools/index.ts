@@ -11,6 +11,8 @@ import {
 import type { StepBudget, ToolLogEntry } from '@open-pencil/core/tools'
 import type { SceneNode } from '@open-pencil/scene-graph'
 
+import { clearAIPendingWork, setAIPendingWork } from '@/app/ai/chat/build-state'
+import { resolveAIWorkRect } from '@/app/ai/chat/live-build'
 import { makeFigmaFromStore } from '@/app/automation/bridge/figma-factory'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import type { EditorStore } from '@/app/editor/active-store'
@@ -84,6 +86,20 @@ export function createAITools(store: EditorStore) {
     ],
     {
       getFigma: () => makeFigmaFromStore(store),
+      onBeforeExecute: (def, args) => {
+        if (!def.mutates) return
+        const nodeId = typeof args.id === 'string' ? args.id : null
+        const targetBounds =
+          nodeId && store.graph.getNode(nodeId) ? store.graph.getAbsoluteBounds(nodeId) : null
+        const parentId = typeof args.parent_id === 'string' ? args.parent_id : null
+        const parentAbs =
+          parentId && store.graph.getNode(parentId)
+            ? store.graph.getAbsolutePosition(parentId)
+            : null
+        const rect = resolveAIWorkRect(args, targetBounds, parentAbs)
+        if (rect) setAIPendingWork({ rect, nodeId })
+        if (targetBounds && nodeId) store.aiMarkActive([nodeId])
+      },
       executeTool: async (def, figma, args) => {
         if (def.mutates) beforeSnapshot = store.snapshotPage()
         return def.mutates
@@ -98,6 +114,8 @@ export function createAITools(store: EditorStore) {
           : def.execute(figma, args)
       },
       onAfterExecute: async (def) => {
+        store.renderer?.aiClearActive()
+        clearAIPendingWork()
         if (def.mutates) {
           store.requestRender()
           if (beforeSnapshot) {
@@ -113,7 +131,6 @@ export function createAITools(store: EditorStore) {
         }
       },
       onFlashNodes: (nodeIds) => {
-        store.renderer?.aiClearActive()
         if (nodeIds.length > 0) {
           store.aiFlashDone(nodeIds)
         }

@@ -223,6 +223,7 @@ function submitInput(): void {
         <!-- Send / Stop -->
         <button
           v-if="isStreaming"
+          data-test-id="chat-stop-button"
           class="flex size-7 items-center justify-center rounded-lg border border-[#292D33] text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
           @click="emit('stop')"
         >
