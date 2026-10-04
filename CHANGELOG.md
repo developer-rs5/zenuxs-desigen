@@ -49,6 +49,7 @@
 
 ### Fixed
 
+- Remove a deleted project from Home's recent files and storage workspace lists immediately, clearing its local index entry so the deleted document no longer reappears after closing all tabs.
 - Stop replaying the "Could not open" document restore failure on every load for a dead remote tab, dropping the missing tab from the restored session while keeping transient failures retryable without error toasts.
 - Paste images from clipboard HTML data URIs with Ctrl+V and insert copied raster images through the canvas context menu's Paste action instead of failing silently or reporting blocked clipboard access.
 - Surface a visible error when the AI chat finishes with no reply content instead of returning silently, so empty or filtered model responses are no longer mistaken for a sent message.

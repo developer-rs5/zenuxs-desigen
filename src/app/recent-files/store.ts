@@ -89,6 +89,12 @@ export function forgetRecentDocument(id: string): void {
   recentDocuments.value = normalizedRecentDocuments().filter((document) => document.id !== id)
 }
 
+export function forgetRecentStorageDocument(documentId: string): void {
+  recentDocuments.value = normalizedRecentDocuments().filter(
+    (document) => !(document.kind === 'storage' && document.documentId === documentId)
+  )
+}
+
 export function forgetRecentFile(path: string): void {
   forgetRecentDocument(localDocumentId(path))
 }

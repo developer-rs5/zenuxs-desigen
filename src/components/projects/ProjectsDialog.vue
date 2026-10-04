@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import { SERVER_STORAGE_PROVIDER } from '@/app/integrations/storage/providers'
 import { projectsDialogOpen } from '@/app/projects/dialog'
+import { forgetRecentStorageDocument } from '@/app/recent-files'
 import { toast } from '@/app/shell/ui'
+import { getLocalCanvasStore } from '@/app/storage/local-store'
 import {
   deleteRemoteDocument,
   listRemoteDocuments,
   type RemoteServerDocumentHeader
 } from '@/app/storage/remote-server'
+import { emitStorageWorkspaceEvent } from '@/app/storage/workspace/events'
 import { activeTab, createDocumentInCurrentTab, openStorageDocumentInNewTab } from '@/app/tabs'
 import AppButton from '@/components/ui/button/AppButton.vue'
 import {
@@ -114,6 +118,17 @@ async function handleDeleteConfirmed() {
   deleting.value = true
   try {
     await deleteRemoteDocument(projectToDelete.value.documentId)
+    // Tombstone the local index meta so reconcile stops reviving it from
+    // cache; it is purged once the next remote listing confirms the delete.
+    await getLocalCanvasStore().tombstone(projectToDelete.value.documentId)
+    // The server document is gone: drop it from Home recents and tell the
+    // storage workspace to refetch instead of waiting for its poll interval.
+    forgetRecentStorageDocument(projectToDelete.value.documentId)
+    emitStorageWorkspaceEvent({
+      providerId: SERVER_STORAGE_PROVIDER.id,
+      documentId: projectToDelete.value.documentId,
+      kind: 'changed'
+    })
     toast.info(`Deleted "${projectToDelete.value.title}"`)
     deleteConfirmOpen.value = false
     projectToDelete.value = null
