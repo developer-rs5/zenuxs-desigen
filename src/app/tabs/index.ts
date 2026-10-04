@@ -8,6 +8,7 @@ import { populateLazyFigImportRoots } from '@open-pencil/core/kiwi'
 import { computeAllLayouts } from '@open-pencil/core/layout'
 import type { SceneGraph } from '@open-pencil/scene-graph'
 
+import { SessionRequestError } from '@/app/auth/api'
 import { setOpenPencilStore } from '@/app/browser-bridge'
 import { describeDiagnosticError, recordStorageFailure } from '@/app/diagnostics'
 import { readFigDocument } from '@/app/document/io/fig'
@@ -113,12 +114,21 @@ export function initTabsSession(shouldCreateHome: boolean): Tab {
             const tab: Tab = { id: generateTabId(), store: s, kind: 'document' }
             tabsRef.value = [...tabsRef.value, tab]
             if (item.id === parsed.activeId || !activeTabToSwitch) activeTabToSwitch = tab
-            void loadStorageDocumentIntoStore(s, {
-              id: item.documentId,
-              name: s.state.documentName,
-              updatedAt: ''
-            }).catch((err) => {
+            void loadStorageDocumentIntoStore(
+              s,
+              {
+                id: item.documentId,
+                name: s.state.documentName,
+                updatedAt: ''
+              },
+              { silent: true }
+            ).catch((err) => {
               console.warn('[Tabs] Failed to restore document content:', err)
+              // Drop a definitively missing document so reloads stop replaying
+              // the failure; transient errors keep the tab for a later retry.
+              if (err instanceof SessionRequestError && err.status === 404) {
+                void closeTab(tab.id)
+              }
             })
           }
         }
@@ -389,7 +399,8 @@ function failPreparation(
 
 export async function loadStorageDocumentIntoStore(
   store: EditorStore,
-  document: StorageDocument
+  document: StorageDocument,
+  options?: { silent?: boolean }
 ): Promise<void> {
   const providerId = activeStorageProviderID.value
   store.state.documentName = document.name
@@ -461,12 +472,15 @@ export async function loadStorageDocumentIntoStore(
         retryable: diagnostic.retryable ?? true
       })
       recordStorageFailure({ operation: 'download', ...diagnostic })
-      toast.error(
-        notificationMessages.get().openFileFailed({
-          name: document.name,
-          error: error instanceof Error ? error.message : String(error)
-        })
-      )
+      // Session restore stays silent; explicit opens keep the error toast.
+      if (!options?.silent) {
+        toast.error(
+          notificationMessages.get().openFileFailed({
+            name: document.name,
+            error: error instanceof Error ? error.message : String(error)
+          })
+        )
+      }
     }
     throw error
   } finally {
