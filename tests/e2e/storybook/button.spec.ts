@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 
+// Storybook runs on its own dev server (see playwright.config.ts webServer[1]).
+test.use({ baseURL: 'http://localhost:6006' })
+
 test('action buttons keep CJK labels single-line and allow explicit wrapping', async ({ page }) => {
   await page.goto('/iframe.html?id=design-system-actions-button--constrained-labels&viewMode=story')
   const single = page.getByRole('button', { name: '保存设置' })

@@ -22,6 +22,10 @@ import {
 } from '@/components/ui/dialog'
 import AppConfirmationDialog from '@/components/ui/dialog/AppConfirmationDialog.vue'
 import AppInput from '@/components/ui/input/AppInput.vue'
+import Tip from '@/components/ui/overlay/Tip.vue'
+
+const refreshProjectsTip = 'Refresh projects list'
+const deleteProjectTip = 'Delete project'
 
 const projects = ref<RemoteServerDocumentHeader[]>([])
 const loading = ref(false)
@@ -39,7 +43,7 @@ function formatRelativeTime(dateString: string): string {
   try {
     const date = new Date(dateString)
     const diff = Date.now() - date.getTime()
-    if (isNaN(diff)) return 'Recently'
+    if (Number.isNaN(diff)) return 'Recently'
     const seconds = Math.floor(diff / 1000)
     if (seconds < 60) return 'Just now'
     const minutes = Math.floor(seconds / 60)
@@ -174,15 +178,17 @@ async function handleDeleteConfirmed() {
         >
           <template #leading><icon-lucide-search class="size-4 text-muted" /></template>
         </AppInput>
-        <AppButton
-          variant="outline"
-          size="md"
-          :disabled="loading"
-          title="Refresh projects list"
-          @click="loadProjects"
-        >
-          <icon-lucide-refresh-cw class="size-4" :class="{ 'animate-spin': loading }" />
-        </AppButton>
+        <Tip :label="refreshProjectsTip">
+          <AppButton
+            variant="outline"
+            size="md"
+            :disabled="loading"
+            :aria-label="refreshProjectsTip"
+            @click="loadProjects"
+          >
+            <icon-lucide-refresh-cw class="size-4" :class="{ 'animate-spin': loading }" />
+          </AppButton>
+        </Tip>
       </div>
 
       <!-- Error banner -->
@@ -271,25 +277,28 @@ async function handleDeleteConfirmed() {
               </span>
 
               <!-- Hover delete button -->
-              <button
-                type="button"
-                title="Delete project"
-                class="absolute top-2 right-2 flex size-7 items-center justify-center rounded-lg bg-black/60 text-muted opacity-0 backdrop-blur-sm transition-all hover:bg-red-500 hover:text-white group-hover:opacity-100"
-                @click="confirmDelete(project, $event)"
-              >
-                <icon-lucide-trash-2 class="size-3.5" />
-              </button>
+              <Tip :label="deleteProjectTip">
+                <button
+                  type="button"
+                  :aria-label="deleteProjectTip"
+                  class="absolute top-2 right-2 flex size-7 items-center justify-center rounded-lg bg-black/60 text-muted opacity-0 backdrop-blur-sm transition-all hover:bg-red-500 hover:text-white group-hover:opacity-100"
+                  @click="confirmDelete(project, $event)"
+                >
+                  <icon-lucide-trash-2 class="size-3.5" />
+                </button>
+              </Tip>
             </div>
 
             <!-- Title & metadata -->
             <div class="flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
-                <h3
-                  class="truncate text-xs font-semibold text-surface group-hover:text-[#3B82F6]"
-                  :title="project.title"
-                >
-                  {{ project.title }}
-                </h3>
+                <Tip :label="project.title">
+                  <h3
+                    class="truncate text-xs font-semibold text-surface group-hover:text-[#3B82F6]"
+                  >
+                    {{ project.title }}
+                  </h3>
+                </Tip>
                 <p class="text-[11px] text-muted">
                   {{ formatRelativeTime(project.updatedAt) }}
                 </p>

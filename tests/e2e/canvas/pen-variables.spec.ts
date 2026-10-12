@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test&no-chrome&no-rulers')
+const editor = useEditorSetup('/editor?test&no-chrome&no-rulers')
 
 test('renders imported .pen variable colors and fonts like literal values', async () => {
   await editor.page.evaluate(() =>

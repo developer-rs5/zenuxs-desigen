@@ -5,7 +5,10 @@ import * as v from 'valibot'
 import {
   CORE_TOOLS,
   EXTENDED_TOOLS,
+  generateImage,
   registerComponentCatalog,
+  registerGeneratedImageProvider,
+  setActiveGeneratedImageProvider,
   toolsToAI
 } from '@open-pencil/core/tools'
 import type { StepBudget, ToolLogEntry } from '@open-pencil/core/tools'
@@ -13,6 +16,15 @@ import type { SceneNode } from '@open-pencil/scene-graph'
 
 import { clearAIPendingWork, setAIPendingWork } from '@/app/ai/chat/build-state'
 import { resolveAIWorkRect } from '@/app/ai/chat/live-build'
+import {
+  createPrototypeCritic,
+  isPrototypeMutation,
+  runPrototypeValidation,
+  type PrototypeCritic,
+  type PrototypeCriticReport
+} from '@/app/ai/chat/prototype-critic'
+import { resolveImageModel } from '@/app/ai/models/image'
+import { createAIGeneratedImageProvider } from '@/app/ai/tools/image-gen-provider'
 import { makeFigmaFromStore } from '@/app/automation/bridge/figma-factory'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import type { EditorStore } from '@/app/editor/active-store'
@@ -24,9 +36,12 @@ export const MAX_AGENT_STEPS = 50
 class RunState {
   toolLog: ToolLogEntry[] = []
   currentSteps = 0
+  /** Post-generation prototype validation for this run (audit §4.6). */
+  critic: PrototypeCritic = createPrototypeCritic()
 
   resetSteps(): void {
     this.currentSteps = 0
+    this.critic.reset()
   }
 
   hitLimit(): boolean {
@@ -36,6 +51,7 @@ class RunState {
   clear(): void {
     this.toolLog = []
     this.currentSteps = 0
+    this.critic.reset()
   }
 }
 
@@ -70,19 +86,43 @@ export function clearToolLogEntries(store?: EditorStore): void {
   getRunState(store).clear()
 }
 
-export function createAITools(store: EditorStore) {
+/**
+ * Consumes the run's one automatic prototype repair round (audit §4.6): the
+ * transport appends the returned instruction to the next model step. Null when
+ * nothing validated false or the round is already spent.
+ */
+export function takePrototypeRepair(store: EditorStore): string | null {
+  return getRunState(store).critic.takeRepair()
+}
+
+/** Critic verdicts for the debug log; safe to read at any time. */
+export function getPrototypeCriticReport(store?: EditorStore): PrototypeCriticReport {
+  return getRunState(store).critic.report()
+}
+
+export async function createAITools(store: EditorStore) {
   let beforeSnapshot: Map<string, SceneNode> | null = null
   const runState = getRunState(store)
   const libraryService = useLibraryService()
   libraryService.bindEditor(store)
   registerComponentCatalog(store.graph, libraryService)
 
+  // The image tool exists only when the active Design provider can actually
+  // generate images. Hiding it beats exposing a tool that can only fail — the
+  // model would spend a step and the user money discovering that.
+  const imageModel = await resolveImageModel()
+  if (imageModel) {
+    registerGeneratedImageProvider(createAIGeneratedImageProvider(imageModel))
+    setActiveGeneratedImageProvider('ai-image-model')
+  }
+
   return toolsToAI(
     [
       ...CORE_TOOLS,
       ...EXTENDED_TOOLS.filter((def) =>
         ['get_components', 'list_libraries', 'insert_library_component'].includes(def.name)
-      )
+      ),
+      ...(imageModel ? [generateImage] : [])
     ],
     {
       getFigma: () => makeFigmaFromStore(store),
@@ -127,6 +167,13 @@ export function createAITools(store: EditorStore) {
               inverse: () => store.restorePageFromSnapshot(before)
             })
             beforeSnapshot = null
+          }
+          // Code-enforced MUTATE → VALIDATE (audit §4.6): after a prototype
+          // write, run the real validator now — the transport feeds a failed
+          // verdict back into the next model step as a bounded repair round.
+          if (isPrototypeMutation(def.name)) {
+            runState.critic.noteMutation()
+            runState.critic.recordValidation(runPrototypeValidation(makeFigmaFromStore(store)))
           }
         }
       },

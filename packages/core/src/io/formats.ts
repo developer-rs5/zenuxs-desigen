@@ -1,4 +1,4 @@
-import { parsePenFile } from '@open-pencil/pen'
+import { parsePenFile, writePenFile } from '@open-pencil/pen'
 
 import { sceneNodeToJSX, selectionToJSX } from '#core/design-jsx'
 
@@ -206,7 +206,8 @@ export const penFormat: IOFormatAdapter = {
   extensions: ['pen'],
   mimeTypes: ['application/json', 'text/plain'],
   support: {
-    readDocument: true
+    readDocument: true,
+    writeDocument: true
   },
   matchesFile(fileName, mimeType) {
     return lowerExt(fileName) === 'pen' || mimeType === 'application/json'
@@ -215,6 +216,15 @@ export const penFormat: IOFormatAdapter = {
     const text = new TextDecoder().decode(input.data)
     const graph = parsePenFile(text)
     return { graph, sourceFormat: 'pen' }
+  },
+  async writeDocument(graph) {
+    return {
+      format: 'pen',
+      mimeType: 'application/json',
+      extension: 'pen',
+      data: writePenFile(graph),
+      encoding: 'utf8'
+    }
   }
 }
 

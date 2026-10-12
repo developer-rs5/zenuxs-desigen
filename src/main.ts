@@ -10,9 +10,7 @@ import router from './router'
 const head = createHead()
 createApp(App).use(router).use(head).mount('#app')
 
-void import('@/app/editor/fonts').then(({ preloadFonts }) => {
-  preloadFonts()
-})
+void import('@/app/editor/fonts').then(({ preloadFonts }) => preloadFonts())
 
 if (!IS_TAURI) {
   if (import.meta.env.PROD) {
@@ -25,6 +23,7 @@ if (!IS_TAURI) {
       for (const registration of registrations) {
         void registration.unregister()
       }
+      return undefined
     })
   }
 }

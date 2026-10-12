@@ -83,6 +83,40 @@ describe('SceneGraph', () => {
 | `tests/helpers/canvas.ts` | Canvas setup and interaction utilities |
 | `tests/helpers/figma.ts`  | Figma CDP connection helpers           |
 
+## Environment Reproducibility
+
+A clean checkout needs only:
+
+```sh
+bun install        # workspace dependencies
+git lfs pull       # tests/fixtures/*.fig are Git LFS pointers
+bun run check      # the full quality gate (18 chained commands)
+```
+
+The `check` script in the root `package.json` is the single source of truth for the gate
+count; read it there rather than hard-coding a number. It runs build, lint (structure +
+type-aware), type checks, i18n/docs/changelog/package checks, dependency/secret/arch
+checks, and the type-shape/tool/duplication tests.
+
+### Credentials
+
+Tests never read saved credentials. `tests/e2e/chat/real-llm.spec.ts` needs
+`OPENROUTER_API_KEY` in the environment to run; keep it in your shell profile or a local
+env file that stays out of version control. Without the key, exclude that file **by path**
+(Playwright collects files even with `--grep-invert`, so filtering alone still throws at
+collection time).
+
+### Host-specific notes
+
+- **File-watcher limits**: hosts with a low `max_user_watches` inotify budget (large IDEs
+  can consume it) make Vite/Storybook dev servers die with `ENOSPC`. Set
+  `WATCHPACK_POLLING=true CHOKIDAR_USEPOLLING=1` in the environment for `bun run dev`,
+  `bun run test`, and `bun run check` instead of raising the kernel limit or editing
+  project config — it is a host workaround, not a repository setting.
+- **Parallel-load timeouts**: a handful of `.fig` round-trip tests parse multi-megabyte
+  fixtures and time out when the machine is loaded (other VMs, emulators). They pass in
+  isolation; re-run the individual files before treating a timeout as a regression.
+
 ## Performance Targets
 
 | Metric                | Target                        |

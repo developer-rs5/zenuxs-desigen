@@ -120,7 +120,7 @@ export const setImageFill = defineTool({
     const node = figma.getNodeById(id)
     if (!node) return { error: `Node "${id}" not found` }
 
-    const targetUrl =
+    const targetURL =
       url ||
       (typeof image_data === 'string' &&
       (image_data.startsWith('http://') || image_data.startsWith('https://'))
@@ -128,12 +128,12 @@ export const setImageFill = defineTool({
         : undefined)
 
     let bytes: Uint8Array
-    if (targetUrl) {
+    if (targetURL) {
       try {
-        const response = await fetch(targetUrl)
+        const response = await fetch(targetURL)
         if (!response.ok) {
           return {
-            error: `Failed to download image from URL (HTTP ${response.status}): ${targetUrl}`
+            error: `Failed to download image from URL (HTTP ${response.status}): ${targetURL}`
           }
         }
         bytes = new Uint8Array(await response.arrayBuffer())

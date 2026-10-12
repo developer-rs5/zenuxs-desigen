@@ -20,7 +20,7 @@ for (const theme of ['light', 'dark']) {
     })
     test(`unresolved number binding remains recoverable in ${theme}`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 1200 })
-      await page.goto('/?test')
+      await page.goto('/editor?test')
       await new CanvasHelper(page).waitForInit()
       await page.evaluate(() => {
         const editor = window.openPencil?.getStore?.()
@@ -79,7 +79,7 @@ for (const theme of ['light', 'dark']) {
         await page.getByRole('button', { name: 'Detach variable', exact: true }).click()
         await expect(paint.locator('[data-slot="pill"]')).toHaveCount(0)
         await paint.getByRole('heading', { name, exact: true }).click()
-        await page.keyboard.press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z')
+        await page.keyboard.press(process.platform === 'darwin' ? 'ControlOrMeta+z' : 'Control+z')
         await expect(paint.locator('[data-slot="pill"]')).toHaveAttribute('data-unresolved')
         await paint.getByRole('button', { name: 'Apply variable' }).click()
         await page.getByRole('option', { name: 'Paint/Replacement' }).click()
@@ -90,7 +90,7 @@ for (const theme of ['light', 'dark']) {
       await page.getByRole('button', { name: 'Detach variable', exact: true }).click()
       await expect(field.locator('[data-slot="pill"]')).toHaveCount(0)
       await section.getByRole('heading', { name: 'Typography', exact: true }).click()
-      await page.keyboard.press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z')
+      await page.keyboard.press(process.platform === 'darwin' ? 'ControlOrMeta+z' : 'Control+z')
       await expect(field.locator('[data-slot="pill"]')).toHaveAttribute('data-unresolved')
       await field.getByRole('button', { name: 'Apply variable' }).click()
       await page.getByRole('option', { name: 'Tracking/Replacement' }).click()

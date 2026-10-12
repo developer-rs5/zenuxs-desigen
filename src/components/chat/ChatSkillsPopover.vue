@@ -2,12 +2,15 @@
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { ref } from 'vue'
 
+import { useI18n } from '@open-pencil/vue'
+
 import { activeAISkills, aiSkills, toggleAISkill } from '@/app/ai/skills'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import AppButton from '@/components/ui/button/AppButton.vue'
 import { usePopoverUI } from '@/components/ui/overlay/popover'
 import AppSwitch from '@/components/ui/toggle/AppSwitch.vue'
 
+const { ai } = useI18n()
 const open = ref(false)
 const cls = usePopoverUI({
   content: 'z-[100] w-72 rounded-xl border border-border bg-panel p-3 shadow-xl'
@@ -27,7 +30,7 @@ function openSettings() {
         data-test-id="chat-skills-trigger"
         class="inline-flex h-6 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium transition-colors hover:bg-hover active:scale-95"
         :class="activeAISkills.length > 0 ? 'text-surface' : 'text-muted'"
-        :aria-label="`AI Skills: ${activeAISkills.length} active`"
+        :aria-label="ai.skillsTriggerLabel({ count: activeAISkills.length })"
       >
         <icon-lucide-wand-2 class="size-3.5 text-accent" />
       </button>
@@ -38,10 +41,10 @@ function openSettings() {
         <div class="flex items-center justify-between border-b border-border pb-2">
           <div class="flex items-center gap-1.5">
             <icon-lucide-sparkles class="size-3.5 text-accent" />
-            <h4 class="text-xs font-semibold text-surface">AI Design Skills</h4>
+            <h4 class="text-xs font-semibold text-surface">{{ ai.skillsPopoverTitle }}</h4>
           </div>
           <span class="text-[10px] font-medium text-muted">
-            {{ activeAISkills.length }} active
+            {{ ai.skillsActive({ count: activeAISkills.length }) }}
           </span>
         </div>
 
@@ -67,9 +70,9 @@ function openSettings() {
         </div>
 
         <div class="mt-2 flex items-center justify-between border-t border-border pt-2 text-[11px]">
-          <span class="text-[10px] text-muted">Taste Skill & UI/UX Pro Max</span>
+          <span class="text-[10px] text-muted">{{ ai.skillsPopoverFooter }}</span>
           <AppButton variant="ghost" size="xs" class="h-6 text-[11px]" @click="openSettings">
-            Settings
+            {{ ai.skillsPopoverSettings }}
             <icon-lucide-arrow-right class="ml-1 size-3" />
           </AppButton>
         </div>

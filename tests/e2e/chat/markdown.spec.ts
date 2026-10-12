@@ -11,7 +11,9 @@ test('completed responses release streaming parser history', async ({ configured
 test('code blocks follow light and dark themes', async ({ configuredChat: chat }) => {
   await chat.submit('Show a code block')
   const code = chat.assistantMessage().locator('.shiki').first()
-  await expect(code).toHaveCSS('background-color', 'rgb(30, 30, 30)')
+  // c5158edc (2026-09-03) moved code blocks onto the app's --color-input token
+  // instead of shiki's own github-dark/github-light backgrounds.
+  await expect(code).toHaveCSS('background-color', 'rgb(30, 33, 38)')
   await expect(code.locator('span').filter({ hasText: 'const' }).first()).not.toHaveCSS(
     'color',
     'rgb(240, 240, 240)'
@@ -24,7 +26,8 @@ test('code blocks follow light and dark themes', async ({ configuredChat: chat }
   })
   await chat.page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
   await expect(chat.page.locator('.chat-markdown').last()).toHaveClass(/light/)
-  await expect(code).toHaveCSS('background-color', 'rgb(255, 255, 255)')
+  // Light counterpart of the c5158edc --color-input override (#f7f8fa).
+  await expect(code).toHaveCSS('background-color', 'rgb(247, 248, 250)')
 })
 
 test('Markdown blocks unsafe links and cross-origin images', async ({ configuredChat: chat }) => {

@@ -13,8 +13,15 @@ paths = [
   '''^desktop/target/''',
   '''^packages/[^/]+/dist/''',
   '''^test-results/''',
-  '''^scratch/'''
+  '''^scratch/''',
+  '''(^|/)\.mimosa/'''
 ]
+
+[[allowlists]]
+description = "Unsigned alg:none JWT built in a test to exercise session parsing"
+regexTarget = "line"
+paths = ['''packages/server/tests/authorization\.test\.ts''']
+regexes = ['''zenuxs_session=eyJhbGciOiJub25lIn0''']
 
 [[allowlists]]
 description = "Public Google Fonts browser API key"

@@ -18,7 +18,9 @@ import { computeDescendantVisualBounds } from '@open-pencil/scene-graph/geometry
 import Matrix from '@open-pencil/scene-graph/matrix'
 import type { Color } from '@open-pencil/scene-graph/primitives'
 
+import { colorToFill } from '#core/color'
 import { DROP_HIGHLIGHT_ALPHA, DROP_HIGHLIGHT_STROKE, SECTION_CORNER_RADIUS } from '#core/constants'
+import type { PrototypeNodeVisual } from '#core/prototype/runtime'
 import { transformTextCase } from '#core/text/case'
 import { fontManager } from '#core/text/fonts'
 import { vectorNetworkToCenterlinePath } from '#core/vector'
@@ -317,6 +319,137 @@ function nodeIsolationLayerBounds(
     : r.ck.LTRBRect(0, 0, node.width, node.height)
 }
 
+/** Preview-mode prototype values applied to one node's draw. */
+interface PrototypeVisualState {
+  x: number
+  y: number
+  scale: number
+  rotation: number
+  blur: number
+  scaleX: number
+  scaleY: number
+  opacity: number
+}
+
+/** Target size as a proportion of the authored size, top-left anchored. */
+function sizeScale(authored: number, target: number | undefined): number {
+  return target !== undefined && authored > 0 ? target / authored : 1
+}
+
+/**
+ * Preview-mode prototype visuals: state scale/opacity and screen/overlay
+ * slide offsets, plus rotation/size/blur motion targets. Absent fields fall
+ * back to identity so the draw matches the authored node.
+ */
+function prototypeVisualState(
+  node: SceneNode,
+  visual: PrototypeNodeVisual | undefined
+): PrototypeVisualState {
+  return {
+    x: visual?.translateX ?? 0,
+    y: visual?.translateY ?? 0,
+    scale: visual?.scale ?? 1,
+    rotation: visual?.rotation ?? 0,
+    blur: visual?.blur ?? 0,
+    // Size targets scale from the authored size: children scale proportionally
+    // (a resize approximation, exact for uniform content).
+    scaleX: sizeScale(node.width, visual?.width),
+    scaleY: sizeScale(node.height, visual?.height),
+    opacity: node.opacity * (visual?.opacity ?? 1)
+  }
+}
+
+/** Preview scale stack: proportional size scale, then center-anchored state scale. */
+function applyPrototypeScale(canvas: Canvas, node: SceneNode, state: PrototypeVisualState): void {
+  if (state.scaleX !== 1 || state.scaleY !== 1) canvas.scale(state.scaleX, state.scaleY)
+  if (state.scale !== 1) {
+    // Scale about the node's own center so pressed states shrink in place.
+    canvas.translate(node.width / 2, node.height / 2)
+    canvas.scale(state.scale, state.scale)
+    canvas.translate(-node.width / 2, -node.height / 2)
+  }
+}
+
+/** Push the opacity/blend isolation layer when the node needs one. */
+function beginIsolationLayer(
+  r: SkiaRenderer,
+  canvas: Canvas,
+  graph: SceneGraph,
+  node: SceneNode,
+  nodeId: string,
+  absX: number,
+  absY: number,
+  opacity: number
+): void {
+  const layerBounds = nodeIsolationLayerBounds(r, graph, node, nodeId, absX, absY)
+  r.opacityPaint.setAlphaf(opacity)
+  r.opacityPaint.setBlendMode(figmaBlendModeToSkia(r.ck, node.blendMode))
+  canvas.saveLayer(r.opacityPaint, layerBounds)
+}
+
+function endIsolationLayer(r: SkiaRenderer, canvas: Canvas): void {
+  canvas.restore()
+  r.opacityPaint.setAlphaf(1)
+  r.opacityPaint.setBlendMode(r.ck.BlendMode.SrcOver)
+}
+
+/**
+ * Push the combined authored + preview blur layer; returns whether a layer
+ * was started so the caller pairs it with `endBlurLayer`.
+ */
+function beginBlurLayer(
+  r: SkiaRenderer,
+  canvas: Canvas,
+  graph: SceneGraph,
+  node: SceneNode,
+  visualBlur: number
+): boolean {
+  const layerBlur = node.effects.find(
+    (e) => e.visible && (e.type === 'LAYER_BLUR' || e.type === 'FOREGROUND_BLUR')
+  )
+  // Preview blur targets join the authored layer blur in one filter pass.
+  const blurRadius = Math.max(visualBlur, layerBlur?.radius ?? 0)
+  // Same predicate as the original `if (blurRadius > 0)` layer open.
+  if (!(blurRadius > 0)) return false
+  // Entry guard: reset shared paint to known state
+  r.effectLayerPaint.setImageFilter(null)
+  r.effectLayerPaint.setColorFilter(null)
+  r.effectLayerPaint.setBlendMode(r.ck.BlendMode.SrcOver)
+
+  r.effectLayerPaint.setImageFilter(r.getCachedBlur(blurRadius / 2))
+  const blurPadding = blurRadius * 2
+  canvas.saveLayer(
+    r.effectLayerPaint,
+    viewportLayerBounds(r, graph, node, blurPadding) ??
+      r.ck.LTRBRect(-blurPadding, -blurPadding, node.width + blurPadding, node.height + blurPadding)
+  )
+  return true
+}
+
+function endBlurLayer(r: SkiaRenderer, canvas: Canvas): void {
+  canvas.restore()
+  // Exit guard: ensure shared paint is in clean state
+  r.effectLayerPaint.setImageFilter(null)
+  r.effectLayerPaint.setColorFilter(null)
+  r.effectLayerPaint.setBlendMode(r.ck.BlendMode.SrcOver)
+}
+
+/** True when descendants must track this node's transform as an ancestor transform. */
+function childrenSeeTransformedAncestor(
+  node: SceneNode,
+  state: PrototypeVisualState,
+  hasTransformedAncestor: boolean
+): boolean {
+  return (
+    hasTransformedAncestor ||
+    hasNodeTransform(node) ||
+    state.scale !== 1 ||
+    state.scaleX !== 1 ||
+    state.scaleY !== 1 ||
+    state.rotation !== 0
+  )
+}
+
 export function renderNode(
   r: SkiaRenderer,
   canvas: Canvas,
@@ -343,8 +476,14 @@ export function renderNode(
 
   r._nodeCount++
 
-  const absX = parentAbsX + node.x
-  const absY = parentAbsY + node.y
+  const prototypeVisual = overlays.prototype?.nodeVisuals.get(nodeId)
+  const state = prototypeVisualState(node, prototypeVisual)
+  const drawNode = prototypeDrawNode(node, prototypeVisual)
+
+  // Layer bounds use the untranslated position (bounds are node-local; the
+  // slide offset applies to the whole layer uniformly).
+  const absX = parentAbsX + node.x + state.x
+  const absY = parentAbsY + node.y + state.y
 
   if (isCulled(r, graph, node, absX, absY, hasTransformedAncestor)) {
     r._culledCount++
@@ -352,66 +491,57 @@ export function renderNode(
   }
 
   canvas.save()
-  canvas.translate(node.x, node.y)
+  canvas.translate(node.x + state.x, node.y + state.y)
+  applyPrototypeScale(canvas, node, state)
 
-  const needsNodeLayer = node.opacity < 1 || needsIsolatedBlendLayer(node.blendMode)
+  const needsNodeLayer = state.opacity < 1 || needsIsolatedBlendLayer(node.blendMode)
   if (needsNodeLayer) {
-    const layerBounds = nodeIsolationLayerBounds(r, graph, node, nodeId, absX, absY)
-    r.opacityPaint.setAlphaf(node.opacity)
-    r.opacityPaint.setBlendMode(figmaBlendModeToSkia(r.ck, node.blendMode))
-    canvas.saveLayer(r.opacityPaint, layerBounds)
-  }
-
-  const layerBlur = node.effects.find(
-    (e) => e.visible && (e.type === 'LAYER_BLUR' || e.type === 'FOREGROUND_BLUR')
-  )
-  if (layerBlur) {
-    // Entry guard: reset shared paint to known state
-    r.effectLayerPaint.setImageFilter(null)
-    r.effectLayerPaint.setColorFilter(null)
-    r.effectLayerPaint.setBlendMode(r.ck.BlendMode.SrcOver)
-
-    r.effectLayerPaint.setImageFilter(r.getCachedBlur(layerBlur.radius / 2))
-    const blurPadding = layerBlur.radius * 2
-    canvas.saveLayer(
-      r.effectLayerPaint,
-      viewportLayerBounds(r, graph, node, blurPadding) ??
-        r.ck.LTRBRect(
-          -blurPadding,
-          -blurPadding,
-          node.width + blurPadding,
-          node.height + blurPadding
-        )
+    beginIsolationLayer(
+      r,
+      canvas,
+      graph,
+      node,
+      nodeId,
+      absX - state.x,
+      absY - state.y,
+      state.opacity
     )
   }
 
+  const blurLayer = beginBlurLayer(r, canvas, graph, node, state.blur)
+
   applyNodeTransforms(r, canvas, node, nodeId, overlays)
-  renderNodeContent(r, canvas, graph, node, nodeId, overlays)
-  drawLayoutGrids(r, canvas, node)
+  if (state.rotation !== 0) canvas.rotate(state.rotation, node.width / 2, node.height / 2)
+  renderNodeContent(r, canvas, graph, drawNode, nodeId, overlays)
+  drawLayoutGrids(r, canvas, drawNode)
   renderChildren(
     r,
     canvas,
     graph,
-    node,
+    drawNode,
     overlays,
     absX,
     absY,
-    hasTransformedAncestor || hasNodeTransform(node)
+    childrenSeeTransformedAncestor(node, state, hasTransformedAncestor)
   )
 
-  if (layerBlur) {
-    canvas.restore()
-    // Exit guard: ensure shared paint is in clean state
-    r.effectLayerPaint.setImageFilter(null)
-    r.effectLayerPaint.setColorFilter(null)
-    r.effectLayerPaint.setBlendMode(r.ck.BlendMode.SrcOver)
-  }
-  if (needsNodeLayer) {
-    canvas.restore()
-    r.opacityPaint.setAlphaf(1)
-    r.opacityPaint.setBlendMode(r.ck.BlendMode.SrcOver)
-  }
+  if (blurLayer) endBlurLayer(r, canvas)
+  if (needsNodeLayer) endIsolationLayer(r, canvas)
   canvas.restore()
+}
+
+/**
+ * Node carrying preview fill/cornerRadius overrides. Geometry and hierarchy
+ * stay untouched, so children, clipping, and hit data keep resolving through
+ * the graph — only the paint inputs change for this draw.
+ */
+function prototypeDrawNode(node: SceneNode, visual: PrototypeNodeVisual | undefined): SceneNode {
+  if (!visual || (visual.cornerRadius === undefined && visual.fill === undefined)) return node
+  return {
+    ...node,
+    cornerRadius: visual.cornerRadius ?? node.cornerRadius,
+    fills: visual.fill !== undefined ? [colorToFill(visual.fill)] : node.fills
+  }
 }
 
 function makeNodeRRect(r: SkiaRenderer, node: SceneNode, radius: number): Float32Array {

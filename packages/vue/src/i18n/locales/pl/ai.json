@@ -149,5 +149,17 @@
   "reasoningExpanded": "Domyślnie rozwinięte",
   "jumpToLatest": "Przejdź do najnowszej wiadomości",
   "chatAgentImagesUnsupported": "Ten agent przyjmuje tylko tekst, więc załączone obrazy nie zostały wysłane. Przełącz się na model bezpośredni, aby używać obrazów referencyjnych.",
-  "chatModelImagesUnsupported": "Wybrany model projektu nie odczytuje obrazów, więc załącznik nie został wysłany. Przypisz model z obsługą obrazu w ustawieniach."
+  "chatModelImagesUnsupported": "Wybrany model projektu nie odczytuje obrazów, więc załącznik nie został wysłany. Przypisz model z obsługą obrazu w ustawieniach.",
+  "skillsPopoverTitle": "Umiejętności projektowe AI",
+  "skillsActive": "aktywne: {count}",
+  "skillsTriggerLabel": "Umiejętności AI: aktywne: {count}",
+  "skillsPopoverFooter": "Taste Skill i UI/UX Pro Max",
+  "skillsPopoverSettings": "Ustawienia",
+  "skillsSectionTitle": "Umiejętności AI i frameworki projektowe",
+  "skillsSectionDescription": "Aktywne umiejętności wstrzykują wyspecjalizowane zasady projektowe, wytyczne anty-slop i inteligencję UI/UX do promptów generowania AI.",
+  "skillsSectionActive": "Aktywne: {active} z {total}",
+  "commandSuggestions": "Polecenia umiejętności",
+  "noCommandMatches": "Brak pasujących poleceń",
+  "unknownCommand": "Nieznane polecenie \"/{command}\".",
+  "unknownCommandSuggestions": "Nieznane polecenie \"/{command}\". Czy chodziło o {suggestions}?"
 }

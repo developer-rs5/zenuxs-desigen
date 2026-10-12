@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test')
+const editor = useEditorSetup('/editor?test')
 
 test('shows preparation status in an inactive tab without covering the active canvas', async () => {
   await editor.page.evaluate(async () => {

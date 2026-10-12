@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetupWithClear('/?test&no-chrome&no-rulers')
+const editor = useEditorSetupWithClear('/editor?test&no-chrome&no-rulers')
 
 async function expectCanvas(name: string): Promise<void> {
   await editor.canvas.waitForRender()
@@ -31,11 +31,10 @@ test('first edit replaces baked missing-font glyphs with visible live substituti
     const baked = store.renderer.buildTextPicture(node)
     if (!baked) throw new Error('Could not build baked text fixture')
     node.fontFamily = 'Unavailable Visual Test Face'
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/resolver/index.ts'))
-    if (!fontModuleURL) throw new Error('Active font resolver module not found')
+    // The resource-timing buffer caps at 250 entries, so boot-time modules
+    // get evicted and the old getEntriesByType scan became order-dependent.
+    // The direct path is the exact URL the app loaded — same module instance.
+    const fontModuleURL = '/packages/core/src/text/resolver/index.ts'
     void import(/* @vite-ignore */ fontModuleURL).then(({ fontFaceDemand, fontResolver }) => {
       fontResolver.exhaust(fontFaceDemand(node.fontFamily, 'Regular', node.text))
       store.requestRender()

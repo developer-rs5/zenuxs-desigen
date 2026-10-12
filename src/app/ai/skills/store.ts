@@ -87,13 +87,13 @@ export function addCustomAISkill(skill: Omit<AISkill, 'id'> & { id?: string }): 
   const newSkill: AISkill = {
     id: skill.id || generateSkillId(),
     name: skill.name.trim(),
-    displayName: skill.displayName?.trim() || skill.name.trim(),
+    displayName: skill.displayName.trim() || skill.name.trim(),
     description: skill.description.trim(),
     version: skill.version?.trim() || '1.0.0',
     author: skill.author?.trim() || 'User',
     sourceUrl: skill.sourceUrl.trim(),
     tags: skill.tags ?? [],
-    enabled: skill.enabled ?? true,
+    enabled: skill.enabled,
     isDefault: false,
     promptContent: skill.promptContent.trim()
   }

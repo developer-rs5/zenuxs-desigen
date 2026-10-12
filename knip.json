@@ -5,7 +5,7 @@
     "**/dist/**",
     "**/node_modules/**"
   ],
-  "ignoreWorkspaces": ["packages/acp", "packages/demos"],
+  "ignoreWorkspaces": ["packages/demos"],
   "ignoreUnresolved": [
     "~icons/*",
     "/src/app/editor/fonts/index.ts",
@@ -13,5 +13,5 @@
     "/src/app/tabs/index.ts",
     "#core/*"
   ],
-  "ignoreBinaries": ["figma-use", "identify", "magick", "open", "osascript"]
+  "ignoreBinaries": ["open", "packages/server/src/index.ts"]
 }

@@ -1,13 +1,27 @@
-import type { SceneGraph, SceneNode } from '@open-pencil/scene-graph'
+import { wcagContrast } from 'culori'
+
+import type { Fill, SceneGraph, SceneNode } from '@open-pencil/scene-graph'
+import type { Color } from '@open-pencil/scene-graph/primitives'
 
 import { colorDistance, colorToHex } from '#core/color'
 
+import { detectAccessibilityIssues } from './a11y-issues'
 import { detectLayoutIssues } from './layout-issues'
-import { CONTAINER_TYPES, findAncestorBackground, looksLikeButton } from './shared'
+import {
+  CONTAINER_TYPES,
+  findMeasuredBackground,
+  looksLikeButton,
+  MIN_TOUCH_TARGET
+} from './shared'
 
 const MIN_FILL_OPACITY = 0.15
 const MIN_STROKE_OPACITY = 0.2
 const LOW_CONTRAST_THRESHOLD = 15
+/** WCAG 2.2 SC 1.4.3 minimum contrast ratios for text against its background. */
+const MIN_TEXT_CONTRAST = 4.5
+const MIN_LARGE_TEXT_CONTRAST = 3
+const LARGE_TEXT_PX = 24
+const LARGE_TEXT_BOLD_PX = 18.66
 const SHAPE_TYPES = new Set(['RECTANGLE', 'ELLIPSE', 'STAR', 'POLYGON', 'LINE'])
 const ICON_MAX_SIZE = 48
 
@@ -64,10 +78,10 @@ function detectStructuralIssues(
     })
   }
   checkEmptyIcon(node, graph, issues)
-  if (looksLikeButton(node) && node.width < 44) {
+  if (looksLikeButton(node) && node.width < MIN_TOUCH_TARGET) {
     issues.push({
       message: `Touch target too small (${node.width}×${node.height})`,
-      suggestion: 'Min 44×44'
+      suggestion: `Min ${MIN_TOUCH_TARGET}×${MIN_TOUCH_TARGET}`
     })
   }
   if (node.itemSpacing > 0 && node.itemSpacing % gridSize !== 0) {
@@ -273,17 +287,44 @@ function detectVisibilityIssues(node: SceneNode, graph: SceneGraph, issues: Desc
       suggestion: `Increase to ≥${Math.round(MIN_STROKE_OPACITY * 100)}%`
     })
   }
-  if (node.type !== 'TEXT' || !node.parentId) return
+  if (node.type !== 'TEXT') return
   const textFill = node.fills.find((f) => f.visible && f.type === 'SOLID')
   if (!textFill) return
-  const parentBg = findAncestorBackground(node, graph)
+  const parentBg = findMeasuredBackground(node, graph)
   if (!parentBg) return
-  const dist = colorDistance(textFill.color, parentBg)
+  const painted = paintColor(textFill, node, parentBg)
+  const dist = colorDistance(painted, parentBg)
   if (dist < LOW_CONTRAST_THRESHOLD) {
     issues.push({
-      message: `Low contrast: text ${colorToHex(textFill.color)} on ${colorToHex(parentBg)} (distance ${Math.round(dist)})`,
+      message: `Low contrast: text ${colorToHex(painted)} on ${colorToHex(parentBg)} (distance ${Math.round(dist)})`,
       suggestion: 'Increase color difference'
     })
+    return
+  }
+  const ratio = wcagContrast(colorToHex(painted), colorToHex(parentBg))
+  const isLargeText =
+    node.fontSize >= LARGE_TEXT_PX ||
+    (node.fontSize >= LARGE_TEXT_BOLD_PX && node.fontWeight >= 700)
+  const required = isLargeText ? MIN_LARGE_TEXT_CONTRAST : MIN_TEXT_CONTRAST
+  if (ratio < required) {
+    issues.push({
+      message: `Low contrast: text ${colorToHex(painted)} on ${colorToHex(parentBg)} is ${ratio.toFixed(2)}:1 — WCAG AA needs ${required}:1`,
+      suggestion: `Increase to ≥${required}:1`
+    })
+  }
+}
+
+/**
+ * Text paint flattened over its background (fill opacity × node opacity): a
+ * translucent label reads as the blend, never as its raw fill color.
+ */
+function paintColor(textFill: Fill, node: SceneNode, background: Color): Color {
+  const alpha = Math.min(1, Math.max(0, textFill.opacity * textFill.color.a * node.opacity))
+  return {
+    r: textFill.color.r * alpha + background.r * (1 - alpha),
+    g: textFill.color.g * alpha + background.g * (1 - alpha),
+    b: textFill.color.b * alpha + background.b * (1 - alpha),
+    a: 1
   }
 }
 
@@ -439,6 +480,7 @@ export function detectIssues(
   checkZeroPaddingContainer(node, graph, issues)
   checkButtonWithoutPadding(node, graph, issues)
   checkFlexContainerWithoutAlignment(node, graph, issues)
+  detectAccessibilityIssues(node, issues)
   for (const issue of issues) {
     issue.severity = classifySeverity(issue.message)
   }

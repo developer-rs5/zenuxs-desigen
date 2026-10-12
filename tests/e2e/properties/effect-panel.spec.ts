@@ -4,7 +4,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 for (const theme of ['light', 'dark']) {
   test(`inline effect settings in ${theme}`, async ({ page }) => {
-    await page.goto('/?test')
+    await page.goto('/editor?test')
     await new CanvasHelper(page).waitForInit()
     const id = await page.evaluate(async (mode) => {
       const path = '/src/app/shell/theme.ts'
@@ -44,7 +44,7 @@ for (const theme of ['light', 'dark']) {
       )
       .toBe(20)
     await section.getByRole('heading', { name: 'Effects' }).click()
-    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z')
+    await page.keyboard.press(process.platform === 'darwin' ? 'ControlOrMeta+z' : 'Control+z')
     await expect
       .poll(() =>
         page.evaluate(

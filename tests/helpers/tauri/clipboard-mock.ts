@@ -18,6 +18,52 @@ export type TauriClipboardMock = {
 
 const IPC_BINDING = '__playwrightTauriIPC'
 
+/** Simulated Tauri command router; split out of the binding to stay under the lint complexity cap. */
+/** Commands that only ever answer null (boot-time fire-and-forget in the product). */
+const FIRE_AND_FORGET_COMMANDS = new Set([
+  'load_system_font',
+  'plugin:event|listen',
+  'plugin:event|unlisten',
+  'plugin:process|exit',
+  'plugin:process|restart',
+  // Boot-time menu sync (native-menu.ts).
+  'set_native_menu_checked'
+])
+
+function dispatchTauriCommand(
+  state: TauriClipboardSnapshot,
+  isHTMLWriteRejected: () => boolean,
+  cmd: string,
+  args?: Record<string, unknown>
+): unknown {
+  if (FIRE_AND_FORGET_COMMANDS.has(cmd)) return null
+  switch (cmd) {
+    case 'plugin:clipboard-manager|write_html': {
+      if (isHTMLWriteRejected()) throw new Error('Clipboard write failed')
+      state.html = String(args?.html ?? '')
+      state.text = String(args?.altText ?? state.html)
+      return null
+    }
+    case 'plugin:clipboard-manager|write_text': {
+      state.text = String(args?.text ?? '')
+      state.html = ''
+      return null
+    }
+    case 'plugin:clipboard-manager|read_text':
+      return state.html || state.text
+    case 'list_system_fonts':
+    case 'take_pending_open':
+      return []
+    // No native keychain exists in a browser mock; kebab-case per
+    // desktop/src/credentials.rs serde. 'unavailable' also short-circuits
+    // credential migration before it would issue read commands.
+    case 'credential_store_availability':
+      return 'unavailable'
+    default:
+      throw new Error(`Unexpected Tauri command: ${cmd}`)
+  }
+}
+
 export async function installTauriClipboardMock(page: Page): Promise<TauriClipboardMock> {
   const state: TauriClipboardSnapshot = {
     text: '',
@@ -28,32 +74,7 @@ export async function installTauriClipboardMock(page: Page): Promise<TauriClipbo
 
   await page.exposeBinding(IPC_BINDING, (_, cmd: string, args?: Record<string, unknown>) => {
     state.writes.push({ cmd, args })
-    switch (cmd) {
-      case 'plugin:clipboard-manager|write_html': {
-        if (rejectHTMLWrites) throw new Error('Clipboard write failed')
-        state.html = String(args?.html ?? '')
-        state.text = String(args?.altText ?? state.html)
-        return null
-      }
-      case 'plugin:clipboard-manager|write_text': {
-        state.text = String(args?.text ?? '')
-        state.html = ''
-        return null
-      }
-      case 'plugin:clipboard-manager|read_text':
-        return state.html || state.text
-      case 'list_system_fonts':
-      case 'take_pending_open':
-        return []
-      case 'load_system_font':
-      case 'plugin:event|listen':
-      case 'plugin:event|unlisten':
-      case 'plugin:process|exit':
-      case 'plugin:process|restart':
-        return null
-      default:
-        throw new Error(`Unexpected Tauri command: ${cmd}`)
-    }
+    return dispatchTauriCommand(state, () => rejectHTMLWrites, cmd, args)
   })
 
   await page.addInitScript((bindingName) => {

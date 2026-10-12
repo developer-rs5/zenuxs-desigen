@@ -49,9 +49,18 @@ export default defineConfig({
       testDir: './tests/figma'
     }
   ],
-  webServer: {
-    command: 'bun run dev',
-    port: 1420,
-    reuseExistingServer: true
-  }
+  webServer: [
+    {
+      command: 'bun run dev',
+      port: 1420,
+      reuseExistingServer: true
+    },
+    {
+      // Storybook component-workshop specs (tests/e2e/storybook/**) opt into
+      // this via test.use({ baseURL }).
+      command: 'bun run storybook',
+      port: 6006,
+      reuseExistingServer: true
+    }
+  ]
 })

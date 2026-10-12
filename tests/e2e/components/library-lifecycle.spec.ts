@@ -12,7 +12,7 @@ async function openLibraries(page: Page) {
 
 test('preserves source publication identity across FIG save and reopen', async ({ page }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await canvas.waitForInit()
   const componentId = await page.evaluate(() => {
     const store = window.openPencil?.getStore?.()
@@ -120,7 +120,7 @@ test('publishes, consumes, saves, and reopens a multidimensional library instanc
   page
 }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await canvas.waitForInit()
 
   await page.evaluate(() => {

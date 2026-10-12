@@ -3,7 +3,7 @@ import { expectDefined } from '#tests/helpers/assert'
 import { propertyField, propertyItems, propertySection } from '#tests/helpers/properties'
 import { getPageChildren, getSelectedNode } from '#tests/helpers/store'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('property sections are always expanded (no collapse on title click)', async () => {
   await editor.canvas.clearCanvas()
@@ -42,7 +42,7 @@ test('appearance fields share control height and show variable actions', async (
   await expect(applyVariable).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)')
 
   await applyVariable.click()
-  const search = editor.page.getByPlaceholder('Search')
+  const search = editor.page.getByPlaceholder('Search…')
   const picker = editor.page.locator('[data-slot=content]').filter({ has: search })
   await expect(picker).toBeVisible()
   const triggerBox = expectDefined(await applyVariable.boundingBox(), 'variable trigger bounds')
@@ -64,8 +64,11 @@ test('appearance fields share control height and show variable actions', async (
     await fillItem.getByRole('spinbutton', { name: 'Opacity' }).boundingBox(),
     'fill opacity bounds'
   )
-  expect(colorBox.width).toBeGreaterThanOrEqual(42)
-  expect(opacityBox.width).toBeGreaterThanOrEqual(40)
+  // Floor = "control not collapsed", not an exact size: the shared-control
+  // refactor (e69ba75c, 2026-09-10) legitimately narrowed compact paint fields
+  // from the 2026-07 sizing this spec first pinned (d7a27a89).
+  expect(colorBox.width).toBeGreaterThanOrEqual(36)
+  expect(opacityBox.width).toBeGreaterThanOrEqual(36)
 })
 
 test('property fields show only the most specific tooltip', async () => {
@@ -408,16 +411,16 @@ test('bound NumberField detach edit is one undo step', async () => {
   const input = field.getByRole('spinbutton', { name: 'Radius' })
   await input.press('Tab')
   expect(await readState()).toEqual({ radius: 0, binding: 'Radius/default' })
-  await editor.canvas.pressKey('Meta+z')
+  await editor.canvas.pressKey('ControlOrMeta+z')
   await editor.canvas.waitForRender()
   expect(await readState()).toEqual({ radius: 0, binding: null })
-  await editor.canvas.pressKey('Meta+Shift+z')
+  await editor.canvas.pressKey('ControlOrMeta+Shift+z')
   await editor.canvas.waitForRender()
   expect(await readState()).toEqual({ radius: 0, binding: 'Radius/default' })
 
   await field.getByLabel('Apply variable').click()
-  await expect(editor.page.getByPlaceholder('Search')).toBeVisible()
-  await editor.page.getByPlaceholder('Search').press('Escape')
+  await expect(editor.page.getByPlaceholder('Search…')).toBeVisible()
+  await editor.page.getByPlaceholder('Search…').press('Escape')
   expect(await readState()).toEqual({ radius: 0, binding: 'Radius/default' })
 
   await field.click({ position: { x: 40, y: 13 } })
@@ -431,7 +434,7 @@ test('bound NumberField detach edit is one undo step', async () => {
   await input.press('Enter')
   await editor.canvas.waitForRender()
   expect(await readState()).toEqual({ radius: 24, binding: null })
-  await editor.canvas.pressKey('Meta+z')
+  await editor.canvas.pressKey('ControlOrMeta+z')
   await editor.canvas.waitForRender()
   expect(await readState()).toEqual({ radius: 0, binding: 'Radius/default' })
   editor.canvas.assertNoErrors()
@@ -441,7 +444,7 @@ test('alignment buttons align nodes to same X', async () => {
   await editor.canvas.clearCanvas()
   await editor.canvas.drawRect(50, 200, 60, 60)
   await editor.canvas.drawRect(250, 200, 60, 60)
-  await editor.canvas.pressKey('Meta+a')
+  await editor.canvas.pressKey('ControlOrMeta+a')
   await editor.canvas.waitForRender()
 
   await propertySection(editor.page, 'Position').getByRole('button', { name: 'Align left' }).click()

@@ -1,3 +1,31 @@
+/**
+ * RESOLUTION — prototype metadata round-trips through `.pen` (audit 3.14).
+ *
+ * The blocker record that used to sit here claimed three prerequisites. What
+ * actually landed (controlled metadata extension, Option B):
+ *
+ *   a. Format extension — `PenDocument.pluginData` and `PenNode.pluginData`
+ *      hold `PluginDataEntry[]` verbatim, the same shape `SceneNode` uses, so
+ *      the prototype keys (`prototype`, `interactions`, `prototypeState`,
+ *      `prototypeAnimations`, plugin id `open-pencil`) have a serialized home
+ *      in the file. Document-level flows are written on `PenDocument` and
+ *      applied to `graph.rootId` on read; per-node entries ride on `PenNode`.
+ *   b. Writer — `writePenFile` in `packages/pen/src/write.ts` is the inverse
+ *      of the reader in `packages/pen/src/read.ts`; `penFormat.writeDocument`
+ *      in `packages/core/src/io/formats.ts` registers it, which lights up
+ *      `IORegistry.listWritableFormats()` and the CLI `convert --format pen`.
+ *   c. Id remap — NOT needed for `.pen`, and the claim was wrong here: it
+ *      describes `.fig`, where import derives node ids from kiwi GUIDs. The
+ *      `.pen` reader sets `id: pen.id` (`buildBaseOverrides` in `read.ts`), so
+ *      ids are preserved verbatim and embedded prototype references stay
+ *      valid without any remap. `remapPrototypePluginDataIds` /
+ *      `remapPrototypePluginValue` remain a `.fig`-only concern.
+ *
+ * Round-trip coverage and the non-invertible field list live in
+ * `tests/engine/pen/roundtrip.test.ts` and `tests/engine/pen/
+ * prototype-metadata.test.ts`.
+ */
+
 import { generateId } from '@open-pencil/scene-graph'
 import type {
   Color,
@@ -8,6 +36,7 @@ import type {
   LayoutMode,
   LayoutSizing,
   NodeType,
+  PluginDataEntry,
   SceneGraph,
   SceneNode,
   Stroke,
@@ -30,6 +59,11 @@ export interface PenDocument {
   children: PenNode[]
   themes?: Record<string, string[]>
   variables?: Record<string, PenVariable>
+  /**
+   * OpenPencil extension: document-level metadata stored on `graph.rootId`
+   * (prototype flows and their active flow). Entries pass through verbatim.
+   */
+  pluginData?: PluginDataEntry[]
 }
 
 export interface PenVariable {
@@ -115,6 +149,12 @@ export interface PenNode {
   weight?: number
   model?: string
   theme?: Record<string, string>
+  /**
+   * OpenPencil extension: per-node metadata stored in `SceneNode.pluginData`
+   * (prototype interactions, state models, animations). Verbatim passthrough,
+   * so the ids embedded inside stay valid — `.pen` preserves node ids.
+   */
+  pluginData?: PluginDataEntry[]
 }
 
 export interface VarContext {

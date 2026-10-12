@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test&no-chrome&no-rulers')
+const editor = useEditorSetup('/editor?test&no-chrome&no-rulers')
 
 test('loads document font families from the browser provider before rendering', async () => {
   test.setTimeout(60_000)

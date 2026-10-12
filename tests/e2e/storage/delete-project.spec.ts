@@ -5,6 +5,7 @@ const RECENT_KEY = 'open-pencil:recent-documents'
 test('deleting a project clears it from Home recents and the workspace list', async ({ page }) => {
   test.setTimeout(30_000)
   await page.addInitScript((key) => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access
     localStorage.setItem(
       key,
       JSON.stringify([
@@ -64,8 +65,9 @@ test('deleting a project clears it from Home recents and the workspace list', as
   )
 
   await page.keyboard.press('Escape')
-  await expect
-    .poll(() => page.evaluate((key) => localStorage.getItem(key), RECENT_KEY))
-    .not.toContain('doomed')
+  const readRecents = (target: typeof page) =>
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access
+    target.evaluate((key) => localStorage.getItem(key), RECENT_KEY)
+  await expect.poll(() => readRecents(page)).not.toContain('doomed')
   await expect(page.getByText('Doomed Design', { exact: true })).toHaveCount(0)
 })

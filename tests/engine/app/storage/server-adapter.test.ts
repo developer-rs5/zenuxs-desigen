@@ -2,13 +2,16 @@ import { describe, expect, it, mock } from 'bun:test'
 
 import { createServerStorageAdapter } from '@/app/integrations/storage/server/adapter'
 
+/** Document payload written by putDocument in these fixtures. */
+type StoredPayload = { figBase64?: string }
+
 describe('server-mongodb storage adapter', () => {
   it('connects and tests health', async () => {
     const adapter = createServerStorageAdapter()
     const globalFetch = globalThis.fetch
     globalThis.fetch = mock(() =>
       Promise.resolve(new Response(JSON.stringify({ status: 'ok' }), { status: 200 }))
-    ) as unknown as typeof fetch
+    ) as typeof fetch
 
     try {
       const result = await adapter.testConnection()
@@ -45,7 +48,7 @@ describe('server-mongodb storage adapter', () => {
         )
       }
       return Promise.resolve(new Response('{}', { status: 200 }))
-    }) as unknown as typeof fetch
+    }) as typeof fetch
 
     try {
       const docs = await adapter.listDocuments()
@@ -89,7 +92,7 @@ describe('server-mongodb storage adapter', () => {
       }
 
       return Promise.resolve(new Response('{}', { status: 200 }))
-    }) as unknown as typeof fetch
+    }) as typeof fetch
 
     try {
       const testBytes = new Uint8Array([79, 112, 101, 110, 80, 101, 110, 99, 105, 108]) // "OpenPencil"
@@ -100,7 +103,7 @@ describe('server-mongodb storage adapter', () => {
 
       expect(savedBody.documentId).toBe('test-doc')
       expect(savedBody.title).toBe('My Project')
-      const payload = savedBody.payload as Record<string, unknown>
+      const payload = savedBody.payload as StoredPayload
       expect(typeof payload.figBase64).toBe('string')
 
       const retrieved = await adapter.getDocument('test-doc')

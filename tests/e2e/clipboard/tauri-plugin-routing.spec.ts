@@ -11,7 +11,13 @@ type PageChildSummary = {
 
 async function createTauriEditorPage(page: Page) {
   const clipboard = await installTauriClipboardMock(page)
-  await page.goto('/')
+  await page.goto('/editor')
+  // IS_TAURI makes the workspace seed its home tab first (unified-home
+  // behavior) — open a document so the editor canvas actually mounts.
+  await page
+    .getByTestId('home-new-document')
+    .click({ timeout: 5_000 })
+    .catch(() => undefined)
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   return { canvas, clipboard }

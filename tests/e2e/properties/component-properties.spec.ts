@@ -35,7 +35,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   instanceId = await page.evaluate(() => {
@@ -143,7 +143,7 @@ test('batches compatible mixed selection and undo', async () => {
   expect(await instanceState(instanceId)).toMatchObject({ badgeVisible: true })
   expect(await instanceState(secondId)).toMatchObject({ badgeVisible: true })
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect(await instanceState(instanceId)).toMatchObject({ badgeVisible: false })
   expect(await instanceState(secondId)).toMatchObject({ badgeVisible: true })

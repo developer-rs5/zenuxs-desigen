@@ -3,7 +3,7 @@ import { expectDefined } from '#tests/helpers/assert'
 import { propertyItems, propertySection } from '#tests/helpers/properties'
 import { getSelectedNode } from '#tests/helpers/store'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('fill visibility supports repeat click and undo redo', async () => {
   await editor.canvas.drawRect(120, 120, 120, 80)
@@ -88,7 +88,7 @@ test('multi-selection list add is one undo step', async () => {
   await editor.canvas.clearCanvas()
   await editor.canvas.drawRect(100, 100, 80, 80)
   await editor.canvas.drawRect(240, 100, 80, 80)
-  await editor.canvas.pressKey('Meta+a')
+  await editor.canvas.pressKey('ControlOrMeta+a')
 
   const strokeCounts = () =>
     editor.page.evaluate(() => {

@@ -32,6 +32,7 @@ import { createGuideActions } from './guides'
 import { createLayoutRunner } from './layout-runner'
 import { createNodeActions } from './nodes'
 import { createPageActions } from './pages'
+import { createPrototypeActions } from './prototype/actions'
 import { createSelectionActions } from './selection'
 import { createShapeActions } from './shapes'
 import { createDefaultEditorState } from './state'
@@ -203,6 +204,9 @@ export function createEditor(options?: EditorOptions) {
 
   // Assemble domain modules
   const viewport = createViewportActions(ctx)
+  const prototype = createPrototypeActions(ctx, viewport.zoomToBounds, {
+    prefersReducedMotion: options?.prefersReducedMotion
+  })
   const selection = createSelectionActions(ctx)
   const pages = createPageActions(ctx)
   const guides = createGuideActions(ctx)
@@ -253,6 +257,7 @@ export function createEditor(options?: EditorOptions) {
     state.guides = { preview: null, hovered: null, selected: null, redline: null }
     state.layoutInsertIndicator = null
     state.dropTargetId = null
+    prototype.stopPrototypePreview()
     pages.clearPageViewports()
     for (const renderer of _renderers) renderer.tiledScene.invalidateStructure()
     emitEditorEvent('graph:replaced', _graph)
@@ -263,6 +268,7 @@ export function createEditor(options?: EditorOptions) {
   }
 
   function dispose() {
+    prototype.stopPrototypePreview()
     stopFontResolutionEvents()
     unsubscribeFromGraph()
   }
@@ -338,6 +344,9 @@ export function createEditor(options?: EditorOptions) {
 
     // Viewport
     ...viewport,
+
+    // Prototype preview
+    ...prototype,
 
     // Undo — bridge functions that need cross-module refs
     ...undoBridge,

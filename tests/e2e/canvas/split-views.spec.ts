@@ -4,14 +4,18 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 test.describe('split canvas views', () => {
   test('splits, resizes, activates, and closes independent canvas views', async ({ page }) => {
-    await page.goto('/')
+    await page.goto('/editor')
     const canvas = new CanvasHelper(page)
     await canvas.waitForInit()
     await expect(page.locator('[data-slot="canvas-pane-header"]')).toHaveCount(0)
     await canvas.drawRect(140, 180, 180, 120)
 
-    await page.getByRole('menuitem', { name: 'View', exact: true }).click()
-    await page.getByRole('menuitem', { name: 'Split right' }).click()
+    // The menubar was removed (~02deb986); View commands surface through the
+    // command palette (Ctrl+K, CommandPalette.vue bound to useAppMenu groups).
+    await page.keyboard.press(process.platform === 'darwin' ? 'ControlOrMeta+KeyK' : 'Control+KeyK')
+    const palette = page.getByRole('dialog', { name: 'Command palette' })
+    await palette.getByRole('searchbox', { name: 'Search commands' }).fill('split right')
+    await palette.getByRole('option', { name: 'Split right' }).click()
 
     const headers = page.locator('[data-slot="canvas-pane-header"]')
     await expect(headers).toHaveCount(2)

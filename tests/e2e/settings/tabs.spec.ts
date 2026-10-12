@@ -5,7 +5,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 test('settings tabs associate panels and support vertical keyboard navigation', async ({
   page
 }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await new CanvasHelper(page).waitForInit()
   await page.getByTestId('app-settings-trigger').click()
   const dialog = page.getByTestId('app-settings-dialog')

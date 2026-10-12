@@ -14,7 +14,7 @@ export function useDocumentNameRename(store: EditorStore) {
     store.state.documentName = trimmed
     store.state.sceneVersion++
     persistTabsSession()
-    void store.saveFigFile?.()
+    void store.saveFigFile()
   })
   const editingName = computed(() => rename.editingId.value === DOCUMENT_NAME_ID)
 

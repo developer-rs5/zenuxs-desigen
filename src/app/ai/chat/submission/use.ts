@@ -3,41 +3,28 @@ import type { UIMessage } from 'ai'
 import { computed, markRaw, ref, type Ref } from 'vue'
 
 import {
-  analyzeAttachedImages,
-  designMessageWithImageFindings,
-  VisionModelUnavailableError
-} from '@/app/ai/attachment/image/analyze'
-import {
-  ImageAttachmentError,
   imageAttachmentErrorMessage,
   prepareImageAttachment,
   revokeImagePreviewURL
 } from '@/app/ai/attachment/image/prepare'
-import {
-  imageDraftPresentations,
-  preparedImagePresentations
-} from '@/app/ai/attachment/image/presentation'
+import { imageDraftPresentations } from '@/app/ai/attachment/image/presentation'
 import { snapshotNode } from '@/app/ai/attachment/node/snapshot'
 import { setMessageAttachments } from '@/app/ai/attachment/presentation/store'
-import { isAbortError } from '@/app/ai/chat/failure'
 import { setVisibleMessageText } from '@/app/ai/chat/presentation'
+import {
+  reportRoutingNotice,
+  reportSubmissionError,
+  type SubmissionErrorReporter
+} from '@/app/ai/chat/submission/error-report'
 import {
   designModelCapabilities,
   resolveImageSupport
 } from '@/app/ai/chat/submission/image-support'
 import type { ChatSubmission, ImageSupport } from '@/app/ai/chat/submission/types'
+import { sendWithVisionAnalysis } from '@/app/ai/chat/submission/vision-send'
 import type { EditorStore } from '@/app/editor/active-store'
 
 export type ChatInstance = Pick<Chat<UIMessage>, 'messages' | 'sendMessage' | 'stop'>
-
-interface SubmissionMessages {
-  openSettings: string
-  requestFailed: string
-  visionUnavailable: string
-  openProviderSettingsAction?: string
-  agentImagesUnsupported?: string
-  modelImagesUnsupported?: string
-}
 
 interface SubmissionOptions {
   chat: Ref<Chat<UIMessage> | null>
@@ -48,14 +35,14 @@ interface SubmissionOptions {
   providerID: () => string
   /** Overridable so the routing decision can be exercised without configured credentials. */
   imageSupport?: () => ImageSupport
-  messages: Ref<SubmissionMessages>
+  messages: SubmissionErrorReporter['messages']
   reportError: (message: string, action?: { label: string; run: () => void }) => void
   openModelSettings: () => void
 }
 
-function blobToDataUri(data: Uint8Array, mediaType: string): string {
+function blobToDataURL(data: Uint8Array, mediaType: string): string {
   let binary = ''
-  for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i])
+  for (const byte of data) binary += String.fromCharCode(byte)
   const b64 = btoa(binary)
   return `data:${mediaType};base64,${b64}`
 }
@@ -63,6 +50,11 @@ function blobToDataUri(data: Uint8Array, mediaType: string): string {
 export function useChatSubmission(options: SubmissionOptions) {
   const isPreparingAttachments = ref(false)
   let operationVersion = 0
+  const errorReporter: SubmissionErrorReporter = {
+    messages: options.messages,
+    reportError: options.reportError,
+    openModelSettings: options.openModelSettings
+  }
 
   async function sendText(currentChat: ChatInstance, submission: ChatSubmission): Promise<void> {
     const previousIds = new Set(currentChat.messages.map((message) => message.id))
@@ -71,46 +63,6 @@ export function useChatSubmission(options: SubmissionOptions) {
       (candidate) => candidate.role === 'user' && !previousIds.has(candidate.id)
     )
     if (message) setVisibleMessageText(message.id, submission.displayText)
-  }
-
-  async function sendWithVisionAnalysis(
-    currentChat: ChatInstance,
-    submission: ChatSubmission,
-    messageId: string,
-    preparedImages: Awaited<ReturnType<typeof prepareImageAttachment>>[],
-    nodeAttachments: ReturnType<typeof snapshotNode>[],
-    version: number
-  ): Promise<void> {
-    const editor = options.getEditor()
-    try {
-      const findings = await analyzeAttachedImages(editor, submission.modelText, preparedImages)
-      if (version !== operationVersion || options.chat.value !== currentChat) return
-
-      const normalizedImages = preparedImagePresentations(
-        messageId,
-        submission.images,
-        preparedImages
-      )
-      setMessageAttachments(messageId, [
-        ...nodeAttachments.filter((attachment) => attachment !== null),
-        ...normalizedImages
-      ])
-      await currentChat
-        .sendMessage({
-          messageId,
-          text: designMessageWithImageFindings(
-            submission.modelText,
-            submission.images.map((image) => image.file.name),
-            findings
-          )
-        })
-        .catch(() => undefined)
-    } catch {
-      // Vision analysis failed — send a text-only message as last resort
-      await currentChat
-        .sendMessage({ messageId, text: submission.modelText })
-        .catch(() => undefined)
-    }
   }
 
   /**
@@ -136,9 +88,8 @@ export function useChatSubmission(options: SubmissionOptions) {
     const support =
       submission.images.length === 0
         ? ({ kind: 'direct' } as const)
-        : options.imageSupport
-          ? options.imageSupport()
-          : resolveImageSupport(options.providerID(), designModelCapabilities())
+        : (options.imageSupport?.() ??
+          resolveImageSupport(options.providerID(), designModelCapabilities()))
 
     // Prepare before touching chat state so a failed preparation can leave the
     // composer exactly as the user left it.
@@ -193,14 +144,16 @@ export function useChatSubmission(options: SubmissionOptions) {
     }
 
     if (support.kind === 'vision-model') {
-      await sendWithVisionAnalysis(
+      await sendWithVisionAnalysis({
         currentChat,
         submission,
         messageId,
         preparedImages,
         nodeAttachments,
-        version
-      )
+        version,
+        getEditor: options.getEditor,
+        isStale: (candidate) => candidate !== operationVersion || options.chat.value !== currentChat
+      })
       return
     }
 
@@ -209,7 +162,7 @@ export function useChatSubmission(options: SubmissionOptions) {
       type: 'file' as const,
       mediaType: image.mediaType,
       filename: submission.images[index]?.file.name || `image-${index + 1}`,
-      url: blobToDataUri(image.data, image.mediaType)
+      url: blobToDataURL(image.data, image.mediaType)
     }))
 
     await currentChat
@@ -219,50 +172,6 @@ export function useChatSubmission(options: SubmissionOptions) {
         files: imageFiles
       })
       .catch(() => undefined)
-  }
-
-  function reportSubmissionError(error: unknown): void {
-    // A user stop is normal control flow, not an application failure.
-    if (isAbortError(error)) return
-    console.error('Chat error:', error)
-    if (error instanceof ImageAttachmentError) {
-      options.reportError(error.message)
-      return
-    }
-    const errMessage = error instanceof Error ? error.message : String(error)
-    if (
-      error instanceof VisionModelUnavailableError ||
-      /vision|image input|credential/i.test(errMessage)
-    ) {
-      options.reportError(
-        options.messages.value.visionUnavailable ||
-          'Configure a Vision-capable model (GPT-4o, Claude 3.5, Gemini) and check API key in Settings.',
-        {
-          label:
-            options.messages.value.openProviderSettingsAction ||
-            options.messages.value.openSettings,
-          run: options.openModelSettings
-        }
-      )
-      return
-    }
-    if (/401|unauthorized|api.key|invalid_api_key|authentication/i.test(errMessage)) {
-      options.reportError('Authentication failed. Check your API key in Settings.', {
-        label:
-          options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
-        run: options.openModelSettings
-      })
-      return
-    }
-    options.reportError(
-      options.messages.value.requestFailed ||
-        'The model request failed. Check the provider settings and try again.',
-      {
-        label:
-          options.messages.value.openProviderSettingsAction || options.messages.value.openSettings,
-        run: options.openModelSettings
-      }
-    )
   }
 
   async function submit(submission: ChatSubmission): Promise<void> {
@@ -284,13 +193,14 @@ export function useChatSubmission(options: SubmissionOptions) {
         if (submission.images.length > 0) options.reportError(options.messages.value.requestFailed)
         return
       }
+      reportRoutingNotice(submission, errorReporter)
       if (submission.images.length === 0 && submission.nodes.length === 0) {
         await sendText(currentChat, submission)
       } else {
         await sendAttachments(currentChat, submission, version)
       }
     } catch (error) {
-      reportSubmissionError(error)
+      reportSubmissionError(error, errorReporter)
     } finally {
       await options.flush?.().catch(() => undefined)
       if (version === operationVersion) isPreparingAttachments.value = false

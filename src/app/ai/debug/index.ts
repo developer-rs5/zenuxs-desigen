@@ -5,7 +5,9 @@ import type { ToolDebugLog, ToolLogEntry } from '@open-pencil/core/tools'
 import type { JSONObject } from '@open-pencil/scene-graph/primitives'
 
 import type { AIChatFailure } from '@/app/ai/chat/failure'
-import { getToolLogEntries } from '@/app/ai/tools'
+import { MAX_PROTOTYPE_REPAIR_ROUNDS } from '@/app/ai/chat/prototype-critic'
+import { lastSkillRoute } from '@/app/ai/skills/route-log'
+import { getPrototypeCriticReport, getToolLogEntries } from '@/app/ai/tools'
 import { diagnostics } from '@/app/diagnostics'
 
 const MAX_FAILURE_DETAIL_LENGTH = 240
@@ -100,6 +102,42 @@ function diffNodeSnapshots(
     }
   }
   return changed
+}
+
+/** Verdict of the automatic post-generation prototype validation (audit §4.6). */
+function formatPrototypeCritic(): string {
+  const report = getPrototypeCriticReport()
+  if (!report.mutated) return '  (no prototype mutations this run)'
+  const lines = [
+    `  repairs injected into model steps: ${report.repairRoundsUsed}/${MAX_PROTOTYPE_REPAIR_ROUNDS}`
+  ]
+  const validation = report.validation
+  if (!validation) {
+    lines.push('  validation: not run')
+  } else if (validation.ok) {
+    lines.push('  validation: ok')
+  } else {
+    lines.push(`  validation: FAILED — ${validation.errors.length} error(s)`)
+    for (const error of validation.errors.slice(0, 5)) lines.push(`    - ${error}`)
+    if (validation.errors.length > 5) lines.push(`    - …and ${validation.errors.length - 5} more`)
+    if (report.repairRoundsUsed === 0) {
+      lines.push('  (repair round already spent — surfaced here only)')
+    }
+  }
+  return lines.join('\n')
+}
+
+/** Active skills, routing mode, and any issue from the last routed message. */
+function formatSkillRouting(): string {
+  const route = lastSkillRoute()
+  if (!route) return '  (no message routed yet)'
+  const lines = [`  active skills: ${route.ordered.join(', ') || '(none)'}`]
+  lines.push(`  mode: ${route.ambiguity.action} — ${route.ambiguity.reason}`)
+  if (route.hint) lines.push(`  target: ${route.hint}`)
+  for (const issue of route.issues) {
+    lines.push(`  ${issue.kind} [${issue.skillId}]: ${issue.message}`)
+  }
+  return lines.join('\n')
 }
 
 export function formatDiagnostics(log: ToolDebugLog): string {
@@ -223,6 +261,14 @@ export function serializeChatLog(messages: UIMessage[], failure?: AIChatFailure 
 
   sections.push('=== DIAGNOSTICS ===')
   sections.push(formatDiagnostics(debugLog))
+  sections.push('')
+
+  sections.push('=== SKILL ROUTING ===')
+  sections.push(formatSkillRouting())
+  sections.push('')
+
+  sections.push('=== PROTOTYPE CRITIC ===')
+  sections.push(formatPrototypeCritic())
   sections.push('')
 
   sections.push('=== ERRORS ===')

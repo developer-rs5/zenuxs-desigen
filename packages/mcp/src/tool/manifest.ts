@@ -11,6 +11,7 @@ import type {
 const TOOL_CAPABILITY_OVERRIDES: Readonly<Partial<Record<string, readonly ToolCapability[]>>> = {
   eval: ['document:read', 'document:write', 'code:execute'],
   fetch_icons: ['network:access'],
+  generate_image: ['document:write', 'network:access'],
   insert_icon: ['document:write', 'network:access'],
   list_available_fonts: ['document:read'],
   search_icons: ['network:access'],
@@ -87,6 +88,15 @@ export function createToolDescriptors(filesystemEnabled: boolean): ToolDescripto
       name: 'get_codegen_prompt',
       description:
         'Get design-to-code generation guidelines. Call before generating frontend code.',
+      effect: 'read',
+      availability: 'default',
+      capabilities: [],
+      enabled: true
+    },
+    {
+      name: 'design_intent',
+      description:
+        'Resolve a design intent (plain language or a /slash command) into the activated OpenPencil skills: their knowledge, the semantic operations to call next, and routing notes. Read-only — it never mutates the document.',
       effect: 'read',
       availability: 'default',
       capabilities: [],

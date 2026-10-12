@@ -9,7 +9,7 @@ test.describe('SkPicture scene caching', () => {
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage()
     helper = new CanvasHelper(page)
-    await page.goto('http://localhost:1420/?test&no-chrome&no-rulers')
+    await page.goto('http://localhost:1420/editor?test&no-chrome&no-rulers')
     await helper.waitForInit()
     await page.evaluate(() => {
       const store = window.openPencil?.getStore?.()
@@ -61,7 +61,7 @@ test.describe('SkPicture scene caching', () => {
 
   async function cycleHover({ realMouse = false, mutate = false } = {}) {
     const framePoint = await helper.page.evaluate(
-      ({ mutate }) => {
+      ({ mutate, realMouse }: { mutate: boolean; realMouse: boolean }) => {
         const store = window.openPencil?.getStore?.()
         if (!store) throw new Error('OpenPencil store not initialized')
         const page = store.graph.getNode(store.state.currentPageId)

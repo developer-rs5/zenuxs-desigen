@@ -1,72 +1,99 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
-test('menu bar is visible in browser mode', async () => {
-  const menubar = editor.page.locator('[role="menubar"]')
-  await expect(menubar).toBeVisible()
+// The menubar (src/components/Shell/AppMenu.vue) was removed around 02deb986;
+// the File/Edit/View/Object/Text/Arrange menu schema now surfaces through the
+// command palette (src/components/commands/CommandPalette.vue, groups from
+// useAppMenu). Open it the way the product does: Ctrl/Cmd+K.
+function commandPaletteShortcut() {
+  return process.platform === 'darwin' ? 'ControlOrMeta+KeyK' : 'Control+KeyK'
+}
+
+async function openPalette() {
+  await editor.page.keyboard.press(commandPaletteShortcut())
+  const palette = editor.page.getByRole('dialog', { name: 'Command palette' })
+  await expect(palette).toBeVisible()
+  return palette
+}
+
+async function closePalette() {
+  await editor.page.keyboard.press('Escape')
+  await expect(editor.page.getByRole('dialog', { name: 'Command palette' })).not.toBeVisible()
+}
+
+async function searchPalette(query: string) {
+  const palette = await openPalette()
+  await palette.getByRole('searchbox', { name: 'Search commands' }).fill(query)
+  return palette
+}
+
+test('command palette exposes every menu group', async () => {
+  const probes: [query: string, group: string][] = [
+    ['', 'File'],
+    ['undo', 'Edit'],
+    ['zoom', 'View'],
+    ['component', 'Object'],
+    ['bold', 'Text'],
+    ['align', 'Arrange']
+  ]
+  for (const [query, group] of probes) {
+    const palette = query ? await searchPalette(query) : await openPalette()
+    await expect(palette.getByText(group, { exact: true })).toBeVisible()
+    await closePalette()
+  }
 })
 
-test('menu bar has all top-level menus', async () => {
-  const triggers = editor.page.locator('[role="menubar"] [role="menuitem"]')
-  const labels = await triggers.allTextContents()
-  expect(labels).toEqual(['File', 'Edit', 'View', 'Object', 'Text', 'Arrange'])
-})
+test('File group lists its commands in the palette', async () => {
+  const palette = await openPalette()
 
-test('File menu opens and shows items', async () => {
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'File' }).click()
-  const menu = editor.page.locator('[role="menu"]')
-  await expect(menu).toBeVisible()
-
-  const items = await menu.locator('[role="menuitem"]').allTextContents()
+  const items = await palette.getByRole('option').allTextContents()
   expect(items.some((t) => t.includes('Open'))).toBe(true)
   expect(items.some((t) => t.includes('Open storage workspace'))).toBe(true)
   expect(items.some((t) => t.includes('Save'))).toBe(true)
   expect(items.some((t) => t.includes('Save as'))).toBe(true)
 
-  await editor.page.keyboard.press('Escape')
+  await closePalette()
 })
 
-test('Edit menu shows Undo/Redo/Delete', async () => {
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'Edit' }).click()
-  const menu = editor.page.locator('[role="menu"]')
-  await expect(menu).toBeVisible()
-
-  const items = await menu.locator('[role="menuitem"]').allTextContents()
-  expect(items.some((t) => t.includes('Undo'))).toBe(true)
-  expect(items.some((t) => t.includes('Redo'))).toBe(true)
-  expect(items.some((t) => t.includes('Delete'))).toBe(true)
-  expect(items.some((t) => t.includes('Select all'))).toBe(true)
-
-  await editor.page.keyboard.press('Escape')
+test('Edit group lists Undo, Redo, Delete, and Select all', async () => {
+  const expectations: [query: string, name: string][] = [
+    ['undo', 'Undo'],
+    ['redo', 'Redo'],
+    ['delete', 'Delete'],
+    ['select all', 'Select all']
+  ]
+  for (const [query, name] of expectations) {
+    const palette = await searchPalette(query)
+    await expect(palette.getByRole('option', { name, exact: true })).toBeVisible()
+    await closePalette()
+  }
 })
 
-test('View menu shows zoom options', async () => {
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'View' }).click()
-  const menu = editor.page.locator('[role="menu"]')
-  await expect(menu).toBeVisible()
+test('View group lists zoom commands', async () => {
+  const palette = await searchPalette('zoom')
 
-  const items = await menu.locator('[role="menuitem"]').allTextContents()
+  const items = await palette.getByRole('option').allTextContents()
   expect(items.some((t) => t.includes('Zoom to fit'))).toBe(true)
   expect(items.some((t) => t.includes('Zoom in'))).toBe(true)
   expect(items.some((t) => t.includes('Zoom out'))).toBe(true)
 
-  await editor.page.keyboard.press('Escape')
+  await closePalette()
 })
 
-test('Object menu shows Group/Ungroup/Component', async () => {
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'Object' }).click()
-  const menu = editor.page.locator('[role="menu"]')
-  await expect(menu).toBeVisible()
-
-  const items = await menu.locator('[role="menuitem"]').allTextContents()
-  expect(items.some((t) => t.includes('Group'))).toBe(true)
-  expect(items.some((t) => t.includes('Ungroup'))).toBe(true)
-  expect(items.some((t) => t.includes('Create component'))).toBe(true)
-  expect(items.some((t) => t.includes('Bring to front'))).toBe(true)
-  expect(items.some((t) => t.includes('Send to back'))).toBe(true)
-
-  await editor.page.keyboard.press('Escape')
+test('Object group lists Group, Ungroup, and Component commands', async () => {
+  const expectations: [query: string, name: string][] = [
+    ['group', 'Group selection'],
+    ['group', 'Ungroup'],
+    ['component', 'Create component'],
+    ['front', 'Bring to front'],
+    ['back', 'Send to back']
+  ]
+  for (const [query, name] of expectations) {
+    const palette = await searchPalette(query)
+    await expect(palette.getByRole('option', { name, exact: true })).toBeVisible()
+    await closePalette()
+  }
 })
 
 function getStoreStateNumber(key: 'selectedIds' | 'zoom') {
@@ -78,25 +105,25 @@ function getStoreStateNumber(key: 'selectedIds' | 'zoom') {
   }, key)
 }
 
-test('Move to page is disabled without a selection', async () => {
-  await editor.page.evaluate(() => {
-    const store = window.openPencil?.getStore?.()
-    if (!store) throw new Error('OpenPencil store not initialized')
-    store.addPage('Second page')
-    store.switchPage(store.graph.getPages()[0].id)
-  })
-
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'Object' }).click()
-  const moveToPage = editor.page.getByRole('menuitem', { name: 'Move to page' })
-  await expect(moveToPage).toHaveAttribute('data-disabled')
-  await editor.page.keyboard.press('Escape')
-
-  await editor.canvas.drawRect(200, 200, 100, 100)
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'Object' }).click()
-  await expect(editor.page.getByRole('menuitem', { name: 'Move to page' })).not.toHaveAttribute(
+test('Delete is disabled in the palette without a selection and enabled with one', async () => {
+  // The old menubar asserted this through the disabled "Move to page" entry.
+  // "Move to page" no longer renders in the palette at all (buildEntry returns
+  // it without a menuId and paletteEntries only emits menuId entries), and the
+  // canvas context menu hides it instead of disabling it, so the same
+  // selection-gated command state is asserted through Delete.
+  let palette = await searchPalette('delete')
+  await expect(palette.getByRole('option', { name: 'Delete', exact: true })).toHaveAttribute(
     'data-disabled'
   )
-  await editor.page.keyboard.press('Escape')
+  await closePalette()
+
+  await editor.canvas.drawRect(200, 200, 100, 100)
+  palette = await searchPalette('delete')
+  await expect(palette.getByRole('option', { name: 'Delete', exact: true })).not.toHaveAttribute(
+    'data-disabled'
+  )
+  await closePalette()
+
   await editor.page.evaluate(() => {
     const store = window.openPencil?.getStore?.()
     if (!store) throw new Error('OpenPencil store not initialized')
@@ -106,20 +133,20 @@ test('Move to page is disabled without a selection', async () => {
   })
 })
 
-test('Undo via Edit menu works', async () => {
+test('Undo via the command palette works', async () => {
   await editor.canvas.drawRect(200, 200, 100, 100)
   const beforeUndo = await getStoreStateNumber('selectedIds')
   expect(beforeUndo).toBe(1)
 
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'Edit' }).click()
-  await editor.page.locator('[role="menu"] [role="menuitem"]', { hasText: 'Undo' }).click()
+  const palette = await searchPalette('undo')
+  await palette.getByRole('option', { name: 'Undo', exact: true }).click()
   await editor.canvas.waitForRender()
 
   const afterUndo = await getStoreStateNumber('selectedIds')
   expect(afterUndo).toBe(0)
 })
 
-test('Duplicate via Edit menu works', async () => {
+test('Duplicate via the command palette works', async () => {
   await editor.canvas.drawRect(300, 300, 80, 80)
 
   const countBefore = await editor.page.evaluate(() => {
@@ -128,8 +155,8 @@ test('Duplicate via Edit menu works', async () => {
     return store.graph.getChildren(store.state.currentPageId).length
   })
 
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'Edit' }).click()
-  await editor.page.locator('[role="menu"] [role="menuitem"]', { hasText: 'Duplicate' }).click()
+  const palette = await searchPalette('duplicate')
+  await palette.getByRole('option', { name: 'Duplicate', exact: true }).click()
   await editor.canvas.waitForRender()
 
   const countAfter = await editor.page.evaluate(() => {
@@ -141,27 +168,28 @@ test('Duplicate via Edit menu works', async () => {
   expect(countAfter).toBe(countBefore + 1)
 })
 
-test('Zoom to fit via View menu works', async () => {
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'View' }).click()
-  await editor.page.locator('[role="menu"] [role="menuitem"]', { hasText: 'Zoom in' }).click()
+test('Zoom in and Zoom to fit via the command palette change the viewport', async () => {
+  let palette = await searchPalette('zoom in')
+  await palette.getByRole('option', { name: 'Zoom in' }).click()
   await editor.canvas.waitForRender()
 
   const zoomBefore = await getStoreStateNumber('zoom')
   expect(zoomBefore).toBeGreaterThan(1)
 
-  await editor.page.locator('[role="menubar"] [role="menuitem"]', { hasText: 'View' }).click()
-  await editor.page.locator('[role="menu"] [role="menuitem"]', { hasText: 'Zoom to fit' }).click()
+  palette = await searchPalette('zoom to fit')
+  await palette.getByRole('option', { name: 'Zoom to fit', exact: true }).click()
   await editor.canvas.waitForRender()
 
   const zoomAfter = await getStoreStateNumber('zoom')
   expect(zoomAfter).not.toBe(zoomBefore)
 })
 
-test('Open storage workspace navigates from the File menu', async () => {
-  await editor.page.getByRole('menuitem', { name: 'File', exact: true }).click()
-  await editor.page.getByRole('menuitem', { name: 'Open storage workspace…' }).click()
+test('Open storage workspace navigates from the command palette', async () => {
+  const palette = await openPalette()
+  await palette.getByRole('option', { name: 'Open storage workspace' }).click()
 
-  await expect(editor.page).toHaveURL(/\/$/)
+  // openStorageWorkspace pushes '/editor' (router.ts '/storage' redirects there).
+  await expect(editor.page).toHaveURL(/\/editor$/)
   await expect(editor.page.getByTestId('recent-files-home')).toBeVisible()
   await expect(editor.page.getByRole('heading', { name: 'Storage workspace' })).toBeVisible()
 })

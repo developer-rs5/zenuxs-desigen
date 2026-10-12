@@ -4,7 +4,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 for (const theme of ['light', 'dark']) {
   test(`auto-layout spacing compositions in ${theme}`, async ({ page }) => {
-    await page.goto('/?test')
+    await page.goto('/editor?test')
     await new CanvasHelper(page).waitForInit()
     const id = await page.evaluate(async (colorMode) => {
       const path = '/src/app/shell/theme.ts'

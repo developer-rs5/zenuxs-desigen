@@ -1,30 +1,27 @@
 <script setup lang="ts">
+import { useEventListener } from '@vueuse/core'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 
-const props = withDefaults(
-  defineProps<{
-    borderColor?: string
-    borderWidth?: number
-    faceBackground?: string
-    lightCount?: number
-    lightSize?: number
-    lightColor?: string
-    padding?: string
-    borderRadius?: string
-    as?: string
-  }>(),
-  {
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    faceBackground: 'transparent',
-    lightCount: 20,
-    lightSize: 80,
-    lightColor: 'rgba(255,255,255,0.3)',
-    padding: '12px 24px',
-    borderRadius: '12px',
-    as: 'button'
-  }
-)
+import { colorToCSS } from '@open-pencil/core/color'
+
+const {
+  borderColor = 'rgba(255,255,255,0.1)',
+  borderWidth = 1,
+  faceBackground = 'transparent',
+  lightCount = 20,
+  padding = '12px 24px',
+  borderRadius = '12px'
+} = defineProps<{
+  borderColor?: string
+  borderWidth?: number
+  faceBackground?: string
+  lightCount?: number
+  lightSize?: number
+  lightColor?: string
+  padding?: string
+  borderRadius?: string
+  as?: string
+}>()
 
 const emit = defineEmits<{
   click: [event: MouseEvent]
@@ -53,15 +50,20 @@ function handleMouseLeave() {
   isPressed.value = false
 }
 
+/** Uniform [0,1) sample from the platform CSPRNG (Math.random is disallowed). */
+function randomUnit(): number {
+  return crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32
+}
+
 function initStars() {
   if (!canvasWidth.value || !canvasHeight.value) return
-  stars = Array.from({ length: props.lightCount }, () => ({
-    x: Math.random() * canvasWidth.value,
-    y: Math.random() * canvasHeight.value,
-    size: Math.random() * 2 + 0.5,
-    speed: Math.random() * 0.5 + 0.2,
-    opacity: Math.random() * 0.5 + 0.3,
-    angle: Math.random() * Math.PI * 2
+  stars = Array.from({ length: lightCount }, () => ({
+    x: randomUnit() * canvasWidth.value,
+    y: randomUnit() * canvasHeight.value,
+    size: randomUnit() * 2 + 0.5,
+    speed: randomUnit() * 0.5 + 0.2,
+    opacity: randomUnit() * 0.5 + 0.3,
+    angle: randomUnit() * Math.PI * 2
   }))
 }
 
@@ -93,8 +95,8 @@ function drawFrame() {
 
     const alpha = star.opacity * animProgress.value
     const gradient = ctx.createRadialGradient(star.x, star.y, 0, star.x, star.y, star.size * 3)
-    gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`)
-    gradient.addColorStop(0.3, `rgba(255, 255, 255, ${alpha * 0.5})`)
+    gradient.addColorStop(0, colorToCSS({ r: 1, g: 1, b: 1, a: alpha }))
+    gradient.addColorStop(0.3, colorToCSS({ r: 1, g: 1, b: 1, a: alpha * 0.5 }))
     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
 
     ctx.beginPath()
@@ -118,22 +120,22 @@ function handleResize() {
   initStars()
 }
 
+useEventListener('resize', handleResize)
+
 onMounted(() => {
   handleResize()
   raf = requestAnimationFrame(drawFrame)
-  window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
   cancelAnimationFrame(raf)
-  window.removeEventListener('resize', handleResize)
 })
 
 const bandStyle = computed(() => ({
   inset: '0',
-  padding: `${props.borderWidth}px`,
-  background: props.borderColor,
-  borderRadius: props.borderRadius,
+  padding: `${borderWidth}px`,
+  background: borderColor,
+  borderRadius,
   mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
   maskComposite: 'xor',
   WebkitMaskComposite: 'xor',
@@ -146,9 +148,9 @@ const faceStyle = computed(() => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: props.padding,
-  borderRadius: props.borderRadius,
-  background: props.faceBackground,
+  padding,
+  borderRadius,
+  background: faceBackground,
   overflow: 'hidden',
   transition: 'transform 150ms ease',
   transform: isPressed.value ? 'scale(0.97)' : 'scale(1)'

@@ -4,7 +4,7 @@ interface LinkItem {
   to: string
 }
 
-defineProps<{
+const { items } = defineProps<{
   items: LinkItem[]
 }>()
 </script>

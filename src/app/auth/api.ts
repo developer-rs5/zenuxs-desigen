@@ -142,13 +142,15 @@ export async function createServerSession(tokens: {
 }
 
 /**
- * Creates an anonymous guest session on the server.
+ * Creates an anonymous guest session on the server. Returns `null` when the
+ * backend responds without provisioning a user.
  *
  * Persists an account record in MongoDB and sets session cookies so visitors
  * can immediately store and sync designs to MongoDB.
  */
-export async function createGuestSession(): Promise<SessionSnapshot> {
-  const result = await apiRequest<SessionResponse>('/api/auth/guest', { method: 'POST' })
+export async function createGuestSession(): Promise<SessionSnapshot | null> {
+  const result = await apiRequest<Partial<SessionResponse>>('/api/auth/guest', { method: 'POST' })
+  if (!result.user) return null
   return { user: result.user, expiresAt: result.expiresAt }
 }
 

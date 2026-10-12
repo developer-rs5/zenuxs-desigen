@@ -1,0 +1,1251 @@
+# ZENUXS DESIGN — FINAL CLOSURE & BLOCKER RESOLUTION
+
+You are now performing the **final closure pass** after the completed code-verified audit of Zenuxs Design.
+
+The previous audit-fix pass reports that all critical broken findings, missing capabilities, and partial implementations from the two major specs are now implemented and tested.
+
+However, the project is still officially:
+
+```text
+PARTIALLY COMPLETE
+```
+
+The remaining blockers are:
+
+1. `.pen` prototype metadata round-trip
+2. Prototype → code export
+3. Git LFS fixture test environment
+4. lint / architecture / tooling environment failures
+5. final real-world regression and product verification
+
+Your job is to close these remaining gaps **without introducing speculative architecture or breaking the existing working system**.
+
+---
+
+# 1. MOST IMPORTANT RULE — DO NOT GUESS
+
+Do not start coding merely because a problem statement is present.
+
+For EVERY blocker:
+
+```text
+READ
+→ TRACE
+→ PROVE
+→ DIAGNOSE
+→ DESIGN SOLUTION
+→ IMPLEMENT
+→ TEST
+→ RE-TRACE
+→ REGRESSION TEST
+```
+
+You must understand the existing architecture before deciding how to solve it.
+
+Never use:
+
+```text
+"I assume..."
+"probably..."
+"this should work..."
+"we can simply..."
+```
+
+as a substitute for source-code evidence.
+
+When something is unclear, inspect:
+
+- source code
+- schemas
+- types
+- call sites
+- serialization code
+- deserialization code
+- existing tests
+- existing file formats
+- runtime behavior
+- current persistence behavior
+- current editor architecture
+
+Do not invent a new subsystem when the existing architecture already has an appropriate extension point.
+
+---
+
+# 2. PROBLEM-SOLVING PROTOCOL
+
+Before modifying code for a problem, internally establish:
+
+## A. TARGET
+
+What exact behavior must exist after the fix?
+
+## B. CURRENT CONDITION
+
+What does the application actually do now?
+
+## C. ROOT CAUSE
+
+Which exact code/data-flow causes the problem?
+
+## D. EXISTING ARCHITECTURE
+
+Which existing layer already owns this responsibility?
+
+## E. SOLUTION OPTIONS
+
+Identify the realistic implementation options.
+
+## F. CHOSEN SOLUTION
+
+Choose the smallest architecture-consistent solution.
+
+## G. SIDE EFFECTS
+
+Determine what existing behavior could be affected.
+
+## H. TEST STRATEGY
+
+Define how the fix can be proven.
+
+Only after these are understood should implementation begin.
+
+Do not merely patch the first file that appears related to the problem.
+
+---
+
+# 3. OVERALL CLOSURE TARGET
+
+The final system should be able to pass this chain:
+
+```text
+Create / modify design
+        ↓
+Prototype
+        ↓
+States / variants
+        ↓
+Interactions
+        ↓
+Animations
+        ↓
+Preview / Present
+        ↓
+AI modification
+        ↓
+Undo / Redo
+        ↓
+Save
+        ↓
+Close / restart
+        ↓
+Reopen
+        ↓
+Prototype still intact
+        ↓
+Modify again
+        ↓
+Export where supported
+        ↓
+Final regression
+```
+
+Nothing should depend on ephemeral in-memory state when persistence is expected.
+
+Nothing should claim support while silently dropping data.
+
+---
+
+# 4. BLOCKER A — `.PEN` PROTOTYPE ROUND TRIP
+
+## TARGET
+
+Prototype-related data must survive a `.pen` save/reopen cycle without loss.
+
+Expected:
+
+```text
+Zenuxs document
++
+prototype flows
++
+states
++
+interactions
++
+transitions
++
+animations
++
+overlays
++
+references
+        ↓
+SAVE .PEN
+        ↓
+CLOSE
+        ↓
+REOPEN
+        ↓
+SAME SEMANTIC PROTOTYPE
+```
+
+The audit currently reports that the repository has no `.pen` writer and that the existing `PenNode` representation cannot express the required plugin metadata.
+
+This is therefore a genuine format/serialization problem, not merely a missing test.
+
+
+
+---
+
+## CURRENT CONDITION
+
+The important facts already established by the audit are:
+
+```text
+read path exists
+writer does not exist
+prototype metadata needs preservation
+PenNode cannot currently express pluginData
+```
+
+Do not pretend that adding a test alone solves this.
+
+---
+
+## FIRST TASK
+
+Trace the complete `.pen` architecture.
+
+Inspect:
+
+- `packages/pen`
+- `packages/pen/src/convert.ts`
+- `.pen` node schema/types
+- current parser
+- current import flow
+- current document conversion
+- pluginData handling
+- prototype metadata storage
+- ID-remapping logic
+- any existing export/serialization abstractions elsewhere in the repository
+
+Find the intended ownership boundary for serialization.
+
+---
+
+## SOLUTION DIRECTION
+
+Do NOT immediately invent a completely separate prototype serialization format.
+
+Prefer:
+
+```text
+existing .pen document model
+        +
+minimal required prototype metadata extension
+        +
+writer using existing document semantics
+        +
+ID remapping
+```
+
+The previously identified useful mechanism is:
+
+```text
+remapPrototypePluginDataIds
+```
+
+Reuse the existing ID-remapping strategy where it is architecturally appropriate.
+
+Do not duplicate ID-remapping logic.
+
+---
+
+## REQUIRED DECISION
+
+Determine which of these is actually correct after inspecting the source:
+
+### Option A
+
+Extend `.pen` schema to represent prototype metadata directly.
+
+### Option B
+
+Add a controlled metadata extension that preserves Zenuxs-specific prototype semantics.
+
+### Option C
+
+Create another architecture-consistent representation already supported by the existing format.
+
+Choose based on the actual repository architecture.
+
+Do NOT choose based on convenience.
+
+---
+
+## REQUIRED BEHAVIOR
+
+At minimum verify preservation of:
+
+```text
+flow IDs
+active flow
+state IDs
+state references
+transition references
+interaction targets
+overlay references
+animation references
+prototype destination references
+variant/state relationships
+```
+
+Also verify ID remapping after reopen.
+
+---
+
+## REQUIRED TEST
+
+Create a real round-trip test:
+
+```text
+create document
+→ create prototype
+→ create multiple flows
+→ create states
+→ create interaction
+→ create animation
+→ save .pen
+→ reopen
+→ inspect semantic structure
+→ Present
+→ execute interaction
+→ modify prototype
+→ save again
+→ reopen again
+```
+
+The result must remain executable.
+
+Do not compare only raw JSON if IDs are remapped.
+
+Compare semantic equivalence.
+
+---
+
+# 5. BLOCKER B — PROTOTYPE → CODE EXPORT
+
+## TARGET
+
+Provide a real, honest export path from prototype semantics to generated code.
+
+The goal is NOT to claim:
+
+```text
+all prototype behaviors → production code
+```
+
+from day one.
+
+The first target should be a controlled supported subset.
+
+---
+
+## CURRENT CONDITION
+
+The audit reports:
+
+```text
+no prototype → code adapters
+packages/dom-css contains no adapter
+spec previously deferred broad codegen
+```
+
+The report explicitly records this as blocked/deferred.
+
+Therefore:
+
+DO NOT build fake export output.
+
+DO NOT generate placeholder code that does not represent the actual prototype.
+
+---
+
+## FIRST TASK
+
+Inspect:
+
+```text
+packages/dom-css
+existing code generators
+renderer/export architecture
+scene-to-code conversion
+transition-related semantics
+animation representation
+state representation
+```
+
+Determine where prototype export naturally belongs.
+
+---
+
+## SOLUTION DIRECTION
+
+Start with the smallest meaningful adapter.
+
+Preferred initial scope:
+
+```text
+fade transition
+slide transition
+basic state changes
+CSS-compatible animation properties
+```
+
+For example:
+
+```text
+Zenuxs prototype
+      ↓
+supported semantic subset
+      ↓
+CSS transition / animation representation
+      ↓
+generated code
+```
+
+Do NOT attempt every target immediately.
+
+---
+
+## IMPORTANT
+
+Generated code must represent the actual source document.
+
+For every exported behavior, determine:
+
+```text
+source semantics
+→ supported?
+→ mapping
+→ generated representation
+→ unsupported fallback
+```
+
+Unsupported capabilities must be explicitly reported.
+
+Never silently downgrade:
+
+```text
+spring → fake linear transition
+drag → click
+overlay → nothing
+```
+
+without stating that the behavior is unsupported.
+
+---
+
+## EXPORT VALIDATION
+
+Build an export compatibility validator:
+
+```text
+prototype
+→ inspect features
+→ supported / unsupported
+→ export only supported semantics
+→ clear report
+```
+
+This prevents false claims.
+
+---
+
+## REQUIRED TEST
+
+At minimum:
+
+```text
+create supported prototype
+→ export
+→ inspect generated code
+→ execute generated code
+→ compare behavior against Zenuxs preview
+```
+
+Also test an unsupported feature and verify that it is reported rather than silently lost.
+
+---
+
+# 6. BLOCKER C — GIT LFS TEST FIXTURES
+
+## TARGET
+
+Restore the actual `.fig` fixtures so the full test suite can run against real binary fixtures.
+
+The audit established that 79 failing fixture tests are caused by Git LFS pointers rather than newly broken functionality.
+
+
+
+---
+
+## CURRENT CONDITION
+
+Current environment:
+
+```text
+git-lfs unavailable
+fixtures are pointer files
+invalid zip data
+```
+
+This has already been verified against baseline.
+
+---
+
+## REQUIRED ACTION
+
+First inspect:
+
+```text
+git lfs availability
+.gitattributes
+LFS-tracked fixture paths
+fixture expectations
+CI setup
+repository setup instructions
+```
+
+Then restore the proper fixture environment.
+
+Preferred resolution:
+
+```text
+install/enable git-lfs
+→ git lfs pull
+→ verify fixture sizes/types
+→ rerun fixture tests
+```
+
+Do not rewrite tests just to bypass missing fixtures.
+
+Do not replace binary fixtures with fake placeholders.
+
+---
+
+## REQUIRED VERIFICATION
+
+Verify that:
+
+```text
+tests/fixtures/*.fig
+```
+
+are real fixtures, not LFS pointer text.
+
+Then rerun the complete fixture suite.
+
+Report the actual final result.
+
+---
+
+# 7. BLOCKER D — LINT / ARCHITECTURE / TOOLCHAIN
+
+## TARGET
+
+The project's validation tooling should execute successfully in a clean environment.
+
+Current audit:
+
+```text
+Node 22.22
+→ repo tooling plugins
+→ ERR_UNKNOWN_FILE_EXTENSION
+```
+
+and several checks therefore remain blocked at baseline.
+
+
+
+---
+
+## FIRST TASK
+
+Do not modify application code yet.
+
+Determine:
+
+```text
+which command fails
+→ which process launches it
+→ which plugin is loaded
+→ why Node cannot load it
+→ which runtime the repo expects
+→ whether Bun/Node compatibility already exists elsewhere
+```
+
+Inspect:
+
+- package manager
+- workspace scripts
+- tool loaders
+- plugin loader
+- TypeScript execution strategy
+- Node version expectations
+- CI configuration
+
+---
+
+## SOLUTION DIRECTION
+
+Prefer the smallest environment/tooling correction that matches the repository architecture.
+
+Possible legitimate solutions include:
+
+```text
+transpile tooling plugin before execution
+OR
+use supported TS loader
+OR
+invoke tooling through the repository's expected runtime
+OR
+make plugin registration runtime-compatible
+```
+
+Choose only after tracing the actual failure.
+
+Do not rewrite tooling just to make one command green.
+
+---
+
+## IMPORTANT
+
+Distinguish:
+
+```text
+application bug
+```
+
+from:
+
+```text
+tooling/environment bug
+```
+
+Then verify the fix against a clean baseline.
+
+---
+
+# 8. RESTORE FULL CHECK GATE
+
+Once the environment is corrected, rerun:
+
+```text
+lint
+check:arch
+test:tools
+check:deps
+check:monorepo
+check:secrets
+check:audit
+```
+
+Do not stop when the first command passes.
+
+Run the complete gate.
+
+---
+
+# 9. FINAL PRODUCT QA — REAL APPLICATION, NOT JUST TEST SUITE
+
+After all blocker fixes, perform one final end-to-end human-style QA pass.
+
+The objective is to prove that the system actually behaves correctly.
+
+---
+
+## DESIGN CREATION
+
+Test:
+
+```text
+Create frame
+Create component
+Create instance
+Create variant
+Create page
+Modify existing design
+Select object
+AI modifies selected object
+```
+
+Verify actual document mutation.
+
+---
+
+## NATURAL LANGUAGE AI
+
+Test:
+
+```text
+Create a login page
+Create a dashboard
+Make this button larger
+Animate this
+Create a loading state
+Create a modal
+Create a page transition
+Change the mobile behavior
+```
+
+Verify:
+
+```text
+intent
+→ skill
+→ semantic operation
+→ real tool
+→ real document mutation
+```
+
+---
+
+# 10. CONTEXT CONTINUITY
+
+Test:
+
+```text
+Turn 1:
+Create a dashboard with a card.
+
+Turn 2:
+Make the card interactive.
+
+Turn 3:
+Animate it.
+
+Turn 4:
+Change the mobile behavior.
+```
+
+The later commands must operate on actual previous objects rather than recreate unrelated ones.
+
+---
+
+# 11. SLASH COMMAND PARITY
+
+Verify:
+
+```text
+/create-equivalent
+```
+
+and natural language versions resolve to the same semantic capability.
+
+Specifically verify the previously missing commands:
+
+```text
+/splash
+/modal
+/page-transition
+```
+
+Also verify:
+
+```text
+autocomplete
+keyboard navigation
+unknown command
+invalid command
+suggestion behavior
+```
+
+---
+
+# 12. PROTOTYPE RUNTIME
+
+Test:
+
+```text
+click
+drag
+scroll
+long press
+state change
+variant change
+overlay
+guard
+condition
+spring
+fade
+slide
+keyframe
+sequence
+parallel animation
+animation cancellation
+repeated navigation
+```
+
+The runtime must visibly perform the intended behavior.
+
+Do not accept:
+
+```text
+data exists
+```
+
+as proof.
+
+It must actually execute.
+
+---
+
+# 13. UNDO / REDO
+
+For both UI-created and AI-created mutations test:
+
+```text
+create
+→ modify
+→ undo
+→ verify exact previous state
+→ redo
+→ verify restored state
+```
+
+Include:
+
+```text
+prototype flow
+state
+animation
+root metadata
+selection-based AI change
+multiple consecutive AI operations
+```
+
+No root-level metadata should survive an undo that is supposed to remove it.
+
+---
+
+# 14. SAVE / REOPEN
+
+Test:
+
+```text
+create
+→ prototype
+→ state
+→ interaction
+→ animation
+→ save
+→ restart app
+→ reopen
+→ Present
+→ interact
+→ modify
+→ save again
+```
+
+Verify semantic integrity.
+
+---
+
+# 15. VALIDATION / SELF-REPAIR
+
+Test deliberately broken cases:
+
+```text
+invalid destination
+deleted node
+invalid transition
+cycle
+invalid guard
+invalid animation target
+unknown command
+ambiguous target
+corrupt prototype metadata
+```
+
+Verify:
+
+```text
+detect
+→ report
+→ repair or reject
+→ no corrupted final state
+```
+
+The system must not blindly execute invalid AI-generated operations.
+
+---
+
+# 16. ACCESSIBILITY / REDUCED MOTION
+
+Verify the implemented capabilities that the document/runtime model can actually represent:
+
+```text
+interactive target validation
+blank interactive labels
+contrast checks
+reduced motion runtime
+```
+
+Do not invent checks for semantics that the current document model cannot encode.
+
+The final report must distinguish:
+
+```text
+SUPPORTED
+NOT REPRESENTABLE
+```
+
+rather than falsely claiming complete accessibility coverage.
+
+---
+
+# 17. PERFORMANCE / RUNTIME CLEANUP
+
+During final QA inspect for:
+
+```text
+orphan timers
+orphan event listeners
+animation loops that never terminate
+duplicate listeners
+stale prototype runtime state
+unbounded validation recursion
+repeated AI mutation loops
+unnecessary full-document processing
+```
+
+Particular attention:
+
+```text
+rapid navigation
+rapid AI actions
+rapid animation changes
+repeated Present/exit
+open/close/reopen
+```
+
+---
+
+# 18. NO FAKE / MOCK REGRESSION
+
+Search the final paths used by the product for:
+
+```text
+mock
+fake
+dummy
+placeholder
+hardcoded sample data
+simulated response
+test-only response
+```
+
+This does not mean deleting legitimate test fixtures.
+
+Determine whether any production-facing path still presents simulated functionality as real.
+
+---
+
+# 19. FINAL SOURCE CONSISTENCY AUDIT
+
+After everything works, search for:
+
+```text
+dead exports
+dead schema fields
+unreachable tools
+unused skill metadata
+unused validators
+commands with no routing
+routing with no consumer
+runtime fields never written
+write paths with no read path
+read paths with no write path
+duplicate semantic models
+duplicate serializers
+duplicate ID remapping
+```
+
+The target is:
+
+```text
+0 unintended dead paths
+0 silently ignored capabilities
+0 fake completion paths
+0 duplicate semantic sources of truth
+```
+
+---
+
+# 20. FINAL EVIDENCE REQUIREMENT
+
+For each remaining problem, produce:
+
+```text
+PROBLEM
+TARGET
+CURRENT CONDITION
+ROOT CAUSE
+EXISTING ARCHITECTURE
+OPTIONS CONSIDERED
+CHOSEN SOLUTION
+WHY THIS SOLUTION
+FILES CHANGED
+TEST ADDED
+TEST RESULT
+REGRESSION RESULT
+```
+
+Do not provide only:
+
+```text
+"Fixed."
+```
+
+The report must explain how the system now works.
+
+---
+
+# 21. DO NOT OVERENGINEER
+
+When multiple technically valid solutions exist:
+
+Prefer:
+
+```text
+existing architecture
+>
+small extension
+>
+shared abstraction
+>
+minimal new infrastructure
+```
+
+Avoid:
+
+```text
+new subsystem
+new data model
+new runtime
+new serializer
+new router
+```
+
+unless the current architecture truly cannot support the requirement.
+
+---
+
+# 22. DO NOT BREAK EXISTING WORK
+
+Before changing any foundational system, identify regression-sensitive areas:
+
+```text
+scene graph
+renderer
+document persistence
+history
+AI tool execution
+prototype runtime
+skill routing
+MCP
+ACP
+editor selection/context
+```
+
+After modifying one of these, run its relevant existing tests immediately.
+
+Then run the broader regression suite later.
+
+---
+
+# 23. FINAL PASS/FAIL RULE
+
+A blocker may be marked PASS only when:
+
+```text
+implemented
++
+integrated
++
+executed through the real path
++
+persisted where required
++
+tested
++
+regression tested
+```
+
+A blocker is BLOCKED only when:
+
+```text
+the requirement genuinely cannot be completed
+AND
+the exact technical reason is proven
+AND
+the next required dependency/action is documented
+```
+
+A blocker is NOT allowed to be labelled:
+
+```text
+"probably fine"
+"conceptually done"
+"working in theory"
+"not tested"
+```
+
+---
+
+# 24. FINAL ACCEPTANCE TARGET
+
+The goal is:
+
+```text
+SPEC AUDIT
+        ↓
+ALL IMPLEMENTABLE FINDINGS CLOSED
+        ↓
+ALL REAL BLOCKERS UNDERSTOOD
+        ↓
+PEN ROUND TRIP RESOLVED
+        ↓
+CODE EXPORT RESOLVED OR EXPLICITLY SCOPED
+        ↓
+LFS FIXTURES RESTORED
+        ↓
+TOOLCHAIN CHECKS GREEN
+        ↓
+FULL REGRESSION
+        ↓
+REAL UI / AI / PROTOTYPE QA
+        ↓
+FINAL SOURCE CONSISTENCY AUDIT
+```
+
+Then assign exactly one final status:
+
+```text
+PRODUCTION READY
+PARTIALLY COMPLETE
+BLOCKED
+```
+
+Do not choose `PRODUCTION READY` merely because new tests pass.
+
+Choose it only when:
+
+- all critical functionality works,
+- all supported audited capabilities work end-to-end,
+- persistence works,
+- undo/redo works,
+- prototype runtime works,
+- AI routing works,
+- final validation passes,
+- environment/tooling gates are resolved,
+- real product QA finds no release-blocking issue,
+- and every remaining limitation is intentionally scoped and documented.
+
+---
+
+# 25. FINAL REPORT FORMAT
+
+Produce:
+
+## A. EXECUTIVE SUMMARY
+
+What was already completed by the previous pass.
+
+What this closure pass changed.
+
+What remains.
+
+---
+
+## B. BLOCKER MATRIX
+
+| Blocker | Previous Status | Current Status | Root Cause | Solution | Verification |
+|---|---|---|---|---|---|
+
+---
+
+## C. TEST RESULTS
+
+Provide actual numbers:
+
+```text
+Unit:
+Integration:
+E2E:
+Prototype:
+AI:
+Persistence:
+Fixture:
+Tooling:
+Lint:
+Architecture:
+Security:
+```
+
+---
+
+## D. REMAINING LIMITATIONS
+
+Only genuine limitations.
+
+For each:
+
+```text
+what
+why
+whether intentional
+whether architectural
+what would be required later
+```
+
+---
+
+## E. FINAL PRODUCT STATUS
+
+Use exactly:
+
+```text
+PRODUCTION READY
+PARTIALLY COMPLETE
+BLOCKED
+```
+
+And justify the status using evidence.
+
+---
+
+# FINAL PRINCIPLE
+
+The objective is NOT:
+
+```text
+make the report green
+```
+
+The objective is:
+
+```text
+make the actual Zenuxs system correct.
+```
+
+When a problem has multiple possible solutions, do not guess.
+
+Understand the current system first, determine where the responsibility belongs, select the smallest architecture-consistent solution, implement it, prove it with tests, then verify that the original problem is genuinely gone.
+
+**Evidence before assumptions.  
+Architecture before patching.  
+Implementation before claims.  
+Runtime behavior before “PASS”.  
+Regression before completion.**

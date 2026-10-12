@@ -7,6 +7,12 @@ test('a long restored conversation scrolls to its latest message on mount', asyn
   const text = Array.from({ length: 100 }, (_, index) => `Restored line ${index}`).join('\n')
   await chat.submit(text)
   await expect(chat.assistantMessage()).toBeVisible()
+  // Reset the tab session so session restore cannot prune the never-saved
+  // document tab (404) and drop the editor back to the home tab.
+  await page.evaluate(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access
+    localStorage.removeItem('zenuxs:tabs:session')
+  })
   await page.reload()
   await chat.chatTab.click()
   await page.getByRole('button', { name: 'Conversation history', exact: true }).click()

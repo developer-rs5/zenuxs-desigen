@@ -11,7 +11,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   await canvas.clearCanvas()
@@ -70,7 +70,7 @@ test('duplicate shortcut Cmd+D increases child count', async () => {
 
   const before = (await getPageChildren(page)).length
 
-  await canvas.pressKey('Meta+d')
+  await canvas.pressKey('ControlOrMeta+d')
   await canvas.waitForRender()
 
   const after = (await getPageChildren(page)).length

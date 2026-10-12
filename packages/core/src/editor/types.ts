@@ -16,6 +16,7 @@ import type { GuideOverlayState } from '#core/canvas/guides/types'
 import type { RulerTheme, SkiaRenderer } from '#core/canvas/renderer'
 import type { MeasurementMode, RenderOverlays } from '#core/canvas/renderer/types'
 import type { SnappingPreferences } from '#core/editor/preferences'
+import type { PrototypeRenderState } from '#core/prototype/runtime'
 import type { TextEditor } from '#core/text/editor'
 import type { FontResolutionEvent, FontResolutionSnapshot } from '#core/text/resolver'
 
@@ -95,6 +96,8 @@ export interface EditorViewState {
   nodeEditState?: RenderOverlays['nodeEditState'] | null
   cursorCanvasX?: number | null
   cursorCanvasY?: number | null
+  /** Ephemeral prototype-preview render state; null when not previewing. */
+  prototypePreview: PrototypeRenderState | null
 }
 
 export type NavigationPhase = 'idle' | 'pan' | 'zoom' | 'momentum' | 'settling'
@@ -149,6 +152,11 @@ export interface EditorOptions {
   resolveFigmaClipboardImages?: FigmaClipboardImageResolver
   getViewportSize?: () => { width: number; height: number }
   skipInitialGraphSetup?: boolean
+  /**
+   * prefers-reduced-motion query for prototype previews (spec §55). Supplied
+   * by the app: core stays framework-neutral and never reads matchMedia.
+   */
+  prefersReducedMotion?: () => boolean
 }
 
 export interface EditorContext {

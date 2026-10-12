@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { CanvasHelper } from '#tests/helpers/canvas'
 
 test('toolbar arrows move focus without selecting a tool', async ({ page }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   const toolbar = page.getByTestId('toolbar')

@@ -338,6 +338,22 @@ export class FontManager {
     this.registerAndCache(family, style, data, source)
   }
 
+  /**
+   * Evict one face from the manager's caches — the counterpart to markLoaded.
+   * Used by tests to establish deterministic preconditions on the shared
+   * singleton (one file loading the default family changes `get_font_status`
+   * results for every later file). ponytail: CanvasKit provider glyph data is
+   * keyed per family (not per face), so already-registered glyphs stay in the
+   * attached provider until detachProvider — status and cache reads are clean.
+   */
+  unloadFont(family: string, style: string): void {
+    const key = `${family}|${style}`
+    this.loadedFamilies.delete(key)
+    this.loadedFamilySources.delete(key)
+    this.supplementalFamilyData.delete(key)
+    this.remoteCoverage.delete(key)
+  }
+
   loadedFontSource(family: string, style: string): FontLoadedSource | null {
     return this.loadedFamilySources.get(`${family}|${style}`) ?? null
   }

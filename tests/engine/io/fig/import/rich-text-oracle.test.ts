@@ -5,17 +5,13 @@ import { nodeChangeToProps } from '@open-pencil/fig/node-change'
 import type { NodeChange, Paint } from '@open-pencil/kiwi/fig/codec'
 import { SceneGraph } from '@open-pencil/scene-graph'
 
-import { sceneNodeToKiwi } from '#core/kiwi/fig/node-change/serialize'
+import type { RGB255 } from '@/components/originkit/ui/starfield/geometry'
 
-interface OracleColor {
-  r: number
-  g: number
-  b: number
-}
+import { sceneNodeToKiwi } from '#core/kiwi/fig/node-change/serialize'
 
 interface OracleDecorationColor {
   value: {
-    color: OracleColor
+    color: RGB255
     opacity: number
   }
 }

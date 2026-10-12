@@ -83,11 +83,7 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
     )
 
     const previousGuestSub = (req as AuthenticatedRequest).auth?.sub
-    if (
-      previousGuestSub &&
-      previousGuestSub.startsWith('guest_') &&
-      previousGuestSub !== identity.sub
-    ) {
+    if (previousGuestSub?.startsWith('guest_') && previousGuestSub !== identity.sub) {
       try {
         await DesignDocument.updateMany(
           { ownerSub: previousGuestSub },

@@ -6,7 +6,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 test('tool-created CJK text requests fallback through app font loading', async ({ page }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('http://localhost:1420/?test&no-chrome&no-rulers')
+  await page.goto('http://localhost:1420/editor?test&no-chrome&no-rulers')
   await canvas.waitForInit()
 
   const result = await page.evaluate(async () => {
@@ -15,11 +15,9 @@ test('tool-created CJK text requests fallback through app font loading', async (
 
     const { ensureGraphFonts, loadFont } = await import('/src/app/editor/fonts/index.ts')
     await loadFont('Inter', 'Regular')
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleURL) throw new Error('Active font manager module not found')
+    // Direct path instead of a resource-timing scan: the buffer caps at 250
+    // entries and boot-time loads get evicted (order-dependent failure).
+    const fontModuleURL = '/packages/core/src/text/fonts.ts'
     const { fontManager } = (await import(/* @vite-ignore */ fontModuleURL)) as {
       fontManager: FontManager
     }
@@ -68,7 +66,7 @@ test('tool-created CJK text requests fallback through app font loading', async (
 
 test('CJK text waits for fallback fonts and repaints after they load', async ({ page }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('http://localhost:1420/?test&no-chrome&no-rulers')
+  await page.goto('http://localhost:1420/editor?test&no-chrome&no-rulers')
   await canvas.waitForInit()
 
   const result = await page.evaluate(async () => {
@@ -77,11 +75,9 @@ test('CJK text waits for fallback fonts and repaints after they load', async ({ 
     const renderer = store.renderer
     const response = await fetch('/tests/fixtures/fonts/NotoSansCJK-Test.otf')
     const fallbackData = await response.arrayBuffer()
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleURL) throw new Error('Active font manager module not found')
+    // Direct path instead of a resource-timing scan: the buffer caps at 250
+    // entries and boot-time loads get evicted (order-dependent failure).
+    const fontModuleURL = '/packages/core/src/text/fonts.ts'
     const { fontManager } = (await import(/* @vite-ignore */ fontModuleURL)) as {
       fontManager: FontManager
     }

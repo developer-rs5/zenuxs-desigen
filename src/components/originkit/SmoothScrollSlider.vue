@@ -11,34 +11,31 @@ interface ImageInput {
   offsetY?: number
 }
 
-const props = withDefaults(
-  defineProps<{
-    images?: (string | ImageInput)[]
-    slideWidth?: number
-    slideHeight?: number
-    spacing?: number
-    direction?: 'right' | 'left'
-    smoothness?: number
-    radius?: number
-    dim?: number
-    background?: string
-    sensitivity?: number
-    loop?: boolean
-  }>(),
-  {
-    images: () => [],
-    slideWidth: 400,
-    slideHeight: 400,
-    spacing: 2,
-    direction: 'right',
-    smoothness: 10,
-    radius: 16,
-    dim: 10,
-    background: '#000000',
-    sensitivity: 5,
-    loop: true
-  }
-)
+const {
+  images = [],
+  slideWidth = 400,
+  slideHeight = 400,
+  spacing = 2,
+  direction = 'right',
+  smoothness = 10,
+  radius = 16,
+  dim = 10,
+  background = '#000000',
+  sensitivity = 5,
+  loop = true
+} = defineProps<{
+  images?: (string | ImageInput)[]
+  slideWidth?: number
+  slideHeight?: number
+  spacing?: number
+  direction?: 'right' | 'left'
+  smoothness?: number
+  radius?: number
+  dim?: number
+  background?: string
+  sensitivity?: number
+  loop?: boolean
+}>()
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const nodes = ref<(HTMLDivElement | null)[]>([])
@@ -63,33 +60,33 @@ function offsetOf(item: string | ImageInput): number {
   if (typeof item === 'string') return 0
   if (item && typeof item === 'object' && 'offsetY' in item) {
     const o = (item as ImageInput).offsetY
-    return typeof o === 'number' && isFinite(o) ? o : 0
+    return typeof o === 'number' && Number.isFinite(o) ? o : 0
   }
   return 0
 }
 
 const source = computed<Slide[]>(() => {
   const resolved: Slide[] = []
-  for (const item of props.images ?? []) {
+  for (const item of images ?? []) {
     const src = imageOf(item)
     if (src) resolved.push({ src, offsetY: offsetOf(item) })
   }
   return resolved.length ? resolved : Array.from({ length: 6 }, () => ({ src: null, offsetY: 0 }))
 })
 
-const step = computed(() => props.slideWidth + Math.min(Math.max(props.spacing, 0), 10) * 20)
+const step = computed(() => slideWidth + Math.min(Math.max(spacing, 0), 10) * 20)
 
-const ease = computed(() => 0.15 - (Math.min(Math.max(props.smoothness, 0), 10) / 10) * 0.13)
+const ease = computed(() => 0.15 - (Math.min(Math.max(smoothness, 0), 10) / 10) * 0.13)
 
-const dimAmount = computed(() => (Math.min(Math.max(props.dim, 0), 10) / 10) * 0.85)
+const dimAmount = computed(() => (Math.min(Math.max(dim, 0), 10) / 10) * 0.85)
 
-const wheelMult = computed(() => 0.4 + (Math.min(Math.max(props.sensitivity, 0), 10) / 10) * 1.2)
-const dragMult = computed(() => 0.6 + (Math.min(Math.max(props.sensitivity, 0), 10) / 10) * 1.8)
+const wheelMult = computed(() => 0.4 + (Math.min(Math.max(sensitivity, 0), 10) / 10) * 1.2)
+const dragMult = computed(() => 0.6 + (Math.min(Math.max(sensitivity, 0), 10) / 10) * 1.8)
 
-const flip = computed(() => props.direction === 'left')
+const flip = computed(() => direction === 'left')
 
 const repeats = computed(() => {
-  if (!props.loop || width.value <= 0 || step.value <= 0) return 1
+  if (!loop || width.value <= 0 || step.value <= 0) return 1
   return Math.max(1, Math.ceil((width.value + step.value * 2) / (source.value.length * step.value)))
 })
 
@@ -118,7 +115,7 @@ function tick() {
   const span = slides.value.length * c
   const half = width.value / 2
 
-  if (props.loop) {
+  if (loop) {
     if (current.value > span || current.value < -span) {
       const shift = Math.trunc(current.value / span) * span
       current.value -= shift
@@ -128,30 +125,30 @@ function tick() {
     target.value = Math.min(Math.max(target.value, 0), (slides.value.length - 1) * c)
   }
 
-  const k = 1 - Math.pow(1 - ease.value, (1 / 60) * 60)
+  const k = 1 - (1 - ease.value) ** ((1 / 60) * 60)
   current.value += (target.value - current.value) * k
 
-  const pad = (width.value - props.slideWidth) / 2
+  const pad = (width.value - slideWidth) / 2
 
   for (let i = 0; i < slides.value.length; i++) {
     const node = nodes.value[i]
     if (!node) continue
 
-    let raw = i * c - current.value + pad
-    const x = props.loop ? wrap(raw + c, span) - c : raw
+    const raw = i * c - current.value + pad
+    const x = loop ? wrap(raw + c, span) - c : raw
 
-    const distance = x + props.slideWidth / 2 - half
+    const distance = x + slideWidth / 2 - half
     let scale: number
     let push: number
     if (distance > 0) {
       scale = Math.min(MAX_SCALE, 1 + distance / width.value)
-      push = (scale - 1) * props.slideWidth * 0.75
+      push = (scale - 1) * slideWidth * 0.75
     } else {
       scale = Math.max(MIN_SCALE, 1 + distance / width.value)
       push = 0
     }
 
-    const left = flip.value ? width.value - props.slideWidth - (x + push) : x + push
+    const left = flip.value ? width.value - slideWidth - (x + push) : x + push
     node.style.transform = `translate3d(${left}px, -50%, 0) scale(${scale})`
 
     if (dimAmount.value > 0 && scale < 1) {

@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { IS_TAURI } from '@open-pencil/core/constants'
 import { useI18n } from '@open-pencil/vue'
 
+import { appCredentialServices } from '@/app/settings/credentials/app'
 import { useCredentialSettings } from '@/app/settings/credentials/preferences/use'
 import SettingsGroup from '@/components/settings/layout/SettingsGroup.vue'
 import SettingsSectionHeader from '@/components/settings/layout/SettingsSectionHeader.vue'
@@ -10,6 +13,12 @@ import AppSwitch from '@/components/ui/toggle/AppSwitch.vue'
 
 const { credentials } = useI18n()
 const { busy, paused, failed, checkFailed, remembered, retry, retryCheck } = useCredentialSettings()
+const backendLabel = computed(() => {
+  const backend = appCredentialServices.manager.backend
+  if (backend === 'native') return credentials.value.backendNative
+  if (backend === 'browser') return credentials.value.backendBrowser
+  return credentials.value.backendMemory
+})
 </script>
 
 <template>
@@ -23,8 +32,19 @@ const { busy, paused, failed, checkFailed, remembered, retry, retryCheck } = use
             credentials.sessionOnly
           }}</span>
         </span>
-        <AppSwitch v-model="remembered" :label="credentials.rememberDevice" />
+        <AppSwitch
+          v-model="remembered"
+          :label="credentials.rememberDevice"
+          data-test-id="settings-remember-credentials"
+        />
       </label>
+      <p
+        v-if="!IS_TAURI"
+        class="px-3 pb-2.5 text-[10px] text-muted"
+        data-test-id="settings-credential-backend"
+      >
+        {{ credentials.storage({ backend: backendLabel }) }}
+      </p>
       <div v-if="checkFailed" class="flex items-center justify-between gap-4 px-3 py-2.5">
         <span role="status" class="text-xs text-surface">{{ credentials.checkFailed }}</span>
         <AppButton size="xs" variant="ghost" :disabled="busy" @click="retryCheck">{{

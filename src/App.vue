@@ -20,6 +20,9 @@ const SettingsDialog = defineAsyncComponent(
 const ProjectsDialog = defineAsyncComponent(
   () => import('@/components/projects/ProjectsDialog.vue')
 )
+const RecoveryDialog = defineAsyncComponent(
+  () => import('@/components/recovery/RecoveryDialog.vue')
+)
 const PublishLibraryDialog = defineAsyncComponent(
   () => import('@/components/libraries/PublishLibraryDialog.vue')
 )
@@ -56,6 +59,7 @@ onMounted(() => {
     </AppShell>
     <SettingsDialog />
     <ProjectsDialog />
+    <RecoveryDialog />
     <PublishLibraryDialog />
     <LibraryUpdateReviewDialog />
     <AppToast />

@@ -5,7 +5,8 @@ test('expand while thinking auto-collapses but preserves manual opening', async 
   configuredChat: chat,
   page
 }) => {
-  await page.getByTestId('provider-settings-trigger').click()
+  await chat.profileTrigger.click()
+  await page.getByRole('button', { name: 'Manage models and roles…' }).click()
   await page.getByRole('combobox', { name: 'Reasoning display' }).click()
   await page.getByRole('option', { name: 'Expand while thinking', exact: true }).click()
   await page.getByTestId('app-settings-done').click()
@@ -65,7 +66,8 @@ test('reasoning preferences use AI settings and persist across reload', async ({
   configuredChat: chat,
   page
 }) => {
-  await page.getByTestId('provider-settings-trigger').click()
+  await chat.profileTrigger.click()
+  await page.getByRole('button', { name: 'Manage models and roles…' }).click()
   const display = page.getByRole('combobox', { name: 'Reasoning display' })
   await expect(display).toContainText('Collapsed by default')
   await display.click()
@@ -84,8 +86,16 @@ test('reasoning preferences use AI settings and persist across reload', async ({
     )
     .toBe('collapsible-up')
   await expect(page.locator('[data-slot="chat-reasoning-content"]')).toBeHidden()
+  // Reset the tab session so session restore cannot prune the never-saved
+  // document tab (404) and drop the editor back to the home tab. Reasoning
+  // preferences live in a separate preference key and still round-trip.
+  await page.evaluate(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access
+    localStorage.removeItem('zenuxs:tabs:session')
+  })
   await page.reload()
   await chat.chatTab.click()
-  await page.getByTestId('provider-settings-trigger').click()
+  await chat.profileTrigger.click()
+  await page.getByRole('button', { name: 'Manage models and roles…' }).click()
   await expect(display).toContainText('Expanded by default')
 })

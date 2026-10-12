@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetupWithClear('/?test&no-chrome&no-rulers')
+const editor = useEditorSetupWithClear('/editor?test&no-chrome&no-rulers')
 
 async function expectCanvas(name: string) {
   editor.canvas.assertNoErrors()

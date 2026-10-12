@@ -3,7 +3,7 @@ import { expectDefined } from '#tests/helpers/assert'
 import { propertyField } from '#tests/helpers/properties'
 import { getSelectedNode } from '#tests/helpers/store'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 function xField() {
   return propertyField(editor.page, 'x')

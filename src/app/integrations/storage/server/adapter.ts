@@ -22,11 +22,18 @@ function bytesToBase64(bytes: Uint8Array): string {
   const CHUNK_SIZE = 0x8000
   const chunks: string[] = []
   for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-    chunks.push(
-      String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK_SIZE) as unknown as number[])
-    )
+    chunks.push(String.fromCharCode(...bytes.subarray(i, i + CHUNK_SIZE)))
   }
   return btoa(chunks.join(''))
+}
+
+/** Picks the first payload value that is a non-null string. */
+function firstString(payload: Record<string, unknown>, keys: readonly string[]): string | null {
+  for (const key of keys) {
+    const value = payload[key]
+    if (typeof value === 'string') return value
+  }
+  return null
 }
 
 function base64ToBytes(base64: string): Uint8Array {
@@ -75,12 +82,7 @@ export function createServerStorageAdapter(_runtime?: StorageProviderRuntime): S
       const payload = await fetchRemoteDocument(id)
       signal?.throwIfAborted()
 
-      const base64Data =
-        typeof payload.figBase64 === 'string'
-          ? payload.figBase64
-          : typeof payload.data === 'string'
-            ? payload.data
-            : null
+      const base64Data = firstString(payload, ['figBase64', 'data'])
 
       if (!base64Data) {
         throw new Error(`Document payload for ${id} is empty or invalid`)
@@ -110,8 +112,8 @@ export function createServerStorageAdapter(_runtime?: StorageProviderRuntime): S
         if (thumbBytes) {
           previewDataURL = `data:image/png;base64,${bytesToBase64(thumbBytes)}`
         }
-      } catch {
-        // Thumbnail extraction is best effort
+      } catch (error) {
+        console.debug('[storage] Fig thumbnail extraction skipped:', error)
       }
       await saveRemoteDocument(
         id,
@@ -133,27 +135,22 @@ export function createServerStorageAdapter(_runtime?: StorageProviderRuntime): S
     async getThumbnail(id: string): Promise<Uint8Array | null> {
       try {
         const payload = await fetchRemoteDocument(id)
-        const previewUrl =
-          typeof payload.previewDataURL === 'string'
-            ? payload.previewDataURL
-            : typeof payload.previewDataUrl === 'string'
-              ? payload.previewDataUrl
-              : null
-        if (!previewUrl || !previewUrl.startsWith('data:')) return null
-        const commaIndex = previewUrl.indexOf(',')
+        const previewURL = firstString(payload, ['previewDataURL', 'previewDataUrl'])
+        if (!previewURL || !previewURL.startsWith('data:')) return null
+        const commaIndex = previewURL.indexOf(',')
         if (commaIndex === -1) return null
-        return base64ToBytes(previewUrl.slice(commaIndex + 1))
+        return base64ToBytes(previewURL.slice(commaIndex + 1))
       } catch {
         return null
       }
     },
 
     async putThumbnail(id: string, bytes: Uint8Array): Promise<void> {
-      const dataUrl = `data:image/png;base64,${bytesToBase64(bytes)}`
+      const dataURL = `data:image/png;base64,${bytesToBase64(bytes)}`
       const payload: Record<string, unknown> = await fetchRemoteDocument(id).catch(() => ({}))
       const title =
         'title' in payload && typeof payload.title === 'string' ? payload.title : 'Untitled'
-      await saveRemoteDocument(id, title, payload, dataUrl)
+      await saveRemoteDocument(id, title, payload, dataURL)
     },
 
     async getUsage(): Promise<StorageUsage> {

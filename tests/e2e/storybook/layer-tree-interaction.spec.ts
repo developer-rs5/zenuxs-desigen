@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 
+// Storybook runs on its own dev server (see playwright.config.ts webServer[1]).
+test.use({ baseURL: 'http://localhost:6006' })
+
 test('virtualized rename commits and selection persists outside the tree', async ({ page }) => {
   await page.goto(
     '/iframe.html?id=editor-layer-tree--virtualized&viewMode=story&globals=theme:light'

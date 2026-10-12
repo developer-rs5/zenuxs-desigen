@@ -1,4 +1,4 @@
-import type { LanguageModel } from 'ai'
+import type { ImageModel, LanguageModel } from 'ai'
 
 import type { AIProviderID } from '@open-pencil/core/constants'
 
@@ -19,4 +19,11 @@ export type ModelProviderRuntime = {
 
 export interface ModelProviderAdapter {
   create(config: ModelConfig, runtime: ModelProviderRuntime): LanguageModel
+  /**
+   * Image-generation factory. Only providers that actually ship one define it —
+   * an absent method means "this provider cannot generate images", which is how
+   * the chat tool set decides to hide `generate_image` rather than offering the
+   * model a tool that can only fail.
+   */
+  createImage?(config: ModelConfig, runtime: ModelProviderRuntime): ImageModel
 }

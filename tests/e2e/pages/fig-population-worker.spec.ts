@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('populates a real lazy FIG page in the retained parse worker', async () => {
   test.setTimeout(90_000)

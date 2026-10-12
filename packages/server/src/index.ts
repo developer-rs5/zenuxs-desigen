@@ -18,8 +18,9 @@ dotenv.config()
 try {
   const rootEnv = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../.env')
   dotenv.config({ path: rootEnv })
-} catch {
-  // Ignore fallback failure if running in bundled/flat environment
+} catch (error) {
+  // Bundled/flat deployments have no sibling .env; only warn, never fail boot.
+  console.warn('[Zenuxs Backend] Sibling .env not applied:', error)
 }
 
 async function start(): Promise<void> {

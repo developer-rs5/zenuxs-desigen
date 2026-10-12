@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetupWithClear('/?test')
+const editor = useEditorSetupWithClear('/editor?test')
 
 async function rectangleCount() {
   return editor.page.evaluate(() => {
@@ -45,11 +45,11 @@ test('undo after option-drag duplicate removes the copy', async () => {
   await expect.poll(layerItems).toEqual(['Rectangle'])
   await expect.poll(historyState).toMatchObject({ canRedo: true, redoLabel: 'Duplicate' })
 
-  await editor.page.keyboard.down('Meta')
+  await editor.page.keyboard.down('ControlOrMeta')
   await editor.page.keyboard.down('Shift')
   await editor.page.keyboard.press('KeyZ')
   await editor.page.keyboard.up('Shift')
-  await editor.page.keyboard.up('Meta')
+  await editor.page.keyboard.up('ControlOrMeta')
   await editor.canvas.waitForRender()
   await expect.poll(rectangleCount).toBe(2)
   await expect.poll(layerItems).toEqual(['Rectangle', 'Rectangle copy'])

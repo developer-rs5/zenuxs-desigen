@@ -1,7 +1,8 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
+import { ChatHarness } from '#tests/helpers/chat/harness'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 function getPageChildren() {
   return editor.page.evaluate(() => {
@@ -29,6 +30,19 @@ async function rightClickShape(x: number, y: number) {
   const box = expectDefined(await editor.canvas.canvas.boundingBox(), 'canvas bounds')
   await editor.page.mouse.click(box.x + x, box.y + y, { button: 'right' })
 }
+
+test.beforeEach(async () => {
+  // Closing a context menu can leave focus on its portal element, so canvas
+  // shortcuts such as the `r` tool key are swallowed: the following drag then
+  // moves the existing node instead of drawing a new one. Wait for the portal to
+  // unmount, then put focus back on the canvas.
+  await expect(editor.page.locator('[role="menu"]')).toHaveCount(0)
+  await editor.canvas.click(500, 400)
+  await editor.page.evaluate(() => {
+    const canvas = document.querySelector('[data-test-id="canvas-element"]')
+    if (canvas instanceof HTMLElement && document.activeElement !== canvas) canvas.focus()
+  })
+})
 
 function contextMenu() {
   return editor.page.locator('[role="menu"]')
@@ -247,6 +261,9 @@ test('Copy/Paste as submenu exists', async () => {
 })
 
 test('Send to AI via context menu switches to AI chat and pre-fills redesign draft', async () => {
+  // The composer only mounts for a configured provider, so set one up first.
+  await new ChatHarness(editor.page).configureOpenRouter('sk-or-test-key-12345')
+
   await editor.canvas.clearCanvas()
   await editor.canvas.drawRect(200, 200, 120, 80)
   await editor.canvas.waitForRender()

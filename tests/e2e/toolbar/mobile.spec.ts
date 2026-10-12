@@ -4,7 +4,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 test('mobile toolbar retains keyboard navigation after category transitions', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   const toolbar = page.getByTestId('mobile-toolbar-container')

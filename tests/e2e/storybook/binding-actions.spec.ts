@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 
+// Storybook runs on its own dev server (see playwright.config.ts webServer[1]).
+test.use({ baseURL: 'http://localhost:6006' })
+
 test('binding picker creates a variable through submit and detaches it', async ({ page }) => {
   await page.goto('/iframe.html?id=editor-properties-binding-field--picker-actions&viewMode=story')
   const field = page.getByLabel('Unbound field', { exact: true })

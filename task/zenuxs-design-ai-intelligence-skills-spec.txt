@@ -1,0 +1,2608 @@
+ZENUXS DESIGN — AI DESIGN INTELLIGENCE & SKILL SYSTEM SPECIFICATION
+======================================================================
+
+DOCUMENT PURPOSE
+----------------
+This document defines how the AI inside Zenuxs Design should be taught,
+structured, routed, and evaluated so that it understands design intent instead
+of merely executing low-level canvas tools.
+
+This document is for the AI/coding/engineering agent implementing Zenuxs Design.
+
+The goal is NOT:
+
+    "Give AI more tools."
+
+The goal is:
+
+    "Teach AI what the user means, what kind of design/UX problem it is,
+     which Zenuxs capabilities represent that intent, how to construct the
+     result correctly, how to validate it, and how to modify it later."
+
+The AI should become a semantic design agent.
+
+It should understand the difference between:
+
+    designing
+    structuring
+    componentizing
+    prototyping
+    interaction design
+    state modeling
+    motion design
+    responsive design
+    visual styling
+    accessibility
+    design systems
+    code/export requirements
+
+and should select the correct capabilities automatically.
+
+The user should normally be able to speak naturally.
+
+Slash commands are optional accelerators, not a requirement.
+
+
+======================================================================
+1. CORE PRODUCT VISION
+======================================================================
+
+Zenuxs Design should evolve from:
+
+    AI that manipulates design nodes
+
+into:
+
+    AI that understands design intent and constructs a complete,
+    structured, editable design experience.
+
+The desired flow is:
+
+    Natural language / image / existing design
+                    ↓
+             Intent understanding
+                    ↓
+             Context understanding
+                    ↓
+             Design-plan selection
+                    ↓
+       Semantic capability / skill selection
+                    ↓
+          Validated Zenuxs operations
+                    ↓
+           Actual document changes
+                    ↓
+           Preview / interaction runtime
+                    ↓
+                Validation
+                    ↓
+            Save / persistence
+                    ↓
+       AI-readable structured result
+
+
+======================================================================
+2. REFERENCE FOUNDATION
+======================================================================
+
+Zenuxs Design is based on the OpenPencil foundation.
+
+Reference:
+https://github.com/open-pencil/open-pencil
+
+Zenuxs:
+https://github.com/developer-rs5/zenuxs-desigen
+
+The existing OpenPencil architecture should remain the foundation for:
+
+    scene graph
+    document model
+    editor operations
+    rendering
+    AI tools
+    MCP
+    CLI
+    import/export
+    components
+    variants
+    variables
+    layout
+    design file handling
+
+The AI Intelligence layer must sit ABOVE this foundation.
+
+Do not create a second, parallel design representation merely for AI.
+
+
+======================================================================
+3. THE CENTRAL PRINCIPLE
+======================================================================
+
+Low-level tools describe HOW.
+
+Skills describe WHEN and WHY.
+
+Intent understanding determines WHAT.
+
+Example:
+
+Low-level operations:
+
+    createFrame
+    createText
+    setFill
+    updateNode
+    createComponent
+    moveNode
+    resizeNode
+
+These are necessary but insufficient.
+
+A user does not usually say:
+
+    "Create 12 rectangles and 8 text nodes."
+
+They say:
+
+    "Make a modern SaaS pricing page."
+
+The AI must convert this to a semantic plan.
+
+Example:
+
+    Intent:
+        pricing page
+
+    Design type:
+        web
+
+    Structure:
+        hero
+        pricing tiers
+        comparison
+        CTA
+        footer
+
+    Design system:
+        spacing scale
+        typography hierarchy
+        button system
+        card system
+
+    Responsive intent:
+        desktop
+        tablet
+        mobile
+
+    Interaction:
+        plan selection
+        CTA states
+
+Then the AI uses the underlying Zenuxs operations.
+
+The user sees a result.
+The internal implementation remains structured.
+
+
+======================================================================
+4. AI MUST UNDERSTAND DESIGN VOCABULARY
+======================================================================
+
+The AI must have an explicit internal vocabulary.
+
+This prevents common category mistakes.
+
+Examples:
+
+    Page
+        = top-level document/page context.
+
+    Frame
+        = visual/container region.
+
+    Component
+        = reusable design definition.
+
+    Instance
+        = concrete use of a component.
+
+    Variant
+        = alternate component state/design.
+
+    Variable
+        = reusable design/runtime value.
+
+    State
+        = logical condition the interface can be in.
+
+    Interaction
+        = event-driven relationship between user/system action and result.
+
+    Trigger
+        = event that starts an interaction.
+
+    Action
+        = what happens after a trigger.
+
+    Transition
+        = how a state/navigation change occurs.
+
+    Motion
+        = time-based visual change.
+
+    Prototype Flow
+        = connected sequence of screens/interactions.
+
+    Overlay
+        = contextual layer displayed over another screen.
+
+    Micro-interaction
+        = small interaction feedback, often component-level.
+
+    Loading state
+        = logical application state.
+
+    Loading animation
+        = visual motion used to communicate that state.
+
+    Page transition
+        = movement/fade/etc. between screens.
+
+    Component animation
+        = motion of a specific component/state.
+
+    Responsive behavior
+        = layout adaptation, NOT animation.
+
+The AI must avoid collapsing these into one generic "animation" concept.
+
+
+======================================================================
+5. INTENT UNDERSTANDING
+======================================================================
+
+Every user request should first be interpreted semantically.
+
+The AI should identify as much of the following as possible:
+
+    target
+    design type
+    platform
+    viewport/device
+    pages/screens
+    components
+    states
+    interaction requirements
+    motion requirements
+    content requirements
+    visual style
+    reference images
+    existing-canvas context
+    responsive behavior
+    accessibility requirements
+    export/code requirements
+    persistence requirements
+
+Do not force the user to provide all fields.
+
+Infer only what is reasonably supported by the request and existing context.
+
+Do not invent critical factual content.
+
+For creative decisions, use sensible defaults.
+
+
+======================================================================
+6. NATURAL LANGUAGE → SEMANTIC PLAN
+======================================================================
+
+Example user prompt:
+
+    "Create a modern food delivery app with splash screen,
+     onboarding, restaurant list, restaurant detail and checkout.
+     The splash should fade into onboarding, cards should feel interactive,
+     and checkout should slide up from the bottom."
+
+The AI should reason conceptually as:
+
+    Product:
+        mobile app
+
+    Screens:
+        splash
+        onboarding
+        restaurant list
+        restaurant detail
+        checkout
+
+    Components:
+        cards
+        buttons
+        navigation
+        restaurant item
+        checkout controls
+
+    States:
+        default
+        pressed
+        loading if required
+
+    Prototype:
+        splash → onboarding
+        onboarding → restaurant list
+        restaurant → detail
+        checkout as overlay/bottom sheet
+
+    Motion:
+        splash enter/exit
+        fade transition
+        card press micro-interaction
+        bottom-sheet spring/slide
+
+Then:
+
+    semantic plan
+        ↓
+    Zenuxs skills
+        ↓
+    validated operations
+
+
+======================================================================
+7. THE AI SHOULD HAVE A CAPABILITY REGISTRY
+======================================================================
+
+Instead of relying on one enormous system prompt, maintain a structured
+capability/skill registry.
+
+Each skill should have metadata such as:
+
+    id
+    name
+    category
+    description
+    triggers
+    aliases
+    supported platforms
+    required primitives
+    compatible skills
+    incompatible combinations
+    defaults
+    examples
+    validation rules
+    operations/tools used
+    expected output
+    failure modes
+    verification steps
+
+Conceptual example:
+
+    skill:
+        prototype.bottom-sheet
+
+    aliases:
+        bottom sheet
+        sheet
+        slide-up panel
+        drawer from bottom
+
+    requires:
+        frame
+        overlay
+        state/interaction
+        transition
+        motion
+
+    default behavior:
+        enter from bottom
+        backdrop
+        spring/ease
+        dismiss action
+
+    validation:
+        target exists
+        overlay relationship valid
+        open/close actions exist
+        transition serializable
+
+
+======================================================================
+8. SKILLS ARE NOT JUST PROMPT SHORTCUTS
+======================================================================
+
+A slash command such as:
+
+    /motion
+
+must NOT simply prepend text to a prompt.
+
+A real skill should contain design intelligence.
+
+For example:
+
+    /motion
+
+should teach the AI:
+
+    motion vocabulary
+    motion model
+    supported properties
+    timing
+    easing
+    springs
+    keyframes
+    states
+    interaction relationships
+    enter/exit patterns
+    performance considerations
+    validation
+    common failure modes
+
+Likewise:
+
+    /prototype
+
+should teach:
+
+    triggers
+    actions
+    destinations
+    overlays
+    flows
+    transitions
+    preview behavior
+    invalid relationship handling
+
+And:
+
+    /landing-page
+
+should teach:
+
+    page structure
+    responsive structure
+    hierarchy
+    CTA patterns
+    section patterns
+    component relationships
+    spacing
+    typography
+    common states
+
+
+======================================================================
+9. SLASH COMMANDS + NATURAL LANGUAGE MUST SHARE THE SAME ENGINE
+======================================================================
+
+These two requests should produce the same semantic capability:
+
+    /motion
+    "Animate this login screen so it slides up when opened."
+
+The first explicitly activates a skill.
+
+The second should cause automatic skill detection.
+
+Architecture:
+
+    Slash command
+          ↓
+    Skill resolver
+          ↑
+          │
+    Natural-language intent resolver
+          ↓
+      Same skill
+          ↓
+      Same planning
+          ↓
+    Same Zenuxs operations
+
+
+======================================================================
+10. SKILLS SHOULD BE COMPOSABLE
+======================================================================
+
+Real design requests require multiple skills.
+
+Example:
+
+    "Build a premium mobile onboarding flow with animated transitions."
+
+Possible composition:
+
+    mobile
+    onboarding
+    design-system
+    prototype
+    motion
+
+The AI should not arbitrarily invoke five unrelated prompts.
+
+Instead:
+
+    intent
+      ↓
+    skill graph
+      ↓
+    dependencies
+      ↓
+    execution order
+
+Example:
+
+    mobile
+      ↓
+    onboarding
+      ↓
+    prototype
+      ↓
+    motion
+
+
+======================================================================
+11. SKILL DEPENDENCY GRAPH
+======================================================================
+
+Skills should be able to declare dependencies.
+
+Example:
+
+    bottom-sheet
+        requires:
+            overlay
+            interaction
+            transition
+            motion
+
+    carousel
+        requires:
+            state
+            interaction
+            navigation
+            motion (optional)
+
+    onboarding
+        may require:
+            mobile
+            navigation
+            prototype
+            motion
+
+This gives the AI a predictable capability graph instead of requiring it to
+memorize every possible combination.
+
+
+======================================================================
+12. AI SHOULD SELECT THE RIGHT ABSTRACTION LEVEL
+======================================================================
+
+The AI should prefer high-level semantic operations when the intention is
+clear.
+
+Bad:
+
+    createFrame
+    createRectangle
+    moveRectangle
+    setOpacity
+    createText
+    ...
+
+for a request clearly describing a bottom sheet.
+
+Better:
+
+    createBottomSheet
+        internally produces
+            overlay
+            interaction
+            state
+            transition
+            motion
+            valid document structure
+
+The semantic operation may internally use low-level operations.
+
+This keeps AI reasoning more reliable and reduces invalid tool sequences.
+
+
+======================================================================
+13. DO NOT REMOVE LOW-LEVEL TOOLS
+======================================================================
+
+High-level semantic operations do NOT replace low-level operations.
+
+Low-level tools are still needed for:
+
+    custom designs
+    unusual layouts
+    fine adjustments
+    recovery
+    manual-like editing
+    custom user requests
+    unsupported patterns
+
+Use:
+
+    semantic tool
+        whenever a known design pattern exists.
+
+Fall back to:
+
+    lower-level primitives
+        when the request is custom or the semantic capability does not fit.
+
+
+======================================================================
+14. AI SHOULD BE ABLE TO BUILD FROM IMAGES
+======================================================================
+
+Image understanding is a first-class design skill.
+
+When a reference image is attached, the AI should be able to infer:
+
+    layout
+    hierarchy
+    component types
+    approximate spacing
+    typography
+    colors
+    visual grouping
+    repeated patterns
+    screen boundaries
+    visual states
+    interaction clues
+    motion clues when visually inferable
+
+But the AI must distinguish:
+
+    observed fact
+    inferred design pattern
+    creative assumption
+
+For example:
+
+    observed:
+        dark sidebar
+
+    inferred:
+        likely navigation area
+
+    assumption:
+        sidebar may collapse on mobile
+
+Do not treat assumptions as facts.
+
+
+======================================================================
+15. IMAGE + NATURAL LANGUAGE
+======================================================================
+
+The AI should combine reference image context with the user's text.
+
+Example:
+
+Image:
+    mobile login design
+
+Prompt:
+    "Make this feel more premium and animate the login panel upward."
+
+The AI should combine:
+
+    image understanding
+    +
+    visual modification intent
+    +
+    motion intent
+
+It should not treat the image as a separate unrelated message.
+
+
+======================================================================
+16. EXISTING CANVAS CONTEXT
+======================================================================
+
+AI should understand the current document.
+
+Before modifying a design, it should be able to determine:
+
+    pages
+    frames
+    components
+    instances
+    variants
+    existing prototype flows
+    existing motion/state data
+    selected nodes
+    nearby context
+    document dimensions
+    style patterns
+    design system patterns
+
+Example:
+
+    "Animate the checkout panel."
+
+AI should identify:
+
+    existing checkout panel
+    current state
+    current placement
+    related backdrop
+    existing interactions
+
+It should modify the existing structure instead of recreating a duplicate.
+
+
+======================================================================
+17. CONTEXT PRIORITY
+======================================================================
+
+When resolving intent, use context in a stable order:
+
+    1. explicit user instruction
+    2. current selected element
+    3. current document
+    4. attached reference image
+    5. current prototype/motion state
+    6. active skill
+    7. known design defaults
+
+Do not override explicit user instructions with generic skill defaults.
+
+
+======================================================================
+18. AI PLANNING
+======================================================================
+
+For non-trivial tasks, the AI should form an internal structured plan.
+
+Example:
+
+    USER:
+        "Turn this dashboard into a mobile-friendly interactive prototype."
+
+    PLAN:
+        1. inspect existing dashboard
+        2. identify primary screens
+        3. identify responsive transformations
+        4. identify navigation relationships
+        5. identify interaction points
+        6. create prototype flow
+        7. add required states
+        8. add useful transitions
+        9. validate
+        10. preview/test
+
+
+The plan may remain internal or be summarized to the user when useful.
+
+Do not expose low-level tool-call noise.
+
+
+======================================================================
+19. AI TOOL-CALL UI
+======================================================================
+
+In the AI chat:
+
+KEEP:
+
+    ONE Magic Box / AI working indicator.
+
+HIDE:
+
+    individual technical tool-call cards.
+
+Do NOT interpret "hide tool-call cards" as "hide the AI's work."
+
+The AI's actual work should remain visible on the design canvas whenever
+operations modify the document.
+
+So:
+
+    Chat:
+        Magic Box
+
+    Canvas:
+        real progressive design construction
+
+    Internal:
+        technical tool execution
+
+
+======================================================================
+20. AI LIVE BUILDING + SEMANTIC PLAN
+======================================================================
+
+The live canvas experience should reflect semantic execution.
+
+Example:
+
+    AI plan:
+        create mobile frame
+        create navigation
+        create hero
+        create cards
+        create CTA
+
+Actual canvas:
+
+    frame appears
+        ↓
+    navigation appears
+        ↓
+    hero appears
+        ↓
+    cards appear
+        ↓
+    CTA appears
+
+The visible build sequence should come from real document operations.
+
+Do not create a fake timer that merely imitates progress.
+
+
+======================================================================
+21. DESIGN PATTERN LIBRARY
+======================================================================
+
+Create a reusable internal knowledge set for common UI/UX patterns.
+
+Examples:
+
+    splash screen
+    onboarding
+    login
+    signup
+    dashboard
+    settings
+    profile
+    feed
+    detail page
+    pricing
+    checkout
+    modal
+    dialog
+    bottom sheet
+    toast
+    tooltip
+    carousel
+    tabs
+    accordion
+    navigation drawer
+    mobile navigation
+    pagination
+    skeleton loading
+    empty state
+    error state
+    success state
+
+Each pattern should describe:
+
+    structure
+    components
+    states
+    typical interactions
+    optional motion
+    responsive behavior
+    accessibility considerations
+    validation rules
+
+This is design knowledge, not a rigid template.
+
+
+======================================================================
+22. PATTERN ≠ TEMPLATE
+======================================================================
+
+A skill or pattern should NOT force every request into the same design.
+
+Example:
+
+    /dashboard
+
+should not generate the exact same dashboard every time.
+
+Instead it provides:
+
+    useful structural knowledge
+    common design relationships
+    sensible defaults
+
+while AI still adapts to:
+
+    brand
+    reference image
+    existing document
+    user requirements
+    platform
+    content
+
+
+======================================================================
+23. DESIGN SYSTEM INTELLIGENCE
+======================================================================
+
+AI should inspect and reuse existing design-system conventions.
+
+Understand:
+
+    typography scale
+    spacing scale
+    color tokens
+    corner radius
+    shadows
+    component variants
+    button states
+    input states
+    icon treatment
+
+When modifying an existing document:
+
+    prefer consistency
+        over introducing unrelated new styles.
+
+
+======================================================================
+24. RESPONSIVE DESIGN INTELLIGENCE
+======================================================================
+
+The AI must distinguish:
+
+    responsive layout
+    prototype interaction
+    motion
+
+Example:
+
+    "On mobile the sidebar should become a drawer."
+
+This implies:
+
+    responsive transformation
+    + interaction
+    + overlay
+    + possibly motion
+
+The AI should model the relationship instead of simply shrinking the desktop
+layout.
+
+
+======================================================================
+25. STATE INTELLIGENCE
+======================================================================
+
+The AI should know when a request requires explicit state modeling.
+
+Signals:
+
+    loading
+    success
+    error
+    disabled
+    selected
+    expanded
+    collapsed
+    open
+    closed
+    hovered
+    pressed
+    focused
+    active
+    empty
+    completed
+
+Example:
+
+    "Create a file upload component."
+
+Potential states:
+
+    idle
+    uploading
+    success
+    error
+
+The AI should not represent all four states as unrelated static frames unless
+that is actually the intended document structure.
+
+
+======================================================================
+26. MOTION INTELLIGENCE
+======================================================================
+
+The AI should classify motion requests.
+
+Examples:
+
+    "fade"
+        = opacity transition
+
+    "slide from bottom"
+        = position/transform transition
+
+    "pop"
+        = scale + opacity or spring-like entry
+
+    "bounce"
+        = spring/overshoot behavior
+
+    "smooth"
+        = choose sensible easing/spring
+
+    "snappy"
+        = shorter timing / sharper easing
+
+    "springy"
+        = spring model
+
+    "stagger these cards"
+        = coordinated delay/orchestration
+
+The AI should map natural terms to structured motion primitives.
+
+
+======================================================================
+27. MICRO-INTERACTION INTELLIGENCE
+======================================================================
+
+The AI should understand the difference between:
+
+    page transition
+
+and:
+
+    micro-interaction.
+
+Example:
+
+    "Make the button feel clickable."
+
+This should usually produce:
+
+    hover state
+    press state
+    small transform/visual change
+    quick timing
+
+It should NOT create a full-screen page transition.
+
+
+======================================================================
+28. PROTOTYPE INTELLIGENCE
+======================================================================
+
+When a user says:
+
+    "Click the button to open the menu."
+
+The AI should model:
+
+    trigger = click
+    action = open overlay
+    target = menu
+
+When the user says:
+
+    "Swipe to the next onboarding page."
+
+Model:
+
+    gesture trigger
+    destination
+    transition
+    state/progress where necessary
+
+When the user says:
+
+    "When payment succeeds, show the confirmation screen."
+
+Model:
+
+    success event
+    state/condition
+    navigation
+    appropriate transition
+
+
+======================================================================
+29. AI SHOULD LEARN RELATIONSHIPS, NOT JUST DEFINITIONS
+======================================================================
+
+Knowing:
+
+    "bottom sheet = a UI pattern"
+
+is insufficient.
+
+AI needs to know:
+
+    bottom sheet
+        often implies:
+            overlay
+            backdrop
+            open/close states
+            gesture/dismiss
+            enter/exit motion
+            focus handling
+
+Likewise:
+
+    modal
+        often implies:
+            overlay
+            focus management
+            open/close
+            dismissal
+            backdrop
+            transition
+
+Knowledge should be represented as relationships.
+
+
+======================================================================
+30. TOOL SELECTION SHOULD BE EXPLAINABLE INTERNALLY
+======================================================================
+
+For complex requests, AI should know why a capability was selected.
+
+Example:
+
+    User:
+        "Make checkout come from bottom."
+
+Internal selection:
+
+    bottom-sheet skill
+        because:
+            checkout is an overlay/panel
+            "come from bottom" describes enter motion
+
+Do not expose this as a giant technical card to the user.
+
+The purpose is correct execution.
+
+
+======================================================================
+31. VALIDATION AFTER AI GENERATION
+======================================================================
+
+AI must not trust its own output.
+
+After building:
+
+    inspect result
+        ↓
+    validate document
+        ↓
+    validate references
+        ↓
+    validate prototype
+        ↓
+    validate motion
+        ↓
+    preview if possible
+        ↓
+    repair failures
+
+Check:
+
+    missing targets
+    invalid node IDs
+    invalid destinations
+    impossible state transitions
+    missing trigger/action
+    malformed motion
+    unsupported properties
+    invalid durations
+    broken keyframes
+    duplicate components
+    detached instances
+    serialization errors
+
+
+======================================================================
+32. AI SHOULD VERIFY AGAINST USER INTENT
+======================================================================
+
+After execution ask internally:
+
+    Did I actually create what the user requested?
+
+Not:
+
+    "Did the tool calls succeed?"
+
+Example:
+
+User:
+    "Make a bottom sheet."
+
+Tool execution succeeds.
+
+But if the result is a normal frame sitting on the page:
+
+    tool success = YES
+    intent success = NO
+
+The AI must validate semantic correctness.
+
+
+======================================================================
+33. AI SELF-REPAIR
+======================================================================
+
+When validation detects an error:
+
+    detect
+      ↓
+    identify cause
+      ↓
+    repair
+      ↓
+    validate again
+
+Avoid restarting the entire design when one operation failed.
+
+Prefer localized repair.
+
+
+======================================================================
+34. MEMORY / LEARNED CONTEXT
+======================================================================
+
+Where the product intentionally supports memory, distinguish:
+
+    user preference
+    current-document context
+    project-specific design system
+    skill knowledge
+    previous conversation context
+    temporary generation state
+
+Do not mix these blindly.
+
+A project preference such as:
+
+    "Use 12px corner radius"
+
+should not automatically become a global rule for every user/project.
+
+
+======================================================================
+35. NATURAL LANGUAGE EXAMPLES THE AI MUST HANDLE
+======================================================================
+
+The following are representative capability tests.
+
+STATIC DESIGN:
+
+    "Create a clean analytics dashboard."
+
+    "Make this page look more premium."
+
+    "Turn this screenshot into an editable design."
+
+RESPONSIVE:
+
+    "Make this desktop layout work properly on mobile."
+
+    "Turn the sidebar into a mobile drawer."
+
+PROTOTYPE:
+
+    "Click the card to open the details screen."
+
+    "Connect the onboarding screens."
+
+    "Make this button open a modal."
+
+MOTION:
+
+    "Fade the splash into login."
+
+    "Slide the checkout up from the bottom."
+
+    "Make this button bounce slightly when pressed."
+
+    "Stagger the cards as they appear."
+
+STATE:
+
+    "Add loading, success, and error states."
+
+    "Make the selected tab visually different."
+
+INTERACTION:
+
+    "Make the menu close when I click outside."
+
+    "Let the user swipe between onboarding screens."
+
+COMBINATION:
+
+    "Build a modern mobile checkout flow with loading,
+     success/error states, a springy bottom sheet, and a
+     confirmation screen."
+
+The AI should identify the appropriate combination of capabilities.
+
+
+======================================================================
+36. NATURAL LANGUAGE SHOULD NOT REQUIRE SPECIAL VOCABULARY
+======================================================================
+
+Users should not need to say:
+
+    "Create an OnClick interaction with Navigate action and SlideLeft
+     transition."
+
+They should be able to say:
+
+    "When I tap this, take me to the next screen with a smooth slide."
+
+The AI maps natural language to structured behavior.
+
+
+======================================================================
+37. AMBIGUITY HANDLING
+======================================================================
+
+If a request has multiple reasonable interpretations, prefer:
+
+    existing context
+    common UX conventions
+    minimal reasonable assumptions
+
+Ask for clarification only when the ambiguity materially changes the result.
+
+Example:
+
+    "Animate this."
+
+If the selected object is clearly a button:
+
+    infer button micro-interaction.
+
+If the selected object is a full page:
+
+    infer page transition/entry animation.
+
+Do not ask unnecessary questions when context is sufficient.
+
+
+======================================================================
+38. AI SKILL FILE ORGANIZATION
+======================================================================
+
+Use a maintainable structure.
+
+Possible organization:
+
+    ai/
+      skills/
+        design/
+          landing-page/
+          dashboard/
+          mobile/
+          responsive/
+        prototype/
+          navigation/
+          overlay/
+          bottom-sheet/
+          modal/
+          carousel/
+        motion/
+          fade/
+          slide/
+          spring/
+          keyframes/
+          stagger/
+        state/
+          loading/
+          error/
+          success/
+          interaction/
+        systems/
+          design-system/
+          accessibility/
+          components/
+
+The exact directory structure should follow existing Zenuxs conventions.
+
+Do not duplicate skill knowledge across files unnecessarily.
+
+
+======================================================================
+39. SKILL DISCOVERY
+======================================================================
+
+Skill resolution should support:
+
+    exact slash command
+    aliases
+    natural-language intent
+    selected-node context
+    current page/document context
+
+Example:
+
+    /bottom-sheet
+    "Make this panel slide up"
+    "Turn this into a sheet"
+    "Open checkout from the bottom"
+
+All can resolve to the same semantic capability.
+
+
+======================================================================
+40. SKILL PRIORITY / CONFLICT RESOLUTION
+======================================================================
+
+When multiple skills match, use:
+
+    explicit command > strong semantic match > contextual match > generic
+
+Example:
+
+    User uses /motion
+    and says "create a dashboard"
+
+Do not let /motion replace the dashboard requirement.
+
+Instead:
+
+    dashboard skill
+    +
+    motion skill
+
+If skills conflict, resolve based on:
+
+    explicit user intent
+    dependencies
+    document structure
+    valid architecture
+
+Never silently produce contradictory behavior.
+
+
+======================================================================
+41. AI + MCP
+======================================================================
+
+If MCP/agent tools are used, the semantic skill layer should sit above MCP.
+
+Preferred:
+
+    user intent
+        ↓
+    skill
+        ↓
+    semantic plan
+        ↓
+    MCP/Zenuxs operations
+
+Not:
+
+    raw MCP tool guessing
+        ↓
+    unpredictable structure
+
+MCP remains an execution surface.
+It should not be the entire AI design brain.
+
+
+======================================================================
+42. AI + DESIGN OPERATIONS
+======================================================================
+
+Every semantic operation should ultimately resolve to validated document
+mutations.
+
+Example:
+
+    createBottomSheet
+        ↓
+    create frame
+    create overlay metadata
+    create states
+    create trigger
+    create action
+    create transition
+    create motion
+        ↓
+    validate
+        ↓
+    commit
+        ↓
+    render
+        ↓
+    save
+
+
+======================================================================
+43. UNDO/REDO
+======================================================================
+
+AI operations must remain undoable.
+
+A semantic AI action should ideally appear as a meaningful operation/unit rather
+than leaving the document in a half-modified state.
+
+Where an action is composed of multiple low-level operations:
+
+    use an atomic transaction where the existing architecture supports it.
+
+If execution fails:
+
+    rollback incomplete transaction
+    preserve document integrity
+
+
+======================================================================
+44. AI SHOULD RESPECT EXISTING DESIGN LANGUAGE
+======================================================================
+
+When modifying an existing project:
+
+    inspect first
+    reuse patterns
+    extend existing components
+    preserve hierarchy
+    preserve tokens
+    preserve layout conventions
+
+Do not rebuild everything in the AI's favorite style.
+
+
+======================================================================
+45. AI SHOULD NOT FAKE UNSUPPORTED CAPABILITIES
+======================================================================
+
+If Zenuxs does not yet support a behavior:
+
+    do not pretend that it does.
+
+Instead:
+
+    identify missing capability
+    explain what is missing internally
+    use the closest valid representation only when appropriate
+    record that the native feature is not available
+
+Long-term goal:
+
+    expand the platform until common requested behaviors have real editable
+    representations.
+
+Never fake a prototype or animation by merely generating a static screenshot.
+
+
+======================================================================
+46. SKILL QUALITY TESTING
+======================================================================
+
+Every skill should have test cases.
+
+Example:
+
+    skill:
+        bottom-sheet
+
+Tests:
+
+    natural language trigger
+    slash command
+    existing panel conversion
+    new bottom sheet
+    open
+    close
+    backdrop
+    transition
+    persistence
+    preview
+    modification
+    invalid target
+    deleted target
+    undo/redo
+
+
+======================================================================
+47. AI EVALUATION DATASET
+======================================================================
+
+Create a growing suite of natural-language prompts.
+
+Categories:
+
+    static
+    responsive
+    prototype
+    motion
+    state
+    component
+    accessibility
+    image-reference
+    modification
+    complex multi-skill
+
+For each prompt store expected semantic intent.
+
+Example:
+
+    Prompt:
+        "Make checkout slide up when the cart button is tapped."
+
+    Expected:
+
+        trigger = tap
+        target = checkout
+        presentation = overlay/bottom-sheet
+        transition = enter
+        motion = vertical slide
+        close behavior = appropriate
+
+
+======================================================================
+48. EVALUATE SEMANTIC CORRECTNESS, NOT ONLY TOOL SUCCESS
+======================================================================
+
+Scoring should consider:
+
+    intent match
+    structure correctness
+    visual correctness
+    interaction correctness
+    motion correctness
+    persistence
+    editability
+    preview correctness
+    regression safety
+
+A generation that completes without exceptions is not automatically correct.
+
+
+======================================================================
+49. REFERENCE-BASED AI EVALUATION
+======================================================================
+
+For image/design references:
+
+    compare generated design with reference
+
+Evaluate:
+
+    structure
+    hierarchy
+    proportions
+    colors
+    typography
+    spacing
+    major components
+
+Do not require pixel-perfect output unless the task explicitly requires it.
+
+Evaluate whether the intended visual language was captured.
+
+
+======================================================================
+50. AI MODIFICATION TEST
+======================================================================
+
+The AI must be able to modify what it created.
+
+Sequence:
+
+    AI creates design
+        ↓
+    AI adds prototype
+        ↓
+    AI adds motion
+        ↓
+    save
+        ↓
+    reopen
+        ↓
+    AI modifies motion
+        ↓
+    preview
+        ↓
+    validate
+
+This tests whether the model actually understands the stored structure.
+
+
+======================================================================
+51. CONVERSATIONAL CONTINUITY
+======================================================================
+
+Example:
+
+User:
+    "Create a login screen."
+
+AI:
+    creates screen
+
+User:
+    "Make the panel slide up."
+
+AI:
+    should identify the existing login panel.
+
+User:
+    "Now make the button feel responsive."
+
+AI:
+    should modify the button state/micro-interaction.
+
+User:
+    "Save it."
+
+AI:
+    should preserve all previous behavior.
+
+The AI must not forget the document's semantic structure after the first turn.
+
+
+======================================================================
+52. HUMAN-LIKE DESIGN UNDERSTANDING
+======================================================================
+
+AI should reason like a designer while executing like a structured engineer.
+
+Designer side:
+
+    hierarchy
+    composition
+    interaction
+    usability
+    visual consistency
+    motion purpose
+
+Engineering side:
+
+    valid nodes
+    valid references
+    deterministic state
+    serialization
+    persistence
+    undo/redo
+    performance
+    testability
+
+Both must be satisfied.
+
+
+======================================================================
+53. AI SHOULD KNOW WHEN TO USE MOTION
+======================================================================
+
+Do not animate everything.
+
+AI should choose motion when it communicates:
+
+    hierarchy
+    spatial relationship
+    state change
+    feedback
+    continuity
+    affordance
+
+Avoid unnecessary motion that:
+
+    distracts
+    slows usability
+    increases rendering cost
+    makes editing confusing
+
+
+======================================================================
+54. AI SHOULD USE MOTION SEMANTICALLY
+======================================================================
+
+Examples:
+
+    Modal appears:
+        fade + scale/translate
+
+    Bottom sheet:
+        vertical enter/exit
+
+    Carousel:
+        horizontal movement
+
+    Accordion:
+        height/clip/content transition
+
+    Button press:
+        small scale/position feedback
+
+    Loading:
+        repeated visual loop
+
+    Success:
+        state transition + confirmation feedback
+
+These are default interpretations, not immutable rules.
+
+
+======================================================================
+55. ACCESSIBILITY INTELLIGENCE
+======================================================================
+
+When creating interaction/motion, AI should consider:
+
+    keyboard interaction
+    focus
+    readable states
+    disabled states
+    reduced motion
+    semantic labels
+    contrast
+    focus visibility
+
+Motion should be able to respect reduced-motion preferences in runtime/export
+where supported.
+
+
+======================================================================
+56. RESPONSIBLE DEFAULTS
+======================================================================
+
+AI defaults should be:
+
+    editable
+    predictable
+    performant
+    accessible
+    reversible
+    consistent
+
+Do not create highly complex animation structures for simple requests.
+
+
+======================================================================
+57. AI KNOWLEDGE SHOULD BE VERSIONED
+======================================================================
+
+Skills and semantic schemas will evolve.
+
+Use:
+
+    versioned skill metadata
+    migration compatibility
+    documented changes
+    test updates
+
+A skill update should not silently break previous documents or generated
+behavior.
+
+
+======================================================================
+58. DOCUMENT SCHEMA AWARENESS
+======================================================================
+
+AI should know which concepts are:
+
+    document data
+    runtime state
+    editor state
+    temporary generation state
+
+Example:
+
+    saved prototype interaction
+        = document data
+
+    currently hovered object
+        = runtime/editor state
+
+    AI thinking text
+        = temporary generation state
+
+Do not persist temporary execution state as design truth.
+
+
+======================================================================
+59. NO PARALLEL AI-ONLY DESIGN MODEL
+======================================================================
+
+Avoid creating:
+
+    AI design tree
+    AND
+    real design tree
+
+as separate sources of truth.
+
+Preferred:
+
+    user/AI both mutate the same structured Zenuxs document.
+
+This allows:
+
+    manual edit
+    AI edit
+    save
+    reopen
+    preview
+    export
+
+to operate on the same data.
+
+
+======================================================================
+60. CONTINUOUS VERIFICATION WHILE DEVELOPING THE AI
+======================================================================
+
+Do not build the entire AI skill system and test only at the end.
+
+For every meaningful addition:
+
+    implement
+    ↓
+    test natural-language prompts
+    ↓
+    test slash command
+    ↓
+    test semantic output
+    ↓
+    test actual canvas
+    ↓
+    test preview
+    ↓
+    test save/reopen
+    ↓
+    inspect console
+    ↓
+    inspect network
+    ↓
+    inspect backend/database where applicable
+    ↓
+    regression test
+    ↓
+    continue
+
+
+======================================================================
+61. FINAL AI TESTING PASSES
+======================================================================
+
+After implementation, run multiple passes.
+
+PASS 1:
+    happy-path natural prompts
+
+PASS 2:
+    ambiguous prompts
+
+PASS 3:
+    complex multi-skill prompts
+
+PASS 4:
+    reference-image prompts
+
+PASS 5:
+    existing-design modifications
+
+PASS 6:
+    prototype behavior
+
+PASS 7:
+    motion behavior
+
+PASS 8:
+    state behavior
+
+PASS 9:
+    persistence
+
+PASS 10:
+    undo/redo
+
+PASS 11:
+    cancel/failure/retry
+
+PASS 12:
+    malformed/edge cases
+
+PASS 13:
+    rapid repeated instructions
+
+PASS 14:
+    regression of existing editor and AI features
+
+
+======================================================================
+62. BREAKAGE TESTING
+======================================================================
+
+After introducing the AI intelligence layer, specifically look for:
+
+    tools no longer callable
+    existing AI prompts failing
+    old design documents failing to load
+    invalid node references
+    broken undo/redo
+    broken serialization
+    broken import/export
+    prototype cycles
+    motion loops
+    memory leaks
+    event listener leaks
+    stale skill state
+    incorrect skill selection
+    duplicate operations
+    duplicate components
+    AI recreating existing content unnecessarily
+    broken database persistence
+    broken MCP
+    broken CLI
+    rendering regressions
+
+
+======================================================================
+63. AI ERROR HANDLING
+======================================================================
+
+Errors should be classified.
+
+Examples:
+
+    IntentError
+    UnsupportedCapabilityError
+    InvalidTargetError
+    InvalidPrototypeError
+    InvalidMotionError
+    ValidationError
+    PersistenceError
+    ProviderError
+    ExecutionError
+    Cancellation
+
+User-facing messages should remain clear.
+
+Internal technical details should be logged safely, not dumped into the UI.
+
+
+======================================================================
+64. OBSERVABILITY
+======================================================================
+
+During development, instrumentation may record metadata such as:
+
+    selected skill
+    semantic intent
+    operation count
+    operation duration
+    validation result
+    repair count
+    final success/failure
+
+Do NOT log:
+
+    API keys
+    authentication tokens
+    private user content
+    raw image data
+    sensitive design information without need
+
+
+======================================================================
+65. PERFORMANCE OF AI PLANNING
+======================================================================
+
+Do not turn every simple request into a huge multi-stage plan.
+
+Examples:
+
+    "Change this button to blue."
+
+can use a direct validated operation.
+
+While:
+
+    "Turn this static dashboard into a complete interactive mobile prototype."
+
+requires deeper planning.
+
+Planning depth should scale with task complexity.
+
+
+======================================================================
+66. AI SHOULD LEARN FROM FAILURES THROUGH TEST CASES
+======================================================================
+
+When a recurring failure is discovered:
+
+    do not simply patch one prompt.
+
+Instead determine:
+
+    missing vocabulary
+    missing skill
+    missing relationship
+    missing tool
+    missing validator
+    missing test
+
+Then fix the appropriate layer.
+
+Example:
+
+If AI repeatedly confuses:
+
+    loading state
+
+with:
+
+    loading animation
+
+the correct solution is not to add one more sentence to a prompt.
+
+Improve:
+
+    vocabulary
+    skill knowledge
+    examples
+    validation
+    tests
+
+
+======================================================================
+67. SKILL DEVELOPMENT LOOP
+======================================================================
+
+Recommended process:
+
+    Observe real user request
+          ↓
+    Identify semantic concept
+          ↓
+    Define vocabulary
+          ↓
+    Define skill
+          ↓
+    Define dependencies
+          ↓
+    Define operations
+          ↓
+    Define validator
+          ↓
+    Add examples
+          ↓
+    Add natural-language aliases
+          ↓
+    Add slash command
+          ↓
+    Test
+          ↓
+    Refine
+
+
+======================================================================
+68. AI SHOULD NOT OVERFIT TO EXAMPLES
+======================================================================
+
+Examples teach patterns.
+
+They should not become rigid templates.
+
+Example:
+
+    "Create a premium dashboard."
+
+Should not always return:
+
+    dark sidebar
+    blue cards
+    same hero
+
+The AI must understand the design objective and adapt.
+
+
+======================================================================
+69. SKILL QUALITY CHECKLIST
+======================================================================
+
+Every mature skill should answer:
+
+    What is this?
+    When should I use it?
+    When should I NOT use it?
+    What concepts does it depend on?
+    What Zenuxs structures does it create?
+    What operations create those structures?
+    What defaults are safe?
+    What common mistakes happen?
+    How do I validate the result?
+    How do I modify an existing instance?
+    How do I undo/recover?
+    How does it serialize?
+    How does it preview?
+    How does it interact with other skills?
+
+
+======================================================================
+70. THE AI SHOULD UNDERSTAND "WHAT IS A GOOD RESULT"
+======================================================================
+
+A successful result must satisfy:
+
+    user intent
+    visual coherence
+    structural correctness
+    editability
+    interaction correctness
+    motion correctness
+    persistence
+    preview behavior
+    performance
+    regression safety
+
+Never use:
+
+    "no exception occurred"
+
+as the only success metric.
+
+
+======================================================================
+71. EXAMPLE END-TO-END REQUEST
+======================================================================
+
+USER:
+
+    "Create a premium mobile banking app. Start with a splash screen,
+     fade into login, then home. The transfer flow should open as a
+     bottom sheet. Buttons should have subtle press feedback. Add loading,
+     success and error states. Keep the design clean and minimal."
+
+AI SEMANTIC INTERPRETATION:
+
+    platform:
+        mobile
+
+    design:
+        premium/minimal banking app
+
+    screens:
+        splash
+        login
+        home
+
+    flow:
+        splash → login → home
+
+    overlay:
+        transfer bottom sheet
+
+    states:
+        loading
+        success
+        error
+
+    micro-interaction:
+        button press
+
+    motion:
+        splash fade
+        bottom-sheet entrance/exit
+        button feedback
+        state transitions where appropriate
+
+SKILLS:
+
+    mobile
+    design-system
+    banking-ui (if available)
+    prototype
+    bottom-sheet
+    motion
+    states
+    micro-interaction
+
+EXECUTION:
+
+    semantic operations
+        ↓
+    actual Zenuxs document
+        ↓
+    live canvas construction
+        ↓
+    validation
+        ↓
+    preview
+        ↓
+    persistence
+
+
+======================================================================
+72. IMPORTANT RELATIONSHIP: AI + PLATFORM CAPABILITY
+======================================================================
+
+The AI cannot reliably create a capability that Zenuxs cannot represent.
+
+Therefore:
+
+    AI intelligence
+        must grow together with
+    Zenuxs document/runtime capability.
+
+Example:
+
+If Zenuxs cannot represent:
+
+    trigger
+    destination
+    overlay
+    transition
+    state
+
+then telling AI:
+
+    "Make a real prototype"
+
+will not solve the problem.
+
+First create the platform primitives.
+
+Then teach AI how to use them.
+
+
+======================================================================
+73. IMPORTANT RELATIONSHIP: AI + TOOLING
+======================================================================
+
+Likewise, a semantic skill is only useful if the platform exposes safe
+operations for it.
+
+Example:
+
+    bottom-sheet skill
+
+needs valid operations for:
+
+    overlay
+    open
+    close
+    transition
+    motion
+
+Therefore the engineering loop is:
+
+    platform capability
+        ↓
+    semantic operation
+        ↓
+    skill
+        ↓
+    natural-language routing
+        ↓
+    AI execution
+        ↓
+    validator
+        ↓
+    runtime
+
+
+======================================================================
+74. IMPORTANT RELATIONSHIP: AI + REFERENCE PROJECTS
+======================================================================
+
+Open-source reference systems should be studied to improve Zenuxs AI.
+
+Study:
+
+    OpenPencil
+        → document/operation architecture
+
+    Penpot
+        → prototype/interaction concepts
+
+    XState
+        → state machine semantics
+
+    Motion for Vue
+        → motion semantics/primitives
+
+    MotionForge
+        → animation editor + AI patterns
+
+    Rive
+        → interactive animation/state-machine runtime concepts
+
+    Lottie
+        → reusable animation asset/runtime concepts
+
+Do not blindly copy their AI prompts or architecture.
+
+Use them to improve Zenuxs' semantic model.
+
+
+======================================================================
+75. FINAL AI ARCHITECTURE
+======================================================================
+
+Recommended conceptual architecture:
+
+    ┌──────────────────────────────────────────────┐
+    │                 USER INPUT                   │
+    │ text / slash command / image / selection     │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │              CONTEXT RESOLVER               │
+    │ document / selection / image / history      │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │              INTENT RESOLVER                │
+    │ what does the user actually want?           │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │               SKILL ROUTER                  │
+    │ explicit command + semantic aliases         │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │              SKILL GRAPH / PLAN             │
+    │ dependencies + execution order              │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │          SEMANTIC OPERATIONS                │
+    │ prototype / state / motion / design         │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │            ZENUXS DOCUMENT MODEL            │
+    │ same source of truth as manual editing      │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │          RENDERER / PREVIEW RUNTIME         │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+    ┌──────────────────────────────────────────────┐
+    │              VALIDATOR / CRITIC             │
+    │ intent + structure + behavior + persistence │
+    └───────────────────────┬──────────────────────┘
+                            ↓
+                 repair if necessary
+                            ↓
+                         DONE
+
+
+======================================================================
+76. FINAL ACCEPTANCE CRITERIA
+======================================================================
+
+This AI intelligence layer is complete only when a normal user can describe a
+design naturally and Zenuxs can correctly determine what capabilities are
+required.
+
+Examples:
+
+    "Make a mobile onboarding flow."
+
+    "Make the splash fade into login."
+
+    "Turn this menu into a bottom sheet."
+
+    "Make the button feel interactive."
+
+    "Add loading, success and error states."
+
+    "Connect these screens into a prototype."
+
+    "Add a smooth transition between them."
+
+    "Turn this screenshot into an editable interactive prototype."
+
+    "Make the existing dashboard responsive and add mobile navigation."
+
+The AI must:
+
+    understand the request
+    select appropriate skills
+    select appropriate semantic operations
+    use the existing document
+    create/edit real structures
+    preview the result
+    validate it
+    save it
+    recover from errors
+    modify it later
+    preserve existing functionality
+
+Slash commands must work.
+
+Natural language must work.
+
+Image references must work.
+
+Existing canvas context must work.
+
+Multi-skill requests must work.
+
+The resulting behavior must remain editable and persistent.
+
+
+======================================================================
+77. FINAL ENGINEERING RULE
+======================================================================
+
+Do not solve AI limitations by endlessly expanding the system prompt.
+
+When the AI fails, identify which layer is missing:
+
+    vocabulary
+    context
+    intent resolver
+    skill
+    relationship
+    semantic operation
+    document capability
+    validator
+    test
+    runtime capability
+
+Fix the correct layer.
+
+The architecture should progressively become:
+
+    more knowledgeable
+    more structured
+    more predictable
+    more testable
+    more extensible
+
+without becoming a giant unmaintainable prompt.
+
+
+======================================================================
+78. ULTIMATE GOAL
+======================================================================
+
+The user should be able to think about the PRODUCT EXPERIENCE.
+
+They should NOT have to think about:
+
+    scene-graph node IDs
+    tool-call order
+    prototype schemas
+    animation implementation
+    internal state objects
+    provider-specific syntax
+
+They should simply say:
+
+    "I want this app to open like this."
+
+    "I want this screen to behave like this."
+
+    "I want this button to feel like this."
+
+    "Make this reference into a working prototype."
+
+And Zenuxs should understand:
+
+    what the user means
+        →
+    which design system applies
+        →
+    which prototype/state/motion capabilities are required
+        →
+    how to build them
+        →
+    how to verify them
+        →
+    how to keep them editable and persistent.
+
+That is the intended AI-native architecture for Zenuxs Design.

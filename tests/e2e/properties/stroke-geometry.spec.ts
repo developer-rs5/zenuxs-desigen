@@ -10,7 +10,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 })
@@ -81,7 +81,7 @@ test('updates cap, join, and miter state from compact controls', async () => {
   ])
 
   await page.keyboard.press('Escape')
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect((await selectedStrokeGeometry())[0]?.miterLimit).toBe(4)
 })
@@ -90,7 +90,7 @@ test('applies mixed multi-selection joins in one undo step', async () => {
   await canvas.clearCanvas()
   await drawStrokedRectangle(80, 80)
   await drawStrokedRectangle(260, 80)
-  await canvas.pressKey('Meta+a')
+  await canvas.pressKey('ControlOrMeta+a')
   await canvas.waitForRender()
 
   const roundJoin = page
@@ -103,7 +103,7 @@ test('applies mixed multi-selection joins in one undo step', async () => {
   expect((await selectedStrokeGeometry()).map((value) => value?.join)).toEqual(['ROUND', 'ROUND'])
 
   await page.keyboard.press('Escape')
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect((await selectedStrokeGeometry()).map((value) => value?.join)).toEqual(['MITER', 'MITER'])
 })

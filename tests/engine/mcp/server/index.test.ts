@@ -280,6 +280,41 @@ describe('MCP server', () => {
     const data = parseResult(result) as { prompt: string }
     expect(data.prompt.length).toBeGreaterThan(100)
   })
+
+  test('design_intent resolves an intent into skills, operations, and notes', async () => {
+    const result = await client.callTool({
+      name: 'design_intent',
+      arguments: {
+        intent: 'turn this menu into a bottom sheet',
+        context: { page: 'Checkout' }
+      }
+    })
+    expect(result.isError).not.toBe(true)
+    const data = parseResult(result) as {
+      skills: { id: string; name: string; knowledge: string }[]
+      suggested_operations: string[]
+      notes: string[]
+    }
+    const ids = data.skills.map((skill) => skill.id)
+    expect(ids).toContain('prototype.bottom-sheet')
+    expect(ids).toContain('prototype.overlay')
+    expect(data.skills[0]?.knowledge.length).toBeGreaterThan(80)
+    expect(data.suggested_operations).toContain('create_bottom_sheet')
+    expect(data.notes).toContain('page: Checkout')
+    expect(data.notes.join(' ')).not.toContain('unknown_command')
+  })
+
+  test('design_intent reports an unknown slash command with a suggestion', async () => {
+    const result = await client.callTool({
+      name: 'design_intent',
+      arguments: { intent: '/bottm-sheet make a sheet' }
+    })
+    expect(result.isError).not.toBe(true)
+    const data = parseResult(result) as { notes: string[] }
+    // The rest of the message still routes naturally; only the command failed.
+    expect(data.notes).toContain('unknown_command')
+    expect(data.notes.join(' ')).toContain('/bottom-sheet')
+  })
 })
 
 // ---------------------------------------------------------------------------

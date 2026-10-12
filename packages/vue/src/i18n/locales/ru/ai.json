@@ -149,5 +149,17 @@
   "reasoningExpanded": "Развёрнуто по умолчанию",
   "jumpToLatest": "К последнему сообщению",
   "chatAgentImagesUnsupported": "Этот агент принимает только текст, поэтому прикреплённые изображения не были отправлены. Используйте прямую модель для референсных изображений.",
-  "chatModelImagesUnsupported": "Выбранная модель дизайна не умеет читать изображения, поэтому вложение не отправлено. Назначьте модель с поддержкой зрения в настройках."
+  "chatModelImagesUnsupported": "Выбранная модель дизайна не умеет читать изображения, поэтому вложение не отправлено. Назначьте модель с поддержкой зрения в настройках.",
+  "skillsPopoverTitle": "ИИ-навыки дизайна",
+  "skillsActive": "активных: {count}",
+  "skillsTriggerLabel": "ИИ-навыки: активных {count}",
+  "skillsPopoverFooter": "Taste Skill и UI/UX Pro Max",
+  "skillsPopoverSettings": "Настройки",
+  "skillsSectionTitle": "ИИ-навыки и дизайн-фреймворки",
+  "skillsSectionDescription": "Активные навыки добавляют в промпты генерации специализированные правила дизайна, анти-слоп рекомендации и UI/UX-логику.",
+  "skillsSectionActive": "Активных навыков: {active} из {total}",
+  "commandSuggestions": "Команды навыков",
+  "noCommandMatches": "Подходящих команд нет",
+  "unknownCommand": "Неизвестная команда \"/{command}\".",
+  "unknownCommandSuggestions": "Неизвестная команда \"/{command}\". Вы имели в виду {suggestions}?"
 }

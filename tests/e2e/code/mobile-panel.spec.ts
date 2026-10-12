@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { getMobileDrawerSnap } from '#tests/helpers/code-panel'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test.use({ viewport: { width: 390, height: 844 } })
 

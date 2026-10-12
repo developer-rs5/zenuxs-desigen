@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test&no-chrome&no-rulers')
+const editor = useEditorSetup('/editor?test&no-chrome&no-rulers')
 
 test('shows staged and determinate document loading progress in the existing canvas overlay', async () => {
   await editor.page.evaluate(() => {

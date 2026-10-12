@@ -38,7 +38,8 @@ export class TokenVerificationError extends Error {
 }
 
 interface DiscoveryDocument {
-  issuer: string
+  /** Untrusted discovery payload: a malformed document may omit the issuer. */
+  issuer?: string
   userinfo_endpoint: string
   jwks_uri: string
   id_token_signing_alg_values_supported?: string[]

@@ -515,6 +515,21 @@ export function createVariantActions(ctx: EditorContext) {
   }
 
   function getDefaultVariantForComponentSet(componentSetId: string): SceneNode | undefined {
+    const node = ctx.graph.getNode(componentSetId)
+    if (node?.type !== 'COMPONENT_SET') return undefined
+
+    // Honor the set's declared variant defaults first (24d3ea74 "respect
+    // default variants in assets"); position sort is only the fallback.
+    const defaultValues = Object.fromEntries(
+      node.componentPropertyDefinitions
+        .filter((def) => def.type === 'VARIANT' && def.defaultValue)
+        .map((def) => [def.name, def.defaultValue])
+    )
+    if (Object.keys(defaultValues).length > 0) {
+      const explicitDefault = findVariantByValues(componentSetId, defaultValues)
+      if (explicitDefault) return explicitDefault
+    }
+
     return getComponentSetVariants(componentSetId).sort(sortByCanvasPosition)[0]
   }
 

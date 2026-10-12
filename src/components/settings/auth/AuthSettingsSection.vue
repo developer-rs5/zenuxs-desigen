@@ -10,6 +10,7 @@ import {
   logoutZenuxs
 } from '@/app/auth/zenuxs'
 import AppButton from '@/components/ui/button/AppButton.vue'
+import Tip from '@/components/ui/overlay/Tip.vue'
 
 const isCheckingServer = ref(false)
 const serverStatus = ref<'online' | 'offline' | 'unknown'>('unknown')
@@ -103,12 +104,13 @@ onMounted(() => {
       </div>
 
       <div class="flex items-center gap-2 pt-2">
-        <span
-          class="flex-1 truncate rounded-md border border-border bg-input px-3 py-1.5 text-xs text-muted-foreground"
-          :title="apiOrigin"
-        >
-          {{ apiOrigin }}
-        </span>
+        <Tip :label="apiOrigin">
+          <span
+            class="flex-1 truncate rounded-md border border-border bg-input px-3 py-1.5 text-xs text-muted-foreground"
+          >
+            {{ apiOrigin }}
+          </span>
+        </Tip>
         <AppButton
           color="neutral"
           variant="outline"

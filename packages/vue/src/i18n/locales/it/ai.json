@@ -149,5 +149,17 @@
   "reasoningExpanded": "Espanso per impostazione predefinita",
   "jumpToLatest": "Vai all’ultimo messaggio",
   "chatAgentImagesUnsupported": "Questo agente riceve solo testo, quindi le immagini allegate non sono state inviate. Passa a un modello diretto per usare le immagini di riferimento.",
-  "chatModelImagesUnsupported": "Il modello di design selezionato non può leggere le immagini, quindi l’allegato non è stato inviato. Assegna un modello con visione nelle impostazioni."
+  "chatModelImagesUnsupported": "Il modello di design selezionato non può leggere le immagini, quindi l’allegato non è stato inviato. Assegna un modello con visione nelle impostazioni.",
+  "skillsPopoverTitle": "Skill di design IA",
+  "skillsActive": "{count} attivi",
+  "skillsTriggerLabel": "Skill IA: {count} attivi",
+  "skillsPopoverFooter": "Taste Skill e UI/UX Pro Max",
+  "skillsPopoverSettings": "Impostazioni",
+  "skillsSectionTitle": "Skill IA e framework di design",
+  "skillsSectionDescription": "Le skill attive inseriscono regole di design specializzate, linee guida anti-slop e intelligenza UI/UX nei prompt di generazione IA.",
+  "skillsSectionActive": "{active} su {total} skill attivi",
+  "commandSuggestions": "Comandi delle skill",
+  "noCommandMatches": "Nessun comando corrispondente",
+  "unknownCommand": "Comando sconosciuto \"/{command}\".",
+  "unknownCommandSuggestions": "Comando sconosciuto \"/{command}\". Volevi dire {suggestions}?"
 }

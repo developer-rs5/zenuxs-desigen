@@ -2,7 +2,7 @@ import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 import { variablesAddTestId } from '#tests/helpers/test-ids'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 async function createColorVariable(name: string) {
   return editor.page.evaluate((varName: string) => {

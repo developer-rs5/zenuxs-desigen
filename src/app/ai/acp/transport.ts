@@ -10,6 +10,7 @@ import type { ChatTransport, UIMessage, UIMessageChunk } from 'ai'
 
 import type { ACPAgentDef } from '@open-pencil/core/constants'
 
+import { buildTextSubmission } from '@/app/ai/chat/submission/build'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
 import { getActiveSkillsPrompt } from '@/app/ai/skills'
 import { describeDiagnosticError, recordACPTransportFailure } from '@/app/diagnostics'
@@ -60,6 +61,15 @@ export function clearACPDebugLog() {
 export function hasACPDebugEntries(): boolean {
   pruneOldEntries()
   return acpDebugLog.length > 0
+}
+
+/**
+ * Routes one ACP user message through the same skill engine as the direct
+ * chat path (spec §9): the returned text carries the skill knowledge block
+ * (and any unknown-command note) while the transcript keeps what was typed.
+ */
+export function routeACPPrompt(text: string): string {
+  return buildTextSubmission(text).modelText
 }
 
 function isMissingCommandError(message: string): boolean {
@@ -149,7 +159,8 @@ export class ACPChatTransport implements ChatTransport<UIMessage> {
     const effectiveSystemPrompt = skillsPrompt
       ? `${SYSTEM_PROMPT}\n\n${skillsPrompt}`
       : SYSTEM_PROMPT
-    const promptText = this.sentContext ? text : `${effectiveSystemPrompt}\n\n${text}`
+    const routedText = routeACPPrompt(text)
+    const promptText = this.sentContext ? routedText : `${effectiveSystemPrompt}\n\n${routedText}`
     this.sentContext = true
 
     const { connection, sessionId } = this.session

@@ -4,7 +4,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 test('automatic line height survives focus and can be restored with undo', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1200 })
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await new CanvasHelper(page).waitForInit()
   const id = await page.evaluate(() => {
     const e = window.openPencil?.getStore?.()
@@ -39,7 +39,7 @@ test('automatic line height survives focus and can be restored with undo', async
   await page.getByRole('option', { name: 'Auto', exact: true }).click()
   await expect(field).toContainText('Auto')
   await page.getByRole('heading', { name: 'Typography', exact: true }).click()
-  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z')
+  await page.keyboard.press(process.platform === 'darwin' ? 'ControlOrMeta+z' : 'Control+z')
   await expect
     .poll(() =>
       page.evaluate((id) => window.openPencil?.getStore?.().graph.getNode(id)?.lineHeight, id)
@@ -56,6 +56,6 @@ test('automatic line height survives focus and can be restored with undo', async
   await expect(field).not.toHaveAttribute('data-bound')
   await expect(field).toContainText('Auto')
   await page.getByRole('heading', { name: 'Typography', exact: true }).click()
-  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+z' : 'Control+z')
+  await page.keyboard.press(process.platform === 'darwin' ? 'ControlOrMeta+z' : 'Control+z')
   await expect(field).toHaveAttribute('data-bound')
 })

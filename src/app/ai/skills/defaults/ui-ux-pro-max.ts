@@ -39,7 +39,7 @@ When designing, building, or reviewing web interfaces, landing pages, dashboards
    - Gaming, Hardware & Cyber (e.g. ASUS TUF Gaming, ROG, Razer, Alienware, Cyberpunk):
      * Vibe: Tactical, military-grade ruggedness, mechanical engineering, weaponized telemetry HUD.
      * Colors: Stealth matte charcoal (#0A0D14, #121622), gunmetal slate (#18202E), tactical hazard amber / electric safety orange (#FF9900, #FF7700), neon gold (#FFB700), brushed titanium (#8F9CAE).
-     * Visual Language: Angular chamfered geometric cuts (clip-path: polygon(...)), carbon-fiber and hex grid mesh patterns, mechanical panel lines (1px solid rgba(255, 153, 0, 0.2)), tactical stencil badges ("TUF CERTIFIED", "MIL-STD-810H").
+     * Visual Language: Angular chamfered geometric cuts (clip-path: polygon(...)), carbon-fiber and hex grid mesh patterns, mechanical panel lines (1px solid #ff990033), tactical stencil badges ("TUF CERTIFIED", "MIL-STD-810H").
      * Interactive Hardware Elements: Aura Sync RGB lighting preview switcher, live FPS game benchmark simulator (Cyberpunk 2077, Warzone, Apex), dual-fan cooling airflow & thermal HUD gauge, audio sound effect click triggers.
      * Fonts: Aggressive industrial/gaming display fonts (Orbitron, Teko, Rajdhani, Chakra Petch) + technical mono/clean sans (Inter, JetBrains Mono).
    - Soft UI Evolution: Subtle multi-layer shadows, soft pastel backdrops, premium organic feeling.

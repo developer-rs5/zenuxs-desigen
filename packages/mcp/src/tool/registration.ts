@@ -5,6 +5,7 @@ import type { McpServer, ToolCallback } from '@modelcontextprotocol/sdk/server/m
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 
+import { getSkill, routeSkills, type SemanticSkill } from '@open-pencil/core/skills'
 import { ALL_TOOLS, CODEGEN_PROMPT } from '@open-pencil/core/tools'
 
 import type { RPCJSONObject } from '#mcp/json'
@@ -265,5 +266,49 @@ export function registerTools(mcpServer: McpServer, options: RegisterToolsOption
       inputSchema: z.object({})
     },
     async () => ok({ prompt: CODEGEN_PROMPT })
+  )
+
+  register(
+    'design_intent',
+    {
+      description:
+        'Resolve a design intent (plain language or a /slash command) into the activated OpenPencil skills: their knowledge, the semantic operations to call next, and routing notes. Read-only — it never mutates the document.',
+      inputSchema: z.object({
+        intent: z
+          .string()
+          .min(1)
+          .describe('Design request text, optionally starting with a /slash command'),
+        context: z
+          .object({
+            page: z.string().describe('Page this intent applies to').optional()
+          })
+          .describe('Optional routing context')
+          .optional()
+      })
+    },
+    async (args: { intent: string; context?: { page?: string } }) => {
+      try {
+        const route = routeSkills(args.intent)
+        const routed = route.ordered
+          .map((id) => getSkill(id))
+          .filter((skill): skill is SemanticSkill => skill !== undefined)
+        const skills = routed.map((skill) => ({
+          id: skill.id,
+          name: skill.name,
+          knowledge: skill.knowledge
+        }))
+        const notes: string[] = []
+        if (args.context?.page) notes.push(`page: ${args.context.page}`)
+        notes.push(`mode: ${route.ambiguity.action}`)
+        if (route.hint) notes.push(route.hint)
+        if (route.unknownCommand !== null) notes.push('unknown_command')
+        if (skills.length === 0 && route.unknownCommand === null) notes.push('no_matching_skill')
+        for (const issue of route.issues) notes.push(issue.message)
+        const suggestedOperations = [...new Set(routed.flatMap((skill) => skill.operations))]
+        return ok({ skills, suggested_operations: suggestedOperations, notes })
+      } catch (e) {
+        return fail(e)
+      }
+    }
   )
 }

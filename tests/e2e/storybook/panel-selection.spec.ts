@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 
+// Storybook runs on its own dev server (see playwright.config.ts webServer[1]).
+test.use({ baseURL: 'http://localhost:6006' })
+
 for (const theme of ['light', 'dark']) {
   test(`section header after selection changes in ${theme}`, async ({ page }) => {
     await page.goto(

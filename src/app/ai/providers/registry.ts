@@ -1,5 +1,6 @@
 import { createDeepSeek } from '@ai-sdk/deepseek'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createOpenAI } from '@ai-sdk/openai'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 
 import type { AIProviderID } from '@open-pencil/core/constants'
@@ -11,6 +12,15 @@ import {
 import type { ModelProviderAdapter } from '@/app/ai/providers/types'
 
 type DirectProviderID = Exclude<AIProviderID, `acp:${string}` | `harness:${string}`>
+
+/**
+ * Image-generation model ids are fixed per provider rather than chosen from the
+ * chat model: the chat model and the image model are different products, and a
+ * text model id is never valid here. OpenRouter routes by its own id namespace.
+ */
+const OPENAI_IMAGE_MODEL = 'gpt-image-1'
+const GOOGLE_IMAGE_MODEL = 'imagen-4.0-generate-001'
+const OPENROUTER_IMAGE_MODEL = 'google/imagen-4'
 
 const MODEL_PROVIDER_ADAPTERS = {
   openrouter: {
@@ -24,14 +34,29 @@ const MODEL_PROVIDER_ADAPTERS = {
         }
       })
       return provider(config.customModelID.trim() || config.modelID)
+    },
+    createImage(config, runtime) {
+      return createOpenRouter({ apiKey: config.apiKey, fetch: runtime.fetch }).imageModel(
+        OPENROUTER_IMAGE_MODEL
+      )
     }
   },
   anthropic: createAnthropicCompatibleAdapter(),
-  openai: createOpenAICompatibleAdapter(),
+  openai: {
+    ...createOpenAICompatibleAdapter(),
+    createImage(config, runtime) {
+      return createOpenAI({ apiKey: config.apiKey, fetch: runtime.fetch }).image(OPENAI_IMAGE_MODEL)
+    }
+  },
   google: {
     create(config, runtime) {
       return createGoogleGenerativeAI({ apiKey: config.apiKey, fetch: runtime.fetch })(
         config.modelID
+      )
+    },
+    createImage(config, runtime) {
+      return createGoogleGenerativeAI({ apiKey: config.apiKey, fetch: runtime.fetch }).image(
+        GOOGLE_IMAGE_MODEL
       )
     }
   },

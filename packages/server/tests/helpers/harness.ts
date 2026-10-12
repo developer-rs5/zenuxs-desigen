@@ -15,6 +15,7 @@ import { createServer, type Server } from 'node:http'
 import { createApp, type ZenuxsApp } from '#src/app.js'
 import { loadConfig, type ServerConfig } from '#src/config.js'
 import { hashToken } from '#src/security/session-token.js'
+import type { MongoMemoryServer } from 'mongodb-memory-server'
 import mongoose from 'mongoose'
 
 /** RSA keypair used to sign test id_tokens. */
@@ -247,9 +248,7 @@ export async function createHarness(options: FakeProviderOptions = {}): Promise<
   }
 }
 
-let sharedMemoryServer: InstanceType<
-  (typeof import('mongodb-memory-server'))['MongoMemoryServer']
-> | null = null
+let sharedMemoryServer: MongoMemoryServer | null = null
 
 /** Connects Mongoose to an in-memory MongoDB for the duration of the suite. */
 export async function connectMemoryMongo(): Promise<void> {

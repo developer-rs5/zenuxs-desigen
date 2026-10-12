@@ -1,4 +1,4 @@
-import { normalizePath, type ServerOptions } from 'vite'
+import { normalizePath, type ProxyOptions, type ServerOptions } from 'vite'
 
 const WATCHED_MARKDOWN_ROOTS = ['/src/', '/packages/core/src/', '/packages/vue/src/']
 
@@ -14,6 +14,7 @@ export const WATCH_IGNORED = [
   '**/packages/mcp/**',
   '**/packages/docs/**',
   '**/tests/**',
+  '**/scratch/**',
   '**/.worktrees/**',
   '**/.github/**',
   '**/.pi/**',
@@ -34,8 +35,8 @@ export const BACKEND_PROXY_PATHS = ['/api', '/health'] as const
 
 export function createBackendProxyOptions(
   backendOrigin = process.env.VITE_BACKEND_URL || DEV_BACKEND_ORIGIN
-): Record<string, unknown> {
-  const proxy: Record<string, unknown> = {}
+): Record<string, ProxyOptions> {
+  const proxy: Record<string, ProxyOptions> = {}
   for (const path of BACKEND_PROXY_PATHS) {
     proxy[path] = {
       target: backendOrigin,

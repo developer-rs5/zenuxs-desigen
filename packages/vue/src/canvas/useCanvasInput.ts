@@ -20,6 +20,7 @@ import { resolveAutoLayoutHover } from '#vue/shared/input/auto-layout-hover'
 import { createClickCounter } from '#vue/shared/input/click-count'
 import { handleDrawMove, handleDrawUp } from '#vue/shared/input/draw'
 import { handleMoveMove, handleMoveUp } from '#vue/shared/input/move'
+import { startPanDrag } from '#vue/shared/input/pan'
 import { setupPanZoom } from '#vue/shared/input/pan-zoom'
 import { applyResize, commitResizePreview } from '#vue/shared/input/resize'
 import { updateHoverCursor } from '#vue/shared/input/select'
@@ -212,6 +213,7 @@ export function useCanvasInput(
   }
 
   function onDblClick(e: MouseEvent) {
+    if (editor.isPrototypePreviewActive()) return
     if (startAutoLayoutPaddingEdit(e)) return
     onTextDblClick(e)
   }
@@ -219,6 +221,19 @@ export function useCanvasInput(
   function onMouseDown(e: MouseEvent) {
     onActivate?.()
     if (!isEnabled()) return
+    // Preview mode: left clicks drive the prototype; space/middle still pan.
+    if (editor.isPrototypePreviewActive()) {
+      if ((e.button === 0 && spaceHeld.value) || e.button === 1) {
+        startPanDrag(e, setDrag, editor)
+        return
+      }
+      if (e.button === 0) {
+        const { cx, cy } = getCoords(e)
+        lastPointer.value = { cx, cy }
+        editor.previewPointerDown(cx, cy)
+      }
+      return
+    }
     editor.setMeasurementMode('off')
     const paddingEdit = autoLayoutPaddingEdit.value
     if (paddingEdit) {
@@ -266,6 +281,10 @@ export function useCanvasInput(
       onCursorMove(coords.cx, coords.cy)
     }
 
+    if (editor.isPrototypePreviewActive() && !drag.value) {
+      editor.previewPointerMove(coords.cx, coords.cy)
+      return
+    }
     if (!drag.value) {
       const { cx, cy } = coords
       updatePenHover(cx, cy, editor)
@@ -351,6 +370,17 @@ export function useCanvasInput(
   }
 
   function onMouseUp() {
+    if (editor.isPrototypePreviewActive()) {
+      if (drag.value) {
+        // End an in-flight pan; nothing else drags in preview.
+        drag.value = null
+        cursorOverride.value = null
+        return
+      }
+      const pointer = lastPointer.value
+      if (pointer) editor.previewPointerUp(pointer.cx, pointer.cy)
+      return
+    }
     if (!drag.value) return
     const d = drag.value
 
@@ -441,6 +471,10 @@ export function useCanvasInput(
   useEventListener(canvasRef, 'mousemove', onMouseMove)
   useEventListener(canvasRef, 'mouseup', onMouseUp)
   useEventListener(window, 'keydown', (event) => {
+    if (event.code === 'Escape' && editor.isPrototypePreviewActive()) {
+      editor.stopPrototypePreview()
+      return
+    }
     if (!guideInput.deleteSelected(event)) updateModifier(event.code, true)
   })
   useEventListener(window, 'keyup', (event) => updateModifier(event.code, false))
@@ -451,6 +485,10 @@ export function useCanvasInput(
   useEventListener(canvasRef, 'mouseleave', () => {
     pointerInside.value = false
     if (!isEnabled()) return
+    if (editor.isPrototypePreviewActive()) {
+      editor.previewPointerLeave()
+      return
+    }
     editor.setMeasurementMode('off')
     if (!drag.value) {
       editor.setHoveredNode(null)

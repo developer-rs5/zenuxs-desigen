@@ -5,7 +5,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 test('wrap clears automatic spacing and restores both properties with one Undo', async ({
   page
 }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await new CanvasHelper(page).waitForInit()
   const id = await page.evaluate(() => {
     const editor = window.openPencil?.getStore?.()
@@ -31,7 +31,7 @@ test('wrap clears automatic spacing and restores both properties with one Undo',
 })
 
 test('layout guide live numeric edits form one Undo record', async ({ page }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await new CanvasHelper(page).waitForInit()
   const id = await page.evaluate(() => {
     const editor = window.openPencil?.getStore?.()

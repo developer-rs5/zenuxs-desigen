@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import { useI18n } from '@open-pencil/vue'
+
 import {
   activeAISkills,
   addCustomAISkill,
@@ -16,13 +18,14 @@ import AppButton from '@/components/ui/button/AppButton.vue'
 import IconButton from '@/components/ui/button/IconButton.vue'
 import AppSwitch from '@/components/ui/toggle/AppSwitch.vue'
 
+const { ai } = useI18n()
 const expandedSkillId = ref<string | null>(null)
 const isAddingCustom = ref(false)
 
 const customName = ref('')
 const customDisplayName = ref('')
 const customDescription = ref('')
-const customSourceUrl = ref('')
+const customSourceURL = ref('')
 const customContent = ref('')
 
 function toggleExpand(id: string) {
@@ -36,7 +39,7 @@ function handleAddSkill() {
     name: customName.value.trim(),
     displayName: customDisplayName.value.trim() || customName.value.trim(),
     description: customDescription.value.trim(),
-    sourceUrl: customSourceUrl.value.trim(),
+    sourceUrl: customSourceURL.value.trim(),
     promptContent: customContent.value.trim(),
     enabled: true
   })
@@ -44,7 +47,7 @@ function handleAddSkill() {
   customName.value = ''
   customDisplayName.value = ''
   customDescription.value = ''
-  customSourceUrl.value = ''
+  customSourceURL.value = ''
   customContent.value = ''
   isAddingCustom.value = false
 }
@@ -54,7 +57,7 @@ function cancelAdd() {
   customName.value = ''
   customDisplayName.value = ''
   customDescription.value = ''
-  customSourceUrl.value = ''
+  customSourceURL.value = ''
   customContent.value = ''
 }
 
@@ -67,10 +70,9 @@ function onSkillToggle(skill: AISkill, value: boolean) {
   <section class="flex flex-col gap-3">
     <div class="flex items-center justify-between">
       <SettingsSectionHeader>
-        AI Skills & Design Frameworks
+        {{ ai.skillsSectionTitle }}
         <template #description>
-          Active skills inject specialized design rules, anti-slop guidelines, and UI/UX
-          intelligence into AI generation prompts.
+          {{ ai.skillsSectionDescription }}
         </template>
       </SettingsSectionHeader>
       <div class="flex items-center gap-2">
@@ -132,7 +134,7 @@ function onSkillToggle(skill: AISkill, value: boolean) {
         <div class="flex flex-col gap-1.5">
           <label class="text-[11px] font-medium text-muted">Source URL (optional)</label>
           <input
-            v-model="customSourceUrl"
+            v-model="customSourceURL"
             placeholder="https://..."
             class="h-7 w-full rounded border border-border bg-input px-2 text-xs text-surface outline-none focus:border-accent"
           />
@@ -262,7 +264,7 @@ function onSkillToggle(skill: AISkill, value: boolean) {
       </div>
     </SettingsGroup>
     <div class="px-1 text-[11px] text-muted">
-      {{ activeAISkills.length }} of {{ aiSkills.length }} skills active
+      {{ ai.skillsSectionActive({ active: activeAISkills.length, total: aiSkills.length }) }}
     </div>
   </section>
 </template>

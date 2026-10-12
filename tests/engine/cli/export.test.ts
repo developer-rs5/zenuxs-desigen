@@ -261,3 +261,96 @@ test('export CLI can write external standalone HTML assets', async () => {
   expect(css).toContain('.flex')
   expect(css).toContain('.op-stage')
 })
+
+async function createPrototypeFigFixture() {
+  const dir = await mkdtemp(join(tmpdir(), 'open-pencil-proto-cli-'))
+  const figPath = join(dir, 'proto.fig')
+  const graph = makeSceneGraph('Proto Page')
+  const screen = graph.createNode('FRAME', firstPageId(graph), {
+    name: 'Screen',
+    width: 800,
+    height: 600
+  })
+  const button = createRect(graph, screen.id, {
+    name: 'Button',
+    x: 24,
+    y: 24,
+    width: 120,
+    height: 48
+  })
+  graph.updateNode(button.id, {
+    pluginData: [
+      {
+        pluginId: 'open-pencil',
+        key: 'interactions',
+        value: JSON.stringify([
+          {
+            id: 'drag',
+            trigger: 'drag',
+            action: { type: 'navigate', destinationId: screen.id }
+          },
+          {
+            id: 'guarded',
+            trigger: 'click',
+            action: { type: 'navigate', destinationId: screen.id },
+            guard: { all: [{ variable: 'flag', op: 'eq', value: true }] }
+          },
+          {
+            id: 'spring',
+            trigger: 'load',
+            action: { type: 'navigate', destinationId: screen.id },
+            transition: { kind: 'spring', spring: { mode: 'time' } }
+          }
+        ])
+      }
+    ]
+  })
+
+  const result = await io.writeDocument('fig', graph)
+  await Bun.write(figPath, result.data as Uint8Array)
+  return { dir, figPath }
+}
+
+test('export CLI --prototype --json prints a report of exported capabilities', async () => {
+  const { dir, figPath } = await createPrototypeFigFixture()
+  const output = join(dir, 'proto.html')
+
+  const { stdout, stderr, exitCode } = await runOpenPencilCLI([
+    'export',
+    figPath,
+    '--format',
+    'html',
+    '--prototype',
+    '--json',
+    '--output',
+    output
+  ])
+
+  expect(stderr).toBe('')
+  expect(exitCode).toBe(0)
+
+  const report = JSON.parse(stdout) as {
+    interactions: { total: number; exported: number; approximate: number; skipped: number }
+    issues: Array<{ status: string; reason?: string; feature: string }>
+  }
+  expect(report.interactions.total).toBe(3)
+  // drag, guarded click, and spring load all reach the runtime — none skip.
+  expect(report.interactions.skipped).toBe(0)
+  expect(report.interactions.exported).toBe(3)
+  const reasons = new Set(
+    report.issues.filter((issue) => issue.status === 'skipped').map((issue) => issue.reason)
+  )
+  expect(reasons.has('unsupported-trigger')).toBe(false)
+  expect(reasons.has('guard')).toBe(false)
+  expect(reasons.has('spring')).toBe(false)
+
+  const html = await Bun.file(output).text()
+  expect(html).toContain('<!doctype html>')
+  expect(html).toContain('data-op-prototype')
+  // Spring samples into linear(); it never degrades to a plain eased curve.
+  expect(html).toContain('linear(')
+  expect(html).not.toContain('cubic-bezier')
+  // Guarded click evaluates at fire time in the runtime.
+  expect(html).toContain('guardOk')
+  expect(html).toContain('"trigger":"drag"')
+})

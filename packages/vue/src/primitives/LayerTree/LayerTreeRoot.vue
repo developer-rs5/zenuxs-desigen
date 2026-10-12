@@ -13,6 +13,7 @@ import type {
 } from '#vue/primitives/LayerTree/context'
 import {
   buildLayerTreeModel,
+  indexLayerNodes,
   layerSelectionForTarget,
   patchLayerNode,
   visibleLayerRows
@@ -61,7 +62,9 @@ function rebuildTree() {
   rebuildToken++
   const model = buildLayerTreeModel(editor.graph, editor.state.currentPageId)
   items.value = model.items
-  nodesById = model.byId
+  // Index the reactive view of the tree: patchTreeNode() mutates these entries in place, and
+  // mutating the raw model objects would bypass Vue's proxies, leaving renamed/hidden rows stale.
+  nodesById = indexLayerNodes(items.value)
   expanded.value = expanded.value.filter((id) => nodesById.has(id))
   treeVersion.value++
 }

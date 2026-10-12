@@ -4,7 +4,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 test('mobile file menu opens with the keyboard and returns focus on Escape', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   const trigger = page.getByRole('button', { name: 'File', exact: true })

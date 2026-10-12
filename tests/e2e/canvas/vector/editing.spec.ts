@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetupWithClear('/?test&no-chrome&no-rulers')
+const editor = useEditorSetupWithClear('/editor?test&no-chrome&no-rulers')
 
 test('vector edit overlay follows nested transforms and live path fills', async () => {
   await editor.page.evaluate(() => {

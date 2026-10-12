@@ -8,7 +8,7 @@ import { expect, test } from '#tests/e2e/fixtures'
 import { CanvasHelper } from '#tests/helpers/canvas'
 
 async function openEditor(page: Page): Promise<CanvasHelper> {
-  await page.goto('/?test&no-chrome&no-rulers')
+  await page.goto('/editor?test&no-chrome&no-rulers')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   await page.evaluate(() => {
@@ -51,11 +51,9 @@ test('international text is correct on its first visible paint', async ({ page }
   const result = await page.evaluate(async () => {
     const store = window.openPencil?.getStore?.()
     if (!store?.renderer) throw new Error('OpenPencil renderer not initialized')
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleURL) throw new Error('Active font manager module not found')
+    // Direct path instead of a resource-timing scan: the buffer caps at 250
+    // entries and boot-time loads get evicted (order-dependent failure).
+    const fontModuleURL = '/packages/core/src/text/fonts.ts'
     const { fontManager } = (await import(/* @vite-ignore */ fontModuleURL)) as {
       fontManager: FontManager
     }
@@ -250,11 +248,9 @@ test('typed and tool-created text repaint with the same resolved fallbacks', asy
       text: ''
     })
     const nodeIds = [tool.id, typed.id]
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleURL) throw new Error('Active font manager module not found')
+    // Direct path instead of a resource-timing scan: the buffer caps at 250
+    // entries and boot-time loads get evicted (order-dependent failure).
+    const fontModuleURL = '/packages/core/src/text/fonts.ts'
     const { fontManager } = (await import(/* @vite-ignore */ fontModuleURL)) as {
       fontManager: FontManager
     }
@@ -282,11 +278,9 @@ test('typed and tool-created text repaint with the same resolved fallbacks', asy
   })
   await canvas.waitForRender()
   const pending = await page.evaluate(async (nodeIds) => {
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleURL) throw new Error('Active font manager module not found')
+    // Direct path instead of a resource-timing scan: the buffer caps at 250
+    // entries and boot-time loads get evicted (order-dependent failure).
+    const fontModuleURL = '/packages/core/src/text/fonts.ts'
     const { fontManager } = (await import(/* @vite-ignore */ fontModuleURL)) as {
       fontManager: FontManager
     }
@@ -298,11 +292,9 @@ test('typed and tool-created text repaint with the same resolved fallbacks', asy
   const resolved = await page.evaluate(async ({ nodeIds, toolId, typedId }) => {
     const store = window.openPencil?.getStore?.()
     if (!store?.renderer) throw new Error('OpenPencil renderer not initialized')
-    const fontModuleURL = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleURL) throw new Error('Active font manager module not found')
+    // Direct path instead of a resource-timing scan: the buffer caps at 250
+    // entries and boot-time loads get evicted (order-dependent failure).
+    const fontModuleURL = '/packages/core/src/text/fonts.ts'
     const { fontManager } = (await import(/* @vite-ignore */ fontModuleURL)) as {
       fontManager: FontManager
     }

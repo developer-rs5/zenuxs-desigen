@@ -16,13 +16,16 @@ test('current selection toggles and remains visible in history', async ({
     return node.id
   })
   const toggle = chat.page.getByRole('button', { name: 'Add current selection as context' })
-  await toggle.click()
+  // Since 9d3f19d9 (auto-mention selection) the watch attaches the current
+  // selection immediately — the toggle starts ON instead of requiring a click.
   await expect(toggle).toHaveAttribute('data-state', 'on')
   await expect(toggle).toBeEnabled()
   await expect(chat.page.locator('[data-slot="chat-context-chip"] img')).toBeVisible()
   await toggle.click()
+  await expect(toggle).toHaveAttribute('data-state', 'off')
   await expect(chat.page.locator('[data-slot="chat-context-chip"]')).toHaveCount(0)
   await toggle.click()
+  await expect(toggle).toHaveAttribute('data-state', 'on')
   await chat.submit('Make it larger')
 
   await expect(chat.userMessage()).not.toContainText('[Referenced nodes')

@@ -37,11 +37,11 @@ export function openPencilBackendPlugin(command: string): Plugin {
 
       const active = await isPortActive(3000)
       if (active) {
-        console.log('[vite] Backend server is already running on port 3000.')
+        server.config.logger.info('[vite] Backend server is already running on port 3000.')
         return
       }
 
-      console.log('[vite] Starting MongoDB backend server (port 3000)...')
+      server.config.logger.info('[vite] Starting MongoDB backend server (port 3000)...')
       backendProc = spawn('bun', ['packages/server/src/index.ts'], {
         stdio: 'inherit',
         env: process.env

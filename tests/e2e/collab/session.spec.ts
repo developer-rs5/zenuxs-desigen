@@ -92,7 +92,7 @@ async function createPeer(browser: Browser, name: string, relayURL: string): Pro
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } })
   try {
     const page = await context.newPage()
-    await page.goto(`/?test&collabTransport=test&collabRelay=${encodeURIComponent(relayURL)}`)
+    await page.goto(`/editor?test&collabTransport=test&collabRelay=${encodeURIComponent(relayURL)}`)
     await page.evaluate(
       (localName) => window.openPencil?.test?.collab?.setLocalName(localName),
       name

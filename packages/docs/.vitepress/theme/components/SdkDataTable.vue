@@ -7,7 +7,7 @@ export type SdkDataTableColumn = {
 
 export type SdkDataTableRow = Record<string, string | boolean | undefined>
 
-defineProps<{
+const { columns, rows, rowKey } = defineProps<{
   columns: SdkDataTableColumn[]
   rows: SdkDataTableRow[]
   rowKey?: string

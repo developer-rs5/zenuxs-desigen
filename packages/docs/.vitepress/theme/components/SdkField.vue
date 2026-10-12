@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const { name, type } = defineProps<{
   name: string
   type?: string
 }>()

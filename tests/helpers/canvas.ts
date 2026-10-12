@@ -10,7 +10,17 @@ export class CanvasHelper {
     this.canvas = page.getByTestId('canvas-area')
     page.on('pageerror', (err) => this.errors.push(err.message))
     page.on('console', (msg) => {
-      if (msg.type() === 'error') this.errors.push(msg.text())
+      if (msg.type() !== 'error') return
+      // Expected by design on a fresh context: the boot-time
+      // /api/auth/session probe 401s before the guest session is created and
+      // Chrome logs it as a resource error (documented in the persistence
+      // specs, which wait it out before attaching this collector). Chrome
+      // keeps the URL in msg.location(), not in the message text. Every other
+      // console/page error still fails assertNoErrors.
+      const text = msg.text()
+      const url = msg.location()?.url ?? ''
+      if (text.includes('401') && url.includes('/api/auth/session')) return
+      this.errors.push(text)
     })
   }
 
@@ -123,21 +133,21 @@ export class CanvasHelper {
   }
 
   async undo() {
-    await this.pressKey('Meta+z')
+    await this.pressKey('ControlOrMeta+z')
     await this.waitForRender()
   }
 
   async redo() {
-    await this.pressKey('Meta+Shift+z')
+    await this.pressKey('ControlOrMeta+Shift+z')
     await this.waitForRender()
   }
 
   async selectAll() {
-    await this.pressKey('Meta+a')
+    await this.pressKey('ControlOrMeta+a')
   }
 
   async duplicate() {
-    await this.pressKey('Meta+d')
+    await this.pressKey('ControlOrMeta+d')
     await this.waitForRender()
   }
 

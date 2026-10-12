@@ -61,7 +61,10 @@ const STUB = {
 
 type StubName = keyof typeof STUB
 
-const globals = globalThis as unknown as Record<string, unknown>
+/** Browser shims this suite installs/restores on the shared global. */
+type GlobalShims = { Image?: unknown; document?: unknown }
+
+const globals = globalThis as GlobalShims
 const previousImage = globals.Image
 const previousDocument = globals.document
 
@@ -101,18 +104,18 @@ function makeEditorStore(): EditorStore {
     graph,
     state: { currentPageId: page.id, selectedIds: new Set<string>() },
     renderExportImage: async () => null
-  } as unknown as EditorStore
+  } as EditorStore
 }
 
 function recorder(stub: StubName): { bodies: CapturedBody[]; fetch: FetchImpl } {
   const bodies: CapturedBody[] = []
-  const isJson = stub === 'google' || stub === 'openrouter'
+  const isJSON = stub === 'google' || stub === 'openrouter'
   return {
     bodies,
     fetch: async (_url, init) => {
       bodies.push(JSON.parse(String(init.body)) as CapturedBody)
       return new Response(STUB[stub], {
-        headers: isJson
+        headers: isJSON
           ? { 'content-type': 'application/json' }
           : { 'content-type': 'text/event-stream' }
       })
@@ -169,6 +172,9 @@ function submitImage(
     .then(() => ({ errors, submission }))
 }
 
+/** Google-style request body: one content entry per turn, parts carry the image. */
+type GoogleContentBody = { contents: Array<{ parts: unknown[] }> }
+
 /** Every content-part type in a provider body, across all message entries. */
 function contentTypes(body: CapturedBody): string[] {
   const types: string[] = []
@@ -221,7 +227,7 @@ describe('attached image reaches the provider payload', () => {
       expect(bodies.length).toBeGreaterThan(0)
       const body = bodies[0]
       if (provider.partType === null) {
-        const parts = (body as { contents: Array<{ parts: unknown[] }> }).contents[0].parts
+        const parts = (body as GoogleContentBody).contents[0].parts
         expect(JSON.stringify(parts)).toContain(PNG_BASE64)
       } else {
         expect(contentTypes(body)).toContain(provider.partType)

@@ -18,11 +18,17 @@ export interface ExportHTMLBundleOptions {
   assets?: 'inline' | 'external'
   fonts?: 'assets' | 'none'
   assetBasePath?: string
+  /** Stage size override for standalone output (prototype screens stack at the origin). */
+  stage?: { width: number; height: number }
 }
 
 export interface ExportHTMLFile {
   path: string
   content: string | Uint8Array
+}
+
+type ResolvedBundleOptions = Required<Omit<ExportHTMLBundleOptions, 'stage'>> & {
+  stage?: { width: number; height: number }
 }
 
 export interface ExportHTMLBundle {
@@ -234,7 +240,7 @@ function fontFaceCSS(asset: WebFontFaceAsset): string {
 
 async function fontFaceAssets(
   document: DesignDocument,
-  options: Required<ExportHTMLBundleOptions>
+  options: ResolvedBundleOptions
 ): Promise<{ css: string; files: ExportHTMLFile[] }> {
   if (options.fonts === 'none' || options.assets !== 'external') return { css: '', files: [] }
   const requests = new Map<string, WebFontFaceRequest>()
@@ -300,11 +306,13 @@ function styleTag(css: string): string {
 
 async function exportStandaloneHTML(
   document: DesignDocument,
-  options: Required<ExportHTMLBundleOptions>
+  options: ResolvedBundleOptions
 ): Promise<ExportHTMLBundle> {
   const size = standaloneSize(document)
   const doc = standaloneDocument(document, size)
-  const stageCSS = `.op-stage{position:relative;width:${size.width}px;height:${size.height}px;overflow:hidden;background:transparent}`
+  const stageWidth = options.stage ? options.stage.width : size.width
+  const stageHeight = options.stage ? options.stage.height : size.height
+  const stageCSS = `.op-stage{position:relative;width:${stageWidth}px;height:${stageHeight}px;overflow:hidden;background:transparent}`
   let body: string
   let css = `${RESET_CSS}${stageCSS}`
 
@@ -349,12 +357,13 @@ export async function exportHTMLBundle(
   document: DesignDocument,
   options: ExportHTMLBundleOptions = {}
 ): Promise<ExportHTMLBundle> {
-  const resolvedOptions: Required<ExportHTMLBundleOptions> = {
+  const resolvedOptions: ResolvedBundleOptions = {
     html: options.html ?? 'fragment',
     style: options.style ?? 'inline',
     assets: options.assets ?? 'inline',
     fonts: options.fonts ?? 'none',
-    assetBasePath: options.assetBasePath ?? 'assets'
+    assetBasePath: options.assetBasePath ?? 'assets',
+    stage: options.stage
   }
 
   if (resolvedOptions.html === 'standalone') return exportStandaloneHTML(document, resolvedOptions)

@@ -9,11 +9,8 @@ import {
   validateImageAttachmentFile
 } from '@/app/ai/attachment/image/prepare'
 import { MAX_IMAGE_ATTACHMENTS, type ImageAttachmentDraft } from '@/app/ai/attachment/image/types'
-import {
-  appendReferencedNodeContext,
-  MAX_REFERENCED_NODES,
-  resolveReferencedNodes
-} from '@/app/ai/chat/context'
+import { MAX_REFERENCED_NODES, resolveReferencedNodes } from '@/app/ai/chat/context'
+import { buildTextSubmission } from '@/app/ai/chat/submission/build'
 import type { ChatSubmission } from '@/app/ai/chat/submission/types'
 
 interface AttachmentDraftOptions {
@@ -121,12 +118,7 @@ export function useAttachmentDrafts(options: AttachmentDraftOptions) {
     images.value = []
     nodeIds.value = []
     resetImageDialog()
-    return {
-      modelText: appendReferencedNodeContext(text, submittedNodes),
-      displayText: text,
-      images: submittedImages,
-      nodes: submittedNodes
-    }
+    return buildTextSubmission(text, { images: submittedImages, nodes: submittedNodes })
   }
 
   /** Puts a taken submission back into the drafts after a recoverable failure. */

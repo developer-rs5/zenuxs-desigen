@@ -42,15 +42,20 @@ interface OAuthLibraryError {
 // has rejected (HTTP 400) will never succeed, so drop the local tokens instead
 // of hammering the token endpoint; the session cookie keeps the user signed in
 // and the next sign-in stores fresh tokens.
-oauthClient.on('error', (error: unknown) => {
-  const failure = error as OAuthLibraryError
-  if (failure?.code !== 'TOKEN_REFRESH_FAILED' || failure.details?.status !== 400) return
-  console.warn('[Auth] Refresh token rejected; clearing local OAuth tokens.')
+/** Fire-and-forget local token clear; rejections are logged, never thrown. */
+async function clearOAuthTokens(): Promise<void> {
   try {
-    oauthClient.logout({ revoke: false })
+    await oauthClient.logout({ revoke: false })
   } catch (logoutError) {
     console.warn('[Auth] Local token clear failed:', logoutError)
   }
+}
+
+oauthClient.on('error', (error: unknown) => {
+  const failure = error as OAuthLibraryError | null
+  if (failure?.code !== 'TOKEN_REFRESH_FAILED' || failure.details?.status !== 400) return
+  console.warn('[Auth] Refresh token rejected; clearing local OAuth tokens.')
+  void clearOAuthTokens()
 })
 
 export const currentUser = ref<UserInfo | null>(null)
@@ -203,12 +208,13 @@ async function runInitAuth(): Promise<UserInfo | null> {
     // Auto-provision a guest session so all local work is backed by MongoDB
     try {
       const guest = await createGuestSession()
-      if (guest?.user) {
+      if (guest) {
         setAuthenticated(toUserInfo(guest.user))
         return currentUser.value
       }
-    } catch {
+    } catch (error) {
       // Backend may be starting or offline
+      console.debug('[Auth] Guest session unavailable:', error)
     }
 
     clearLocalAuthState()
@@ -258,11 +264,7 @@ async function restoreServerSession(): Promise<SessionUser | null> {
 }
 
 function clearLocalAuthState(): void {
-  try {
-    oauthClient.logout({ revoke: false })
-  } catch (error) {
-    console.warn('[Auth] Local token clear failed:', error)
-  }
+  void clearOAuthTokens()
   setAuthenticated(null)
 }
 

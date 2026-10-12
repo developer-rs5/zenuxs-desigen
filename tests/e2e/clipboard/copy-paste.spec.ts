@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { getSelectedNodes } from '#tests/helpers/store'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 function getPageChildCount() {
   return editor.page.evaluate(() => {

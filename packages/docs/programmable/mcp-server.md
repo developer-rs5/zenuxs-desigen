@@ -175,6 +175,7 @@ OpenPencil currently registers 100+ shared design tools, plus MCP-only document 
 | `node_children` | Get direct children of a node |
 | `node_tree` | Get the subtree rooted at a node |
 | `node_bindings` | Get variable bindings on a node |
+| `design_intent` | Resolve plain language or a `/slash` command into activated skills, suggested semantic operations, and routing notes |
 
 ### Create
 

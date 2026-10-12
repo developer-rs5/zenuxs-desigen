@@ -7,7 +7,7 @@ interface Row {
   description: string
 }
 
-defineProps<{
+const { rows } = defineProps<{
   rows: Row[]
 }>()
 

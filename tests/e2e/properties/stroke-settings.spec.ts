@@ -4,12 +4,20 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 
 for (const theme of ['light', 'dark']) {
   test(`stroke settings editing and dismissal in ${theme}`, async ({ page }) => {
-    await page.goto('/?test')
+    // Set the persisted theme before the app boots: the runtime
+    // `await import('/src/app/shell/theme.ts')` path intermittently dies with
+    // "Resulting promise was garbage collected" (Chromium collects the awaited
+    // promise even after it settles). `useAppTheme` reads this key at module
+    // init, so boot-time localStorage gives the same applied theme with a
+    // fully synchronous evaluate below.
+    await page.addInitScript((mode) => {
+      // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module (same precedent as delete-project.spec.ts / restore.spec.ts)
+      window.localStorage.setItem('open-pencil:theme', mode)
+    }, theme)
+    await page.goto('/editor?test')
     await new CanvasHelper(page).waitForInit()
-    const ids = await page.evaluate(async (mode) => {
-      const path = '/src/app/shell/theme.ts'
-      const module = await import(path)
-      module.useAppTheme().setTheme(mode)
+    await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme)
+    const ids = await page.evaluate(() => {
       const editor = window.openPencil?.getStore?.()
       if (!editor) throw new Error('Editor unavailable')
       const id = editor.createShape('RECTANGLE', 100, 100, 180, 120)
@@ -28,7 +36,7 @@ for (const theme of ['light', 'dark']) {
         })
       editor.select([id])
       return { id, line }
-    }, theme)
+    })
     const section = page.getByRole('region', { name: 'Stroke', exact: true })
     await expect(section).toHaveScreenshot(`stroke-main-${theme}.png`)
     const trigger = section.getByRole('button', { name: 'Stroke settings' })

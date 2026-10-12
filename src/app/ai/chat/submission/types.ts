@@ -7,10 +7,20 @@ export interface ChatSubmission {
   images: ImageAttachmentDraft[]
   nodes: ReferencedNode[]
   /**
+   * Unrecognized leading `/command`, reported to the user after send. The
+   * same note already rides in `modelText` so the model can correct course.
+   */
+  notice?: SkillCommandNotice
+  /**
    * Puts the prompt and drafts back into the composer when the submission
    * fails before anything was sent. Optional so programmatic callers can omit it.
    */
   restore?: () => void
+}
+
+export interface SkillCommandNotice {
+  command: string
+  suggestions: string[]
 }
 
 export type ImageSupportReason = 'agent-transport' | 'no-vision-capability'

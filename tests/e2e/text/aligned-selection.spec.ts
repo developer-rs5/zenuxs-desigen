@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('centered and bottom-aligned text selection follows the rendered text', async () => {
   for (const [textAlignHorizontal, textAlignVertical] of [

@@ -12,6 +12,10 @@ export {
 export { designDocumentToSceneGraph } from './to-scene-graph'
 export { sceneGraphToDesignDocument } from './from-scene-graph'
 export { compileTailwindCSS } from './tailwind'
+export { analyzePrototype } from './prototype/analyze'
+export { exportPrototypeBundle } from './prototype/index'
+export { prototypeShim } from './prototype/shim'
+export { EASING_TO_CSS, easingToCSS } from './prototype/support'
 export {
   browserHTMLToDesignDocument,
   browserHTMLToSceneGraph,
@@ -63,6 +67,17 @@ export type {
 } from './browser'
 export type { CompileTailwindCSSOptions } from './tailwind'
 export type { ExportHTMLBundle, ExportHTMLBundleOptions, ExportHTMLFile } from './html-export'
+export type { ExportPrototypeOptions, ExportPrototypeResult } from './prototype/index'
+export type { PrototypeAnalysis, PrototypeScreenInfo } from './prototype/analyze'
+export type { PrototypeShimOp } from './prototype/shim'
+export type {
+  PrototypeExportCounts,
+  PrototypeExportFeature,
+  PrototypeExportIssue,
+  PrototypeExportReason,
+  PrototypeExportReport,
+  PrototypeExportStatus
+} from './prototype/support'
 export type { SerializeHTMLOptions } from './serialize'
 export type { ToSceneGraphOptions } from './to-scene-graph'
 export type CSSComputeOptions = DesignTypes.CSSComputeOptions

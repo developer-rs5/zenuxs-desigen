@@ -1,63 +1,18 @@
 'use client'
 
+/* eslint-disable max-lines -- React reference port kept whole to mirror the Vue implementation */
+
 import { useEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
 
-export type FontValue = {
-  fontFamily?: string
-  fontSize?: string | number
-  fontWeight?: string | number
-  fontStyle?: string
-  letterSpacing?: string | number
-  lineHeight?: string | number
-}
+import { colorToCSS } from '@open-pencil/core/color'
 
-export type BackdropGroup = {
-  type?: 'None' | 'Image' | 'Video' | 'Text'
-  image?: string
-  video?: string
-
-  text?: string
-  font?: FontValue
-  textColor?: string
-}
-
-export type GlassGroup = {
-  tint?: string
-  chromatic?: number
-  frost?: number
-}
-
-export type OrientGroup = {
-  angleX?: number
-
-  angleY?: number
-
-  angleZ?: number
-
-  offsetX?: number
-  offsetY?: number
-}
-
-export type LiquidGlassClusterProps = {
-  className?: string
-  style?: CSSProperties
-
-  background?: string
-  shape?: 'X' | 'Torus' | 'Sphere' | 'Logo'
-
-  logo?: string
-
-  depth?: number
-
-  size?: number
-
-  speed?: number
-  direction?: 'Clockwise' | 'Counterclockwise'
-  backdrop?: BackdropGroup
-  glass?: GlassGroup
-  orient?: OrientGroup
-}
+import type {
+  BackdropGroup,
+  FontValue,
+  GlassGroup,
+  GlassIconProps,
+  OrientGroup
+} from '../glass/types'
 
 const BEVEL = 0.025
 const CORE_REFRACT = 1.0
@@ -93,16 +48,16 @@ function parseColor(
         .map((c) => c + c)
         .join('')
     if (h.length >= 6) {
-      const r = parseInt(h.slice(0, 2), 16) / 255
-      const g = parseInt(h.slice(2, 4), 16) / 255
-      const b = parseInt(h.slice(4, 6), 16) / 255
-      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) return [r, g, b]
+      const r = Number.parseInt(h.slice(0, 2), 16) / 255
+      const g = Number.parseInt(h.slice(2, 4), 16) / 255
+      const b = Number.parseInt(h.slice(4, 6), 16) / 255
+      if (!Number.isNaN(r) && !Number.isNaN(g) && !Number.isNaN(b)) return [r, g, b]
     }
     return fallback
   }
   const m = s.match(/rgba?\(([^)]+)\)/i)
   if (m) {
-    const p = m[1].split(',').map((v) => parseFloat(v))
+    const p = m[1].split(',').map((v) => Number.parseFloat(v))
     if (p.length >= 3) return [p[0] / 255, p[1] / 255, p[2] / 255]
   }
   return fallback
@@ -111,7 +66,7 @@ function parseColor(
 function numOf(v: string | number | undefined, fallback: number): number {
   if (typeof v === 'number') return Number.isFinite(v) ? v : fallback
   if (typeof v === 'string') {
-    const n = parseFloat(v)
+    const n = Number.parseFloat(v)
     if (Number.isFinite(n)) return n
   }
   return fallback
@@ -176,6 +131,10 @@ function rotYXZ(yaw: number, pitch: number, roll: number): Float32Array {
   return mul3(base, rz)
 }
 
+interface CanvasWithRoundRect extends Omit<CanvasRenderingContext2D, 'roundRect'> {
+  roundRect?: (x: number, y: number, w: number, h: number, r: number) => void
+}
+
 function buildEnvCanvas(): HTMLCanvasElement | null {
   if (typeof document === 'undefined') return null
   const canvas = document.createElement('canvas')
@@ -188,13 +147,13 @@ function buildEnvCanvas(): HTMLCanvasElement | null {
 
   const softbox = (x: number, y: number, w: number, h: number, intensity: number) => {
     const grd = ctx.createLinearGradient(x, y, x, y + h)
-    grd.addColorStop(0, `rgba(255, 255, 255, ${intensity})`)
-    grd.addColorStop(1, `rgba(50, 50, 50, ${intensity * 0.2})`)
+    grd.addColorStop(0, colorToCSS({ r: 1, g: 1, b: 1, a: intensity }))
+    grd.addColorStop(1, colorToCSS({ r: 50 / 255, g: 50 / 255, b: 50 / 255, a: intensity * 0.2 }))
     ctx.fillStyle = grd
     ctx.shadowColor = '#ffffff'
     ctx.shadowBlur = 80
     ctx.beginPath()
-    const rr = (ctx as any).roundRect
+    const rr = (ctx as CanvasWithRoundRect).roundRect
     if (typeof rr === 'function') rr.call(ctx, x, y, w, h, 60)
     else ctx.rect(x, y, w, h)
     ctx.fill()
@@ -522,7 +481,8 @@ void main() {
 }`
 
 function compile(gl: WebGLRenderingContext, type: number, src: string) {
-  const s = gl.createShader(type)!
+  const s = gl.createShader(type)
+  if (!s) return null
   gl.shaderSource(s, src)
   gl.compileShader(s)
   if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
@@ -537,7 +497,7 @@ function link(gl: WebGLRenderingContext, vs: string, fs: string) {
   const v = compile(gl, gl.VERTEX_SHADER, vs)
   const f = compile(gl, gl.FRAGMENT_SHADER, fs)
   if (!v || !f) return null
-  const p = gl.createProgram()!
+  const p = gl.createProgram()
   gl.attachShader(p, v)
   gl.attachShader(p, f)
   gl.linkProgram(p)
@@ -595,15 +555,16 @@ export default function LiquidGlassCluster({
   backdrop,
   glass,
   orient
-}: LiquidGlassClusterProps) {
+}: GlassIconProps) {
   const bd: Required<BackdropGroup> = {
     ...DEFAULT_BACKDROP,
-    ...(backdrop ?? {}),
+    ...backdrop,
+    text: backdrop?.text ?? DEFAULT_BACKDROP.text,
 
-    font: { ...DEFAULT_FONT, ...(backdrop?.font ?? {}) }
+    font: { ...DEFAULT_FONT, ...backdrop?.font }
   }
-  const gl3: Required<GlassGroup> = { ...DEFAULT_GLASS, ...(glass ?? {}) }
-  const or: Required<OrientGroup> = { ...DEFAULT_ORIENT, ...(orient ?? {}) }
+  const gl3: Required<GlassGroup> = { ...DEFAULT_GLASS, ...glass }
+  const or: Required<OrientGroup> = { ...DEFAULT_ORIENT, ...orient }
 
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -641,20 +602,20 @@ export default function LiquidGlassCluster({
   useEffect(() => {
     const canvasEl = canvasRef.current
     const hostEl = hostRef.current
-    if (!canvasEl || !hostEl) return
+    if (!canvasEl || !hostEl) return undefined
     const canvas: HTMLCanvasElement = canvasEl
     const host: HTMLDivElement = hostEl
 
     const opts = { antialias: false, alpha: true, premultipliedAlpha: true }
     const ctx = (canvas.getContext('webgl2', opts) ||
       canvas.getContext('webgl', opts)) as WebGLRenderingContext | null
-    if (!ctx) return
+    if (!ctx) return undefined
 
     const gl: WebGLRenderingContext = ctx
 
     const plateProg = link(gl, FULLSCREEN_VS, PLATE_FS)
     const glassProg = link(gl, FULLSCREEN_VS, GLASS_FS)
-    if (!plateProg || !glassProg) return
+    if (!plateProg || !glassProg) return undefined
 
     const uPlatePass = {
       plate: gl.getUniformLocation(plateProg, 'uPlate'),
@@ -834,7 +795,7 @@ export default function LiquidGlassCluster({
       const anyCtx = ctx2d as CanvasRenderingContext2D & { letterSpacing?: string }
       if ('letterSpacing' in anyCtx) anyCtx.letterSpacing = `${tracking}px`
 
-      const lines = String(p.bd.text ?? '').split('\n')
+      const lines = String(p.bd.text).split('\n')
       const top = h / 2 - ((lines.length - 1) * lineH) / 2
       for (let i = 0; i < lines.length; i++) {
         ctx2d.fillText(lines[i], w / 2, top + i * lineH)
@@ -846,11 +807,16 @@ export default function LiquidGlassCluster({
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c)
       plateReady = true
 
-      if (!fontsWaited && typeof document !== 'undefined' && document.fonts) {
+      if (!fontsWaited && typeof document !== 'undefined') {
         fontsWaited = true
-        document.fonts.ready.then(() => {
-          if (live.current.bd.type === 'Text') rebuildPlate.current = true
-        })
+        void document.fonts.ready
+          .then(() => {
+            if (live.current.bd.type === 'Text') rebuildPlate.current = true
+            return undefined
+          })
+          .catch((error) => {
+            console.debug('[GlassIcon] fonts ready listener failed:', error)
+          })
       }
     }
 
@@ -891,7 +857,7 @@ export default function LiquidGlassCluster({
         v.loop = true
         v.muted = true
         v.src = url
-        v.play().catch(() => {})
+        void v.play().catch(() => undefined)
         video = v
       }
     }

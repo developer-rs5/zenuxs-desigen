@@ -11,7 +11,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   targetId = await page.evaluate(() => {
@@ -133,7 +133,7 @@ test('manual paint edits detach the style and undo restores the reference', asyn
   await canvas.waitForRender()
   expect((await targetStyles())?.fillStyleId).toBeNull()
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect(await targetStyles()).toMatchObject({ fillStyleId: '1:100', fillColor: { r: 0.9 } })
 })
@@ -176,7 +176,7 @@ test('applies text styles and batches mixed selection binding', async () => {
   expect((await targetStyles(targetId))?.fillStyleId).toBe('1:100')
   expect((await targetStyles(secondId))?.fillStyleId).toBe('1:100')
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect((await targetStyles(targetId))?.fillStyleId).toBe('1:100')
   expect((await targetStyles(secondId))?.fillStyleId).toBeNull()

@@ -14,6 +14,10 @@ export function snapshotPage(graph: SceneGraph, pageId: string): PageSnapshot {
     for (const childId of node.childIds) walk(childId)
   }
   walk(pageId)
+  // Root carries document-level pluginData (prototype flow document) that the
+  // page subtree walk never visits; without it AI mutations to flows bypass undo.
+  const root = graph.getNode(graph.rootId)
+  if (root && !snapshot.has(root.id)) snapshot.set(root.id, structuredClone(root))
   return snapshot
 }
 
@@ -22,6 +26,15 @@ export function restorePageFromSnapshot(ctx: EditorContext, snapshot: PageSnapsh
   const page = ctx.graph.getNode(pageId)
   const pageSnap = snapshot.get(pageId)
   if (!page || !pageSnap) return
+
+  // Restore root-owned fields (pluginData, name) while keeping the live page
+  // list — childIds point at pages that this snapshot never captured.
+  const root = ctx.graph.getNode(ctx.graph.rootId)
+  const rootSnap = snapshot.get(ctx.graph.rootId)
+  if (root && rootSnap && root !== page) {
+    const { childIds: _childIds, parentId: _parentId, ...rootFields } = rootSnap
+    ctx.graph.updateNode(root.id, rootFields)
+  }
 
   for (const childId of page.childIds.slice()) ctx.graph.deleteNode(childId)
   restoreChildren(ctx.graph, snapshot, pageId, pageSnap.childIds)

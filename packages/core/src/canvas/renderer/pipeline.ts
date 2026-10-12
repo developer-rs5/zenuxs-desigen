@@ -77,7 +77,8 @@ export function renderFromEditorState(
         : null,
       nodeEditState: state.nodeEditState ?? null,
       remoteCursors: state.remoteCursors,
-      autoLayoutHover: state.autoLayoutHover
+      autoLayoutHover: state.autoLayoutHover,
+      prototype: state.prototypePreview
     },
     state.sceneVersion,
     layer
@@ -89,7 +90,8 @@ function sceneContentDependsOnOverlay(overlays: RenderOverlays): boolean {
     overlays.dropTargetId != null ||
     overlays.rotationPreview != null ||
     overlays.editingTextId != null ||
-    overlays.nodeEditState != null
+    overlays.nodeEditState != null ||
+    overlays.prototype != null
   )
 }
 
@@ -326,6 +328,28 @@ function renderPageChildren(
   graph: SceneGraph,
   overlays: RenderOverlays
 ): void {
+  const prototype = overlays.prototype
+  if (prototype) {
+    // Preview mode: draw only the prototype's screens/overlays in order,
+    // with the backdrop dim between the screens and any open overlays.
+    const total = prototype.drawIds.length
+    for (let i = 0; i < Math.min(prototype.overlayStartIndex, total); i++) {
+      const id = prototype.drawIds[i]
+      if (id) r.renderNode(canvas, graph, id, overlays)
+    }
+    if (prototype.backdropOpacity > 0 && prototype.screenRect) {
+      const { x, y, width, height } = prototype.screenRect
+      r.auxFill.setColor(r.ck.Color4f(0, 0, 0, 1))
+      r.auxFill.setAlphaf(prototype.backdropOpacity)
+      canvas.drawRect(r.ck.LTRBRect(x, y, x + width, y + height), r.auxFill)
+      r.auxFill.setAlphaf(1)
+    }
+    for (let i = prototype.overlayStartIndex; i < total; i++) {
+      const id = prototype.drawIds[i]
+      if (id) r.renderNode(canvas, graph, id, overlays)
+    }
+    return
+  }
   const pageNode = graph.getNode(r.pageId ?? graph.rootId)
   if (!pageNode) return
   for (const childId of pageNode.childIds) {

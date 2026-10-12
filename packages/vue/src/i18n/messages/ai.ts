@@ -165,7 +165,20 @@ export const aiMessageDefaults = {
   chatModelImagesUnsupported:
     'The selected Design model cannot read images, so the attachment was not sent. Assign a vision-capable model in Settings.',
   completions: 'Completions',
-  responses: 'Responses'
+  responses: 'Responses',
+  skillsPopoverTitle: 'AI Design Skills',
+  skillsActive: params('{count} active'),
+  skillsTriggerLabel: params('AI Skills: {count} active'),
+  skillsPopoverFooter: 'Taste Skill & UI/UX Pro Max',
+  skillsPopoverSettings: 'Settings',
+  skillsSectionTitle: 'AI Skills & Design Frameworks',
+  skillsSectionDescription:
+    'Active skills inject specialized design rules, anti-slop guidelines, and UI/UX intelligence into AI generation prompts.',
+  skillsSectionActive: params('{active} of {total} skills active'),
+  commandSuggestions: 'Skill commands',
+  noCommandMatches: 'No matching commands',
+  unknownCommand: params('Unknown command "/{command}".'),
+  unknownCommandSuggestions: params('Unknown command "/{command}". Did you mean {suggestions}?')
 } as const
 
 export const aiMessages = i18n('ai', aiMessageDefaults)

@@ -2,10 +2,11 @@ import mongoose, { type Document, Schema } from 'mongoose'
 
 export interface IUserSettings extends Document {
   ownerSub: string
-  credentials: Record<string, string>
-  aiModelSettings: Record<string, unknown>
-  mcpServers: Record<string, unknown>
-  skills: Record<string, unknown>
+  /** Stored documents predate some fields, so reads must default them. */
+  credentials?: Record<string, string>
+  aiModelSettings?: Record<string, unknown>
+  mcpServers?: Record<string, unknown>
+  skills?: Record<string, unknown>
   updatedAt: Date
 }
 

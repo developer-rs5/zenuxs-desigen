@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { CanvasHelper } from '#tests/helpers/canvas'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('autosave triggers after scene changes with a file handle', async () => {
   const writeCount = await editor.page.evaluate(() => {
@@ -41,7 +41,7 @@ test('autosave triggers after scene changes with a file handle', async () => {
   })
 
   // Trigger Save As to establish the file handle
-  await editor.page.keyboard.press('Meta+Shift+s')
+  await editor.page.keyboard.press('ControlOrMeta+Shift+s')
   await editor.page.waitForTimeout(500)
 
   // Now draw a shape — this should trigger autosave after 3s
@@ -74,7 +74,7 @@ test('no autosave without file handle', async ({ browser, baseURL }) => {
     deviceScaleFactor: 2
   })
   const freshPage = await context.newPage()
-  await freshPage.goto('/')
+  await freshPage.goto('/editor')
   const freshCanvas = new CanvasHelper(freshPage)
   await freshCanvas.waitForInit()
 

@@ -6,7 +6,7 @@ const NODE_COUNT = 5000
 
 test('large layer trees stay virtualized and scrollable', async ({ page }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('/?test&no-rulers')
+  await page.goto('/editor?test&no-rulers')
   await canvas.waitForInit()
 
   const replaceStartedAt = await page.evaluate((count: number) => {
@@ -111,7 +111,7 @@ test('large layer trees stay virtualized and scrollable', async ({ page }) => {
 
 test('layer tree supports range and additive selection', async ({ page }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('/?test&no-rulers')
+  await page.goto('/editor?test&no-rulers')
   await canvas.waitForInit()
 
   await page.evaluate(() => {
@@ -138,9 +138,9 @@ test('layer tree supports range and additive selection', async ({ page }) => {
   await expect(rows.filter({ hasText: 'Layer 2' })).toHaveAttribute('data-selected')
   await expect(rows.filter({ hasText: 'Layer 5' })).toHaveAttribute('data-selected')
 
-  await page.keyboard.down('Meta')
+  await page.keyboard.down('ControlOrMeta')
   await rows.filter({ hasText: 'Layer 7' }).click()
-  await page.keyboard.up('Meta')
+  await page.keyboard.up('ControlOrMeta')
 
   await expect(selectedRows).toHaveCount(5)
   await expect(rows.filter({ hasText: 'Layer 7' })).toHaveAttribute('data-selected')

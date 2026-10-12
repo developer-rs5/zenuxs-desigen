@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('layers panel resize increases width', async () => {
   const panel = editor.page.getByTestId('layers-panel')
@@ -36,19 +36,26 @@ test('panel width persists after page reload', async () => {
     'persisted layers panel bounds'
   ).width
 
+  // Reloading while the never-persisted Untitled tab is in the session makes initTabsSession
+  // restore it, 404 on the missing document and drop the tab onto the home tab. Clear the tab
+  // session first so the reload boots the same fresh document tab state this file starts in;
+  // the splitter layout itself is what has to survive the reload.
+  await editor.page.evaluate(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context script cannot import the src storage module (same precedent as restore.spec.ts)
+    localStorage.removeItem('zenuxs:tabs:session')
+  })
   await editor.page.reload()
   await editor.canvas.waitForInit()
 
-  const after = expectDefined(
-    await editor.page.getByTestId('layers-panel').boundingBox(),
-    'reloaded layers panel bounds'
-  )
+  const layersPanel = editor.page.getByTestId('layers-panel')
+  await expect(layersPanel).toBeVisible()
+  const after = expectDefined(await layersPanel.boundingBox(), 'reloaded layers panel bounds')
   expect(Math.abs(after.width - recordedWidth)).toBeLessThanOrEqual(2)
   editor.canvas.assertNoErrors()
 })
 
 test('Cmd+Backslash hides panels', async () => {
-  await editor.page.keyboard.press('Meta+\\')
+  await editor.page.keyboard.press('ControlOrMeta+\\')
   await editor.canvas.waitForRender()
 
   await expect(editor.page.getByTestId('layers-panel')).not.toBeVisible()
@@ -56,7 +63,7 @@ test('Cmd+Backslash hides panels', async () => {
 })
 
 test('Cmd+Backslash shows panels again', async () => {
-  await editor.page.keyboard.press('Meta+\\')
+  await editor.page.keyboard.press('ControlOrMeta+\\')
   await editor.canvas.waitForRender()
 
   await expect(editor.page.getByTestId('layers-panel')).toBeVisible()

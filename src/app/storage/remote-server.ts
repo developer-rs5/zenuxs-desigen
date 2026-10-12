@@ -24,7 +24,7 @@ function isUnauthorized(error: unknown): boolean {
 /** Lists the signed-in user's documents. Throws when the session has ended. */
 export async function listRemoteDocuments(): Promise<RemoteServerDocumentHeader[]> {
   try {
-    const result = await apiRequest<{ documents: RemoteServerDocumentHeader[] }>('/api/documents')
+    const result = await apiRequest<{ documents?: RemoteServerDocumentHeader[] }>('/api/documents')
     return result.documents ?? []
   } catch (error) {
     if (isUnauthorized(error)) return []
@@ -35,7 +35,7 @@ export async function listRemoteDocuments(): Promise<RemoteServerDocumentHeader[
 /** Fetches one of the signed-in user's documents. */
 export async function fetchRemoteDocument(documentId: string): Promise<Record<string, unknown>> {
   const result = await apiRequest<{
-    document: {
+    document?: {
       documentId: string
       title?: string
       payload: Record<string, unknown>
@@ -45,7 +45,7 @@ export async function fetchRemoteDocument(documentId: string): Promise<Record<st
   }>(`/api/documents/${encodeURIComponent(documentId)}`)
   const doc = result.document
   return {
-    ...(doc?.payload ?? {}),
+    ...doc?.payload,
     title: doc?.title,
     previewDataURL: doc?.previewDataURL ?? doc?.previewDataUrl
   }

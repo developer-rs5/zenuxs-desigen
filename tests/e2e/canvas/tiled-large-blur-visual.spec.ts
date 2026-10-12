@@ -4,7 +4,9 @@ import type { RecordedWheelSample } from '@open-pencil/core/profiler'
 
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test&no-chrome&no-rulers&renderer=tiled&navigation-benchmark')
+const editor = useEditorSetup(
+  '/editor?test&no-chrome&no-rulers&renderer=tiled&navigation-benchmark'
+)
 const reversal = JSON.parse(
   readFileSync('tests/fixtures/navigation/gestures/synthetic-repeated-pinch-reversal.json', 'utf8')
 ) as { wheel: RecordedWheelSample[] }

@@ -4,13 +4,26 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 test('keeps an unsaved document recoverable after its tab closes', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL })
   const page = await context.newPage()
-  await page.goto('/')
+  // Recovery copies are opt-in (Settings → Preserve unsaved work); seed the persisted
+  // preference that toggle writes (default became false in e247e443).
+  await page.addInitScript(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module (same precedent as restore.spec.ts)
+    localStorage.setItem(
+      'open-pencil:preferences:v1',
+      JSON.stringify({ recovery: { enabled: true } })
+    )
+  })
+  await page.goto('/editor')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 
   await page.evaluate(async () => {
     const store = window.openPencil?.getStore?.()
     if (!store) throw new Error('OpenPencil store not initialized')
+    // Every tab is auto-bound to the storage provider (9dfd0290) and a writable source
+    // correctly suppresses recovery snapshots. Drop the binding so the document is genuinely
+    // unsaved — the state recovery exists for.
+    store.setDocumentSource('Untitled', 'fig')
     const id = store.createShape('RECTANGLE', 120, 120, 240, 140)
     await store.persistRecoveryNow()
     store.updateNode(id, { name: 'Retained recovery rectangle' })

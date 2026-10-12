@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 import { propertySection } from '#tests/helpers/properties'
 
-const editor = useEditorSetupWithClear()
+const editor = useEditorSetupWithClear('/editor')
 
 test('property fields follow keyboard tab order', async () => {
   await editor.page.evaluate(() => {

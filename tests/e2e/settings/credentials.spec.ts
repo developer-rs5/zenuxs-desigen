@@ -2,8 +2,39 @@ import { expect, test } from '@playwright/test'
 
 import { CanvasHelper } from '#tests/helpers/canvas'
 
+test.beforeEach(async ({ page }) => {
+  // These specs reload two or three times; a fresh editor boot alone can take
+  // several seconds, so give each test room beyond the 15s default.
+  test.setTimeout(30_000)
+  // The persisted tab session restores a document that never exists on the
+  // test backend, so reload drops to the Home tab where the editor chrome
+  // (settings trigger, canvas, panel tabs) is not rendered. Clearing the
+  // session makes every load start from a fresh editor document instead.
+  await page.addInitScript(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module
+    localStorage.removeItem('zenuxs:tabs:session')
+  })
+})
+
 test('storage settings keep secrets behind the credential manager', async ({ page }) => {
-  await page.goto('/?test')
+  // Storage defaults to the field-less server provider; S3 preferences and
+  // credential fields only render for the s3-compatible provider, which is
+  // selected through its persisted storage preference. Seed once so later
+  // reloads keep the values this test writes.
+  await page.addInitScript(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module
+    if (localStorage.getItem('open-pencil:storage:provider')) return
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module
+    localStorage.setItem('open-pencil:storage:provider', 's3-compatible')
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module
+    localStorage.setItem(
+      'open-pencil:storage:preferences',
+      JSON.stringify({
+        's3-compatible': { endpoint: 'https://seed.example.com', bucket: 'seed', region: '' }
+      })
+    )
+  })
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 
@@ -35,7 +66,7 @@ test('storage settings keep secrets behind the credential manager', async ({ pag
 })
 
 test('MCP connections keep bearer tokens out of ordinary settings', async ({ page }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 
@@ -100,7 +131,7 @@ test('MCP automation settings filter and persist tool availability', async ({ pa
       }
     })
   )
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 
@@ -141,7 +172,7 @@ test('MCP automation settings filter and persist tool availability', async ({ pa
 })
 
 test('model library keeps reusable profiles and role assignments', async ({ page }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 
@@ -180,7 +211,7 @@ test('model library keeps reusable profiles and role assignments', async ({ page
 })
 
 test('remembered browser credentials survive reload and clear centrally', async ({ page }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 
@@ -222,7 +253,9 @@ test('remembered browser credentials survive reload and clear centrally', async 
 })
 
 test('browser credential preferences live in General, not the footer', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/editor')
+  // The shortcut only registers once the workspace keyboard bindings mount.
+  await new CanvasHelper(page).waitForInit()
   await page.keyboard.press('ControlOrMeta+,')
   const panel = page.getByTestId('settings-general-panel')
   const remember = panel.getByRole('switch', { name: 'Remember API keys on this device' })

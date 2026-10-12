@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test&no-chrome&no-rulers')
+const editor = useEditorSetup('/editor?test&no-chrome&no-rulers')
 
 test('lays out Pen frames whose default horizontal layout is omitted', async () => {
   await editor.page.evaluate(() =>

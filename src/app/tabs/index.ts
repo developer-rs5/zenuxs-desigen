@@ -1,40 +1,35 @@
-import { promiseTimeout } from '@vueuse/core'
+import { promiseTimeout, useStorage } from '@vueuse/core'
 import { shallowRef, computed, triggerRef } from 'vue'
 
 import { BUILTIN_IO_FORMATS, IORegistry } from '@open-pencil/core/io'
 import { findFigThumbnailPageId } from '@open-pencil/core/io/formats/fig'
 import { renderThumbnail } from '@open-pencil/core/io/formats/raster'
-import { populateLazyFigImportRoots } from '@open-pencil/core/kiwi'
 import { computeAllLayouts } from '@open-pencil/core/layout'
 import type { SceneGraph } from '@open-pencil/scene-graph'
 
 import { SessionRequestError } from '@/app/auth/api'
 import { setOpenPencilStore } from '@/app/browser-bridge'
-import { describeDiagnosticError, recordStorageFailure } from '@/app/diagnostics'
-import { readFigDocument } from '@/app/document/io/fig'
-import { applyImportedDocument } from '@/app/document/io/imported-document'
 import type { DocumentSourceIdentity } from '@/app/document/io/types'
 import { getRecoveryStore, type RecoverySnapshotMeta } from '@/app/document/recovery'
 import { setActiveEditorStore } from '@/app/editor/active-store'
-import type { EditorPreparationHandle as DocumentLoadSession } from '@/app/editor/preparation/types'
 import { createEditorStore } from '@/app/editor/session'
 import type { EditorStore } from '@/app/editor/session'
-import { notificationMessages } from '@/app/i18n/notifications'
-import {
-  activeStorageProviderID,
-  createActiveStorageAdapter,
-  type StorageDocument
-} from '@/app/integrations/storage'
+import { activeStorageProviderID, type StorageDocument } from '@/app/integrations/storage'
 import {
   cacheRecentFileThumbnail,
   loadCachedRecentFileThumbnail,
   rememberRecentStorageDocument
 } from '@/app/recent-files'
-import { toast } from '@/app/shell/ui'
-import { getLocalCanvasStore } from '@/app/storage/local-store'
-import { seedStorageCanvasFromRemote } from '@/app/storage/sync/persist'
 import { createFileOpenCoordinator } from '@/app/tabs/open/coordinator'
 import { findTabByFileIdentity } from '@/app/tabs/open/identity'
+import {
+  failPreparation,
+  isDOMImportFile,
+  loadStorageDocumentIntoStore,
+  readFigForTab,
+  showImportedGraph,
+  yieldToUI
+} from '@/app/tabs/open/prepare'
 
 export type TabKind = 'home' | 'document'
 
@@ -70,6 +65,11 @@ interface PersistedTabsSession {
   tabs: PersistedTabInfo[]
 }
 
+const persistedTabsSession = useStorage<PersistedTabsSession>(SESSION_TABS_KEY, {
+  activeId: '',
+  tabs: []
+})
+
 export function persistTabsSession(): void {
   try {
     const tabs: PersistedTabInfo[] = tabsRef.value.map((tab) => {
@@ -82,61 +82,54 @@ export function persistTabsSession(): void {
         providerId: binding?.providerId
       }
     })
-    const payload: PersistedTabsSession = {
-      activeId: activeTabId.value,
-      tabs
-    }
-    localStorage.setItem(SESSION_TABS_KEY, JSON.stringify(payload))
-  } catch {
-    // Ignore quota or private mode errors
+    persistedTabsSession.value = { activeId: activeTabId.value, tabs }
+  } catch (error) {
+    console.debug('[Tabs] Failed to persist tabs session:', error)
   }
 }
 
 export function initTabsSession(shouldCreateHome: boolean): Tab {
   try {
-    const raw = localStorage.getItem(SESSION_TABS_KEY)
-    if (raw) {
-      const parsed: PersistedTabsSession = JSON.parse(raw)
-      if (parsed && Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
-        let activeTabToSwitch: Tab | undefined
-        for (const item of parsed.tabs) {
-          if (item.kind === 'home') {
-            const home = createHomeTab()
-            if (item.id === parsed.activeId) activeTabToSwitch = home
-          } else if (item.documentId) {
-            const s = createEditorStore()
-            s.state.documentName = item.documentName || 'Untitled'
-            const providerId = item.providerId || activeStorageProviderID.value
-            s.setStorageDocumentSource(
-              { providerId, documentId: item.documentId },
-              s.state.documentName
-            )
-            const tab: Tab = { id: generateTabId(), store: s, kind: 'document' }
-            tabsRef.value = [...tabsRef.value, tab]
-            if (item.id === parsed.activeId || !activeTabToSwitch) activeTabToSwitch = tab
-            void loadStorageDocumentIntoStore(
-              s,
-              {
-                id: item.documentId,
-                name: s.state.documentName,
-                updatedAt: ''
-              },
-              { silent: true }
-            ).catch((err) => {
-              console.warn('[Tabs] Failed to restore document content:', err)
-              // Drop a definitively missing document so reloads stop replaying
-              // the failure; transient errors keep the tab for a later retry.
-              if (err instanceof SessionRequestError && err.status === 404) {
-                void closeTab(tab.id)
-              }
-            })
-          }
+    const parsed = persistedTabsSession.value
+    if (Array.isArray(parsed.tabs) && parsed.tabs.length > 0) {
+      let activeTabToSwitch: Tab | undefined
+      for (const item of parsed.tabs) {
+        if (item.kind === 'home') {
+          const home = createHomeTab()
+          if (item.id === parsed.activeId) activeTabToSwitch = home
+        } else if (item.documentId) {
+          const s = createEditorStore()
+          s.state.documentName = item.documentName || 'Untitled'
+          const providerId = item.providerId || activeStorageProviderID.value
+          s.setStorageDocumentSource(
+            { providerId, documentId: item.documentId },
+            s.state.documentName
+          )
+          const tab: Tab = { id: generateTabId(), store: s, kind: 'document' }
+          tabsRef.value = [...tabsRef.value, tab]
+          if (item.id === parsed.activeId || !activeTabToSwitch) activeTabToSwitch = tab
+          void loadStorageDocumentIntoStore(
+            s,
+            {
+              id: item.documentId,
+              name: s.state.documentName,
+              updatedAt: ''
+            },
+            { silent: true }
+          ).catch((err) => {
+            console.warn('[Tabs] Failed to restore document content:', err)
+            // Drop a definitively missing document so reloads stop replaying
+            // the failure; transient errors keep the tab for a later retry.
+            if (err instanceof SessionRequestError && err.status === 404) {
+              void closeTab(tab.id)
+            }
+          })
         }
-        if (tabsRef.value.length > 0) {
-          const target = activeTabToSwitch ?? tabsRef.value[0]
-          activateTab(target)
-          return target
-        }
+      }
+      if (tabsRef.value.length > 0) {
+        const target = activeTabToSwitch ?? tabsRef.value[0]
+        activateTab(target)
+        return target
       }
     }
   } catch (error) {
@@ -279,16 +272,6 @@ export async function closeTab(tabId: string): Promise<void> {
   }
 }
 
-function yieldToUI(): Promise<void> {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => resolve())
-  })
-}
-
-function isDOMImportFile(file: File): boolean {
-  return /\.(html?|xhtml)$/i.test(file.name)
-}
-
 function reusableTabStore(): { store: EditorStore; created: boolean } {
   const current = activeTab.value
   if (current?.kind === 'home') {
@@ -302,37 +285,6 @@ function reusableTabStore(): { store: EditorStore; created: boolean } {
     return { store: current.store, created: false }
   }
   return { store: createTab().store, created: true }
-}
-
-async function readFigForTab(file: File, signal?: AbortSignal): Promise<SceneGraph> {
-  const imported = await readFigDocument(file, signal)
-  const firstPageId = imported.getPages()[0]?.id
-  if (firstPageId) computeAllLayouts(imported, firstPageId)
-  const coverPageId = findFigThumbnailPageId(imported.getPages())
-  if (coverPageId && coverPageId !== firstPageId) {
-    populateLazyFigImportRoots(imported, [coverPageId])
-    computeAllLayouts(imported, coverPageId)
-  }
-  return imported
-}
-
-async function showImportedGraph(
-  store: EditorStore,
-  graph: SceneGraph,
-  prepare?: () => void | Promise<void>,
-  load?: DocumentLoadSession
-): Promise<void> {
-  load?.update({ phase: 'materializing', detail: store.state.documentName })
-  await applyImportedDocument(store, graph, load)
-  load?.signal.throwIfAborted()
-  await prepare?.()
-  load?.signal.throwIfAborted()
-  const pageId = store.graph.getPages()[0]?.id ?? store.graph.rootId
-  load?.update({ phase: 'populating-page', detail: store.graph.getNode(pageId)?.name ?? null })
-  await store.switchPage(pageId, { preparation: load })
-  load?.signal.throwIfAborted()
-  load?.update({ phase: 'preparing-render', detail: store.state.documentName })
-  await store.fitCurrentPageToViewport()
 }
 
 async function cacheOpenedFigCover(path: string, store: EditorStore): Promise<void> {
@@ -382,110 +334,6 @@ function findStorageTab(providerId: string, documentId: string): Tab | undefined
     const binding = tab.store.getStorageBinding()
     return binding?.providerId === providerId && binding.documentId === documentId
   })
-}
-
-function failPreparation(
-  load: DocumentLoadSession,
-  code: 'read-failed' | 'decode-failed',
-  error: unknown
-): void {
-  if (load.signal.aborted) return
-  load.fail({
-    code,
-    message: error instanceof Error ? error.message : String(error),
-    retryable: true
-  })
-}
-
-export async function loadStorageDocumentIntoStore(
-  store: EditorStore,
-  document: StorageDocument,
-  options?: { silent?: boolean }
-): Promise<void> {
-  const providerId = activeStorageProviderID.value
-  store.state.documentName = document.name
-  const load = store.preparationController.begin({
-    kind: 'storage-open',
-    subject: document.name
-  })
-  let succeeded = false
-  try {
-    load.update({ phase: 'reading', detail: document.name })
-    const local = getLocalCanvasStore()
-    const localMetadata = await local.getMeta(document.id)
-    if (localMetadata?.name) {
-      store.state.documentName = localMetadata.name
-    }
-    load.signal.throwIfAborted()
-    const localBytes = localMetadata?.hasFig ? await local.readFig(document.id) : null
-    load.signal.throwIfAborted()
-    const localIsAuthoritative =
-      localMetadata?.syncStatus !== 'synced' ||
-      !document.metadataAuthoritative ||
-      Boolean(localMetadata && localMetadata.updatedAt >= document.updatedAt)
-    let bytes = localBytes && localIsAuthoritative ? localBytes : null
-
-    if (!bytes) {
-      bytes = await createActiveStorageAdapter(providerId).getDocument(
-        document.id,
-        (progress) =>
-          load.update({
-            phase: 'reading',
-            detail: document.name,
-            completed: progress.transferredBytes,
-            total: progress.totalBytes,
-            unit: 'bytes'
-          }),
-        load.signal
-      )
-      await seedStorageCanvasFromRemote({
-        providerId,
-        canvasId: document.id,
-        name: document.name,
-        updatedAt: document.updatedAt,
-        figBytes: bytes
-      })
-      load.signal.throwIfAborted()
-    }
-
-    const fileBytes = new Uint8Array(bytes.byteLength)
-    fileBytes.set(bytes)
-    const file = new File([fileBytes.buffer], `${document.name}.fig`, {
-      type: 'application/octet-stream'
-    })
-    load.update({ phase: 'decoding', detail: document.name })
-    const imported = await readFigForTab(file, load.signal)
-    await showImportedGraph(
-      store,
-      imported,
-      () => store.setStorageDocumentSource({ providerId, documentId: document.id }, document.name),
-      load
-    )
-    rememberRecentStorageDocument(providerId, document.id, document.name)
-    succeeded = true
-  } catch (error) {
-    if (!load.signal.aborted) {
-      const diagnostic = describeDiagnosticError(error)
-      load.fail({
-        code: 'read-failed',
-        message: error instanceof Error ? error.message : String(error),
-        retryable: diagnostic.retryable ?? true
-      })
-      recordStorageFailure({ operation: 'download', ...diagnostic })
-      // Session restore stays silent; explicit opens keep the error toast.
-      if (!options?.silent) {
-        toast.error(
-          notificationMessages.get().openFileFailed({
-            name: document.name,
-            error: error instanceof Error ? error.message : String(error)
-          })
-        )
-      }
-    }
-    throw error
-  } finally {
-    if (succeeded) load.complete()
-  }
 }
 
 export async function openStorageDocumentInNewTab(document: StorageDocument): Promise<void> {

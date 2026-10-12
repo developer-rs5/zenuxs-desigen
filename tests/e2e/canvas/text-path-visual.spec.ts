@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup('/?test&no-chrome&no-rulers')
+const editor = useEditorSetup('/editor?test&no-chrome&no-rulers')
 
 test('renders imported text on a path with its selection overlay', async () => {
   test.setTimeout(90_000)

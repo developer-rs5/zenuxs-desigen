@@ -36,8 +36,9 @@ export function resolveReferencedNodes(
       try {
         const xpath = nodeToXPath(graph, node.id)
         if (xpath) item.xpath = xpath
-      } catch {
+      } catch (error) {
         // Safe fallback if graph structure is incomplete
+        console.debug('[chat] XPath unavailable for referenced node:', id, error)
       }
     }
     resolved.push(item)

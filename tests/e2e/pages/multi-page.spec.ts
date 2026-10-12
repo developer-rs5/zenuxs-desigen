@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 function getPages() {
   return editor.page.evaluate(() => {

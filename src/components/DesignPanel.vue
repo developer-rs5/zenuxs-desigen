@@ -24,6 +24,7 @@ import LayoutSection from './properties/layout/LayoutSection.vue'
 import MaskSection from './properties/MaskSection.vue'
 import PageSection from './properties/PageSection.vue'
 import PositionSection from './properties/PositionSection.vue'
+import PrototypeSection from './properties/PrototypeSection.vue'
 import SelectionActionsControl from './properties/SelectionActionsControl.vue'
 import StrokeSection from './properties/stroke/StrokeSection.vue'
 import TypographySection from './properties/TypographySection.vue'
@@ -170,6 +171,7 @@ const { panels } = useI18n()
     <StrokeSection />
     <LayoutGridSection v-if="supportsLayoutGuides" />
     <EffectsSection />
+    <PrototypeSection />
 
     <ExportSection />
   </div>

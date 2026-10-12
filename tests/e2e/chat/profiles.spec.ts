@@ -13,7 +13,8 @@ test('Design profile selector exposes provider and capabilities', async ({
 
 test('OpenRouter accepts a custom model ID from Settings', async ({ configuredChat: chat }) => {
   const customModel = 'meta-llama/llama-3.3-70b-instruct'
-  await chat.page.getByTestId('provider-settings-trigger').click()
+  await chat.profileTrigger.click()
+  await chat.page.getByRole('button', { name: 'Manage models and roles…' }).click()
   await chat.page.locator('[data-model-id]').first().click()
   await chat.page.getByLabel('Model ID').click()
   await chat.page.getByRole('option', { name: 'Custom model…' }).click()
@@ -26,7 +27,8 @@ test('OpenRouter accepts a custom model ID from Settings', async ({ configuredCh
 })
 
 test('Get API key opens the provider URL', async ({ configuredChat: chat }) => {
-  await chat.page.getByTestId('provider-settings-trigger').click()
+  await chat.profileTrigger.click()
+  await chat.page.getByRole('button', { name: 'Manage models and roles…' }).click()
   await chat.page.locator('[data-model-id]').first().click()
   await chat.page.getByTestId('provider-settings-clear-key').click()
   await chat.page.getByRole('button', { name: 'Back' }).click()

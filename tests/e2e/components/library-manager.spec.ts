@@ -6,7 +6,7 @@ test('library manager scopes populated updates and does not mutate on discovery'
   page
 }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await canvas.waitForInit()
 
   const source = await page.evaluate(() => {

@@ -1,7 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { propertySection } from '#tests/helpers/properties'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 function pageColor() {
   return editor.page.evaluate(() => {

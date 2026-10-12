@@ -72,7 +72,9 @@ function buildBaseOverrides(pen: PenNode): Partial<SceneNode> {
     flipX: pen.flipX ?? false,
     flipY: pen.flipY ?? false,
     clipsContent: pen.clip ?? false,
-    boundVariables: {}
+    boundVariables: {},
+    // OpenPencil extension: prototype/plugin metadata passes through verbatim.
+    pluginData: pen.pluginData ? [...pen.pluginData] : []
   }
 }
 
@@ -512,6 +514,11 @@ export function parsePenFile(json: string): SceneGraph {
 
   if (graph.getPages(true).length === 0) {
     graph.addPage('Page 1')
+  }
+
+  // Document-level metadata (prototype flows) lives on the synthetic root node.
+  if (doc.pluginData?.length) {
+    graph.updateNode(graph.rootId, { pluginData: [...doc.pluginData] })
   }
 
   return graph

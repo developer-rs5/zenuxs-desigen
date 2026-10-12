@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 
+// Storybook runs on its own dev server (see playwright.config.ts webServer[1]).
+test.use({ baseURL: 'http://localhost:6006' })
+
 test('alignment arrows move spatially without applying until activation', async ({ page }) => {
   await page.goto('/iframe.html?id=editor-properties-layout-alignment--default&viewMode=story')
   const first = page.getByRole('button', { name: 'Top left', exact: true })

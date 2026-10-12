@@ -2,9 +2,9 @@ import { expect, test } from '#tests/helpers/chat/fixture'
 
 test('⌘J switches between Design and AI', async ({ chat }) => {
   await chat.designTab.waitFor()
-  await chat.page.keyboard.press('Meta+j')
+  await chat.page.keyboard.press('ControlOrMeta+j')
   await expect(chat.chatTab).toHaveAttribute('data-state', 'active')
-  await chat.page.keyboard.press('Meta+j')
+  await chat.page.keyboard.press('ControlOrMeta+j')
   await expect(chat.designTab).toHaveAttribute('data-state', 'active')
 })
 
@@ -19,6 +19,8 @@ test('saving an API key in Settings opens the chat interface', async ({ chat }) 
   await chat.chatTab.click()
   await chat.page.getByTestId('provider-setup-open-settings').click()
   await expect(chat.page.getByTestId('app-settings-dialog')).toBeVisible()
+  // #664 moved credential preferences from the dialog footer into the General tab.
+  await chat.page.getByTestId('settings-section-general').click()
   await expect(chat.page.getByTestId('settings-remember-credentials')).toHaveAttribute(
     'data-state',
     'checked'
@@ -26,6 +28,7 @@ test('saving an API key in Settings opens the chat interface', async ({ chat }) 
   await expect(chat.page.getByTestId('settings-credential-backend')).toContainText(
     'encrypted browser storage'
   )
+  await chat.page.getByTestId('settings-section-ai').click()
   await chat.page.locator('[data-model-id]').first().click()
   await chat.page.getByTestId('settings-model-provider').click()
   await chat.page.getByRole('option', { name: 'OpenRouter' }).click()
@@ -35,5 +38,6 @@ test('saving an API key in Settings opens the chat interface', async ({ chat }) 
   await chat.page.getByTestId('app-settings-done').click()
 
   await expect(chat.input).toBeVisible()
-  await expect(chat.page.getByText('Describe what you want to create or change.')).toBeVisible()
+  // 1e702f10 replaced the transcript placeholder copy with the copilot empty state.
+  await expect(chat.page.getByText('What are you designing?')).toBeVisible()
 })

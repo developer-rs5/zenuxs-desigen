@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetupWithClear('/?test')
+const editor = useEditorSetupWithClear('/editor?test')
 
 test('draw section in full editor without browser errors', async () => {
   await editor.canvas.drawSection(100, 100, 240, 160)

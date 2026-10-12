@@ -13,7 +13,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   await canvas.clearCanvas()
@@ -37,7 +37,7 @@ test('Shift+A wraps selection in auto-layout frame', async () => {
   await canvas.clearCanvas()
   await canvas.drawRect(100, 100, 60, 60)
   await canvas.drawRect(220, 100, 60, 60)
-  await canvas.pressKey('Meta+a')
+  await canvas.pressKey('ControlOrMeta+a')
   await canvas.waitForRender()
 
   await canvas.pressKey('Shift+A')
@@ -215,7 +215,7 @@ test('editing a Hug width switches to Fixed in one reversible interaction', asyn
   expect(changed.counterAxisSizing).toBe('FIXED')
   expect(changed.width).toBe(Math.round(before.width + 40))
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   const undone = expectDefined(await getNodeById(page, frameId), 'undone')
   expect(undone.counterAxisSizing).toBe('HUG')
@@ -243,7 +243,7 @@ test('editing a Fill height switches to Fixed in one undo step', async () => {
   expect(changed.primaryAxisSizing).toBe('FIXED')
   expect(changed.height).toBe(Math.round(before.height + 30))
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   const undone = expectDefined(await getNodeById(page, frameId), 'undone')
   expect(undone.primaryAxisSizing).toBe('FILL')

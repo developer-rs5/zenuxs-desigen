@@ -38,8 +38,9 @@ export function imageFilesFromClipboardHTML(html: string): File[] {
       const type = match[1].toLowerCase()
       const extension = type === 'image/jpeg' ? 'jpg' : type.slice('image/'.length)
       files.push(new File([bytes], `pasted-image.${extension}`, { type }))
-    } catch {
+    } catch (error) {
       // Malformed base64 — skip this image rather than failing the paste.
+      console.debug('[clipboard] Skipping malformed pasted image:', error)
     }
   }
   return files

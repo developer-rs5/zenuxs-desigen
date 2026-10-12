@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import type { Chat } from '@ai-sdk/vue'
 import type { UIMessage } from 'ai'
-import {
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuRoot,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from 'reka-ui'
 import { computed, markRaw, onUnmounted, ref, shallowRef, watch } from 'vue'
 
 import { useI18n } from '@open-pencil/vue'
 
 import { chatBuilding } from '@/app/ai/chat/build-state'
+import { chatDocumentId } from '@/app/ai/chat/history/document'
+import { buildTextSubmission } from '@/app/ai/chat/submission/build'
 import { useChatSubmission } from '@/app/ai/chat/submission/use'
 import { useAIChat } from '@/app/ai/chat/use'
 import { copyChatLog } from '@/app/ai/debug'
@@ -25,6 +19,7 @@ import { toast } from '@/app/shell/ui'
 import { activeTab } from '@/app/tabs'
 import ACPPermissionDialog from '@/components/chat/ACPPermissionDialog.vue'
 import AiCopilotEmptyState from '@/components/chat/AiCopilotEmptyState.vue'
+import ChatHistory from '@/components/chat/ChatHistory.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import ChatTranscript from '@/components/chat/ChatTranscript.vue'
 import ProviderSetup from '@/components/chat/ProviderSetup.vue'
@@ -46,7 +41,9 @@ const submission = useChatSubmission({
     requestFailed: ai.value.chatRequestFailed,
     visionUnavailable: ai.value.visionModelUnavailable,
     agentImagesUnsupported: ai.value.chatAgentImagesUnsupported,
-    modelImagesUnsupported: ai.value.chatModelImagesUnsupported
+    modelImagesUnsupported: ai.value.chatModelImagesUnsupported,
+    unknownCommand: ai.value.unknownCommand,
+    unknownCommandSuggestions: ai.value.unknownCommandSuggestions
   })),
   reportError: toast.error,
   openModelSettings: () => openSettingsDialog('ai')
@@ -68,6 +65,15 @@ void ensureChat()
   })
 
 const messages = computed(() => chat.value?.messages ?? history.messages.value)
+const historyOptions = computed(() => {
+  const current = history.current.value
+  const rows = [...history.conversations.value]
+  if (current && !rows.some((row) => row.id === current.id)) rows.unshift(current)
+  return rows.map((conversation) => ({
+    ...conversation,
+    available: conversation.documentId === chatDocumentId(getActiveEditorStore())
+  }))
+})
 const agentHistoryReadOnly = computed(
   () => !chat.value && messages.value.length > 0 && history.current.value?.backend !== 'direct'
 )
@@ -86,29 +92,12 @@ async function historyAction(action: () => Promise<unknown>) {
   }
 }
 
-const renamingId = ref<string | null>(null)
-const renameDraft = ref('')
-
-function startRename(id: string, currentTitle: string) {
-  renamingId.value = id
-  renameDraft.value = currentTitle
-}
-
-async function commitRename() {
-  const id = renamingId.value
-  if (!id) return
-  const next = renameDraft.value.trim()
-  renamingId.value = null
-  if (!next) return
+async function renameConversation(id: string, title: string) {
   try {
-    await history.rename(id, next)
+    await history.rename(id, title)
   } catch {
     toast.error(ai.value.chatHistoryFailed)
   }
-}
-
-function cancelRename() {
-  renamingId.value = null
 }
 
 const failureMessage = computed(() => {
@@ -216,90 +205,41 @@ async function handleCopyDebug() {
 
 <template>
   <div data-test-id="chat-panel" class="flex min-h-0 flex-1 flex-col overflow-hidden select-text">
-    <!-- ZONE 1: Fixed Header - Copilot info + New chat controls -->
+    <!-- ZONE 1: Fixed Header - Copilot info -->
     <div class="shrink-0 border-b border-[#292D33] px-3 py-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <icon-lucide-sparkles class="size-4 text-[#3B82F6]" />
-          <span class="text-[14px] font-semibold text-[#F5F7FA]">Zenux Ai</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <button
-            class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
-            title="New chat"
-            @click="historyAction(() => history.newChat())"
-          >
-            <icon-lucide-plus class="size-4" />
-          </button>
-          <DropdownMenuRoot v-if="history.current.value">
-            <DropdownMenuTrigger
-              class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA]"
-            >
-              <icon-lucide-ellipsis class="size-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuContent
-                align="end"
-                :side-offset="4"
-                class="z-50 min-w-[160px] rounded-xl border border-[#292D33] bg-[#1B1E22] p-1 shadow-xl"
-              >
-                <DropdownMenuItem
-                  v-if="renamingId !== history.current.value?.id"
-                  class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
-                  @click="startRename(history.current.value!.id, history.current.value!.title)"
-                >
-                  <icon-lucide-pencil class="size-3.5 text-[#9CA3AF]" />
-                  Rename
-                </DropdownMenuItem>
-
-                <div v-else class="flex items-center gap-1.5 rounded-lg bg-[#1E2126] px-2.5 py-1.5">
-                  <input
-                    v-model="renameDraft"
-                    class="w-24 bg-transparent text-[12px] text-[#F5F7FA] outline-none"
-                    placeholder="New name"
-                    @keydown.enter="commitRename"
-                    @keydown.esc="cancelRename"
-                    @blur="commitRename"
-                  />
-                </div>
-                <DropdownMenuItem
-                  class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#F5F7FA] outline-none hover:bg-[#1E2126]"
-                  @click="handleCopyDebug"
-                >
-                  <icon-lucide-copy class="size-3.5 text-[#9CA3AF]" />
-                  Copy chat log
-                </DropdownMenuItem>
-                <DropdownMenuSeparator class="my-1 h-px bg-[#292D33]" />
-                <DropdownMenuItem
-                  class="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] text-[#EF4444] outline-none hover:bg-[#1E2126]"
-                  @click="historyAction(() => history.remove(history.current.value!.id))"
-                >
-                  <icon-lucide-trash-2 class="size-3.5" />
-                  Delete chat
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenuPortal>
-          </DropdownMenuRoot>
-        </div>
+      <div class="flex items-center gap-2">
+        <icon-lucide-sparkles class="size-4 text-[#3B82F6]" />
+        <span class="text-[14px] font-semibold text-[#F5F7FA]">Zenux Ai</span>
       </div>
       <p class="mt-1 text-[11px] text-[#9CA3AF]">Your design partner, powered by AI.</p>
     </div>
+    <ChatHistory
+      :saved="history.conversations.value.some((row) => row.id === history.current.value?.id)"
+      :debug="true"
+      :conversations="historyOptions"
+      :selected-id="history.current.value?.id"
+      :disabled="history.busy.value"
+      @create="historyAction(() => history.newChat())"
+      @select="historyAction(() => history.open($event))"
+      @rename="renameConversation"
+      @delete="historyAction(() => history.remove($event))"
+      @copy-debug="handleCopyDebug"
+    />
+    <p v-if="diagnosticNotice" role="status" class="px-3 py-2 text-xs text-muted">
+      {{ diagnosticNotice }}
+    </p>
+    <p v-if="history.storageError.value" role="alert" class="px-3 py-2 text-xs text-red-400">
+      {{ ai.chatStorageFailed }}
+    </p>
 
     <!-- ZONE 2: Scrollable Content - Empty state or conversation -->
-    <div class="min-h-0 flex-1 overflow-y-auto">
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
       <ProviderSetup v-if="!isConfigured" />
 
       <!-- AI Copilot empty state when no messages -->
       <AiCopilotEmptyState
         v-if="isConfigured && messages.length === 0"
-        @submit="
-          submission.submit({
-            modelText: $event,
-            displayText: $event,
-            images: [],
-            nodes: []
-          })
-        "
+        @submit="submission.submit(buildTextSubmission($event))"
       />
 
       <template v-if="(isConfigured && messages.length > 0) || messages.length">

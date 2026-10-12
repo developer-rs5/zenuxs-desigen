@@ -149,5 +149,17 @@
   "reasoningExpanded": "Déplié par défaut",
   "jumpToLatest": "Aller au dernier message",
   "chatAgentImagesUnsupported": "Cet agent ne reçoit que du texte, les images jointes n’ont donc pas été envoyées. Passez à un modèle direct pour utiliser des images de référence.",
-  "chatModelImagesUnsupported": "Le modèle de design sélectionné ne peut pas lire les images, la pièce jointe n’a donc pas été envoyée. Attribuez un modèle avec vision dans les paramètres."
+  "chatModelImagesUnsupported": "Le modèle de design sélectionné ne peut pas lire les images, la pièce jointe n’a donc pas été envoyée. Attribuez un modèle avec vision dans les paramètres.",
+  "skillsPopoverTitle": "Skills de design IA",
+  "skillsActive": "{count} actifs",
+  "skillsTriggerLabel": "Skills IA : {count} actifs",
+  "skillsPopoverFooter": "Taste Skill et UI/UX Pro Max",
+  "skillsPopoverSettings": "Paramètres",
+  "skillsSectionTitle": "Skills IA et frameworks de design",
+  "skillsSectionDescription": "Les skills actifs injectent des règles de design spécialisées, des directives anti-slop et de l’intelligence UI/UX dans les prompts de génération IA.",
+  "skillsSectionActive": "{active} sur {total} skills actifs",
+  "commandSuggestions": "Commandes de skills",
+  "noCommandMatches": "Aucune commande correspondante",
+  "unknownCommand": "Commande inconnue \"/{command}\".",
+  "unknownCommandSuggestions": "Commande inconnue \"/{command}\". Vouliez-vous dire {suggestions} ?"
 }

@@ -7,12 +7,15 @@ import {
   buildComponentPropIndex,
   exportCanvasGuides,
   importCanvasGuides,
+  OPEN_PENCIL_PLUGIN_ID,
   stringToGuid
 } from '@open-pencil/fig/node-change'
 import { initCodec, getCompiledSchema, getSchemaBytes } from '@open-pencil/kiwi/fig/codec'
 import type { NodeChange } from '@open-pencil/kiwi/fig/codec'
+import { guidToString } from '@open-pencil/kiwi/fig/guid'
 import { decodeBinarySchema, compileSchema, ByteBuffer } from '@open-pencil/kiwi/schema-runtime'
 import type { SceneGraph, VariableValue } from '@open-pencil/scene-graph'
+import { remapPrototypePluginValue } from '@open-pencil/scene-graph'
 import type { GUID } from '@open-pencil/scene-graph/primitives'
 
 import { decodeBase64 } from '#core/bytes'
@@ -439,6 +442,35 @@ function appendInternalResources(context: InternalResourceContext): void {
   }
 }
 
+/**
+ * Scan imported source GUIDs (and component-property GUIDs) for the highest
+ * `sessionID:0`/`sessionID:1` localIDs, advance the shared counter past them,
+ * and collect every imported source id — so no new counter-based GUID can
+ * collide with an imported one. Runs before any new GUID assignment for the
+ * same reason.
+ */
+function reserveImportedLocalIds(
+  graph: SceneGraph,
+  localIdCounter: { value: number }
+): { propertyGuidState: ComponentPropertyGuidState; nodeSourceGuidValues: Set<string> } {
+  let maxLocalId0 = localIdCounter.value - 1
+  let maxLocalId1 = localIdCounter.value - 1
+  const nodeSourceGuidValues = new Set<string>()
+  for (const node of graph.nodes.values()) {
+    if (node.source.id) {
+      nodeSourceGuidValues.add(node.source.id)
+      const g = stringToGuid(node.source.id)
+      if (g.sessionID === 0 && g.localID > maxLocalId0) maxLocalId0 = g.localID
+      if (g.sessionID === 1 && g.localID > maxLocalId1) maxLocalId1 = g.localID
+    }
+  }
+  const propertyGuidState = collectComponentPropertyGuidState(graph)
+  maxLocalId0 = Math.max(maxLocalId0, propertyGuidState.maxLocalId0)
+  maxLocalId1 = Math.max(maxLocalId1, propertyGuidState.maxLocalId1)
+  localIdCounter.value = Math.max(localIdCounter.value, maxLocalId0 + 1, maxLocalId1 + 1)
+  return { propertyGuidState, nodeSourceGuidValues }
+}
+
 export async function exportFigFile(
   sourceGraph: SceneGraph,
   ck?: CanvasKit,
@@ -494,29 +526,9 @@ export async function exportFigFile(
   const blobIndexByHex = new Map<string, number>()
   const componentPropertyDefinitionsById = buildComponentPropIndex(graph)
 
-  // Scan ALL imported source.ids BEFORE any new GUID assignment to find
-  // max sessionID:0 and sessionID:1 localID values. This guarantees the
-  // counter is past every imported GUID before any canvas, variable, or
-  // node claims a new counter-based GUID — preventing collisions.
-  let maxLocalId0 = localIdCounter.value - 1
-  let maxLocalId1 = localIdCounter.value - 1
-  const nodeSourceGuidValues = new Set<string>()
-  for (const node of graph.nodes.values()) {
-    if (node.source.id) {
-      nodeSourceGuidValues.add(node.source.id)
-      const g = stringToGuid(node.source.id)
-      if (g.sessionID === 0 && g.localID > maxLocalId0) {
-        maxLocalId0 = g.localID
-      }
-      if (g.sessionID === 1 && g.localID > maxLocalId1) {
-        maxLocalId1 = g.localID
-      }
-    }
-  }
-  const propertyGuidState = collectComponentPropertyGuidState(graph)
-  maxLocalId0 = Math.max(maxLocalId0, propertyGuidState.maxLocalId0)
-  maxLocalId1 = Math.max(maxLocalId1, propertyGuidState.maxLocalId1)
-  localIdCounter.value = Math.max(localIdCounter.value, maxLocalId0 + 1, maxLocalId1 + 1)
+  // Scan ALL imported source.ids BEFORE any new GUID assignment (see
+  // reserveImportedLocalIds) so no counter-based GUID can collide.
+  const { propertyGuidState, nodeSourceGuidValues } = reserveImportedLocalIds(graph, localIdCounter)
 
   const { canvasEntries, internalCanvasGuid } = buildCanvasEntries(
     graph,
@@ -593,6 +605,27 @@ export async function exportFigFile(
     componentPropertyDefinitionsById,
     propertyIdToGuid
   })
+
+  // Prototype pluginData embeds node ids (flow starts, navigate/overlay
+  // destinations). SceneNode ids are minted from kiwi GUIDs on import, so
+  // rewrite those references to the exported GUID strings now that every
+  // exported node has a GUID. Unknown ids pass through unchanged.
+  const resolvePrototypeRef = (id: string): string => {
+    const guid = nodeIdToGuid.get(id)
+    return guid ? guidToString(guid) : id
+  }
+  for (const nc of nodeChanges) {
+    if (!nc.pluginData?.length) continue
+    const previous = nc.pluginData
+    const next = previous.map((entry) => {
+      if (entry.pluginID !== OPEN_PENCIL_PLUGIN_ID) return entry
+      const value = remapPrototypePluginValue(entry.key, entry.value, resolvePrototypeRef)
+      if (value === entry.value) return entry
+      return { ...entry, value }
+    })
+    // Only write when a value actually changed (map keeps untouched entries identical).
+    if (next.some((entry, i) => entry !== previous[i])) nc.pluginData = next
+  }
 
   const msg: Record<string, unknown> = {
     type: 'NODE_CHANGES',

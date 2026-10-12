@@ -34,6 +34,18 @@ import { IS_BROWSER, IS_TAURI } from '@/constants'
 export { EDITOR_TOOLS as TOOLS, TOOL_SHORTCUTS } from '@open-pencil/core/editor'
 export type { EditorToolDef as ToolDef, Tool } from '@open-pencil/core/editor'
 
+/**
+ * prefers-reduced-motion for prototype previews. matchMedia always reports the
+ * current value, so every preview start re-reads it and no change listener is
+ * needed here.
+ * ponytail: an OS toggle while a preview is open applies on the next start;
+ * add a change listener plus preview restart if live switching is requested.
+ */
+function prefersReducedMotion(): boolean {
+  if (!IS_BROWSER || typeof window.matchMedia !== 'function') return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 export function createEditorStore(initialGraph?: SceneGraph) {
   const graph = initialGraph ?? new SceneGraph()
 
@@ -46,6 +58,7 @@ export function createEditorStore(initialGraph?: SceneGraph) {
     loadFont,
     resolveFigmaClipboardImages: IS_TAURI ? resolveFigmaClipboardImages : undefined,
     skipInitialGraphSetup: !!initialGraph,
+    prefersReducedMotion,
     getViewportSize: () =>
       viewportSize.width > 0 && viewportSize.height > 0
         ? viewportSize

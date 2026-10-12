@@ -7,6 +7,7 @@ export function rawMarkdownPlugin(): Plugin {
       if (id.endsWith('.md') || id.endsWith('.kiwi')) {
         return { code: `export default ${JSON.stringify(code)}`, map: null }
       }
+      return null
     }
   }
 }

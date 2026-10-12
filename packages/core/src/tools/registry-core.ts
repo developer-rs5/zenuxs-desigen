@@ -12,6 +12,7 @@ import {
   setTextProperties,
   updateNode
 } from './modify'
+import { PROTOTYPE_TOOLS } from './prototype'
 import { findNodes, getJSX, getNode, getSelection } from './read'
 import type { ToolDef } from './schema'
 import { stockPhoto } from './stock-photo'
@@ -44,6 +45,8 @@ export const CORE_TOOLS: ToolDef[] = [
   reparentNode,
   nodeResize,
   batchUpdate,
+  // Prototype / interaction / state / motion
+  ...PROTOTYPE_TOOLS,
   // Stock photos
   stockPhoto,
   // Inspect & utility

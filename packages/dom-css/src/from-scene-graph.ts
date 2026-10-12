@@ -154,7 +154,7 @@ function addImageStyle(style: DesignStyleDeclaration, node: SceneNode): void {
   if (fill.imageScaleMode === 'FILL') style['object-fit'] = 'cover'
 }
 
-function styleFromSceneNode(node: SceneNode): DesignStyleDeclaration {
+export function styleFromSceneNode(node: SceneNode): DesignStyleDeclaration {
   const style = sceneNodeSizeStyle(node)
   addPositioning(style, node)
   addSizeConstraints(style, node)
@@ -185,7 +185,7 @@ function styleFromSceneNode(node: SceneNode): DesignStyleDeclaration {
   return style
 }
 
-function styleFromTextNode(node: SceneNode): DesignStyleDeclaration {
+export function styleFromTextNode(node: SceneNode): DesignStyleDeclaration {
   const style = sceneNodeSizeStyle(node)
   addPositioning(style, node)
   style.color = fillToCSS(node.fills.at(0)) ?? colorToCSS(BLACK)

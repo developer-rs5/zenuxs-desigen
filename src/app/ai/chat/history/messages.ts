@@ -11,9 +11,10 @@ import type { ConversationMessage } from './types'
 
 export function snapshotMessages(messages: UIMessage[]): ConversationMessage[] {
   return messages.map((message) => {
-    const text = (message.parts ?? [])
+    const parts = Array.isArray(message.parts) ? message.parts : []
+    const text = parts
       .filter((part) => part.type === 'text')
-      .map((part) => part.text ?? '')
+      .map((part) => part.text)
       .join('')
     return {
       message: structuredClone(toRaw(message)),
@@ -36,9 +37,10 @@ export function restoreMessages(messages: ConversationMessage[]): UIMessage[] {
 export function fallbackTitle(messages: UIMessage[]): string {
   const first = messages.find((message) => message.role === 'user')
   if (!first) return ''
-  const text = (first.parts ?? [])
+  const parts = Array.isArray(first.parts) ? first.parts : []
+  const text = parts
     .filter((part) => part.type === 'text')
-    .map((part) => part.text ?? '')
+    .map((part) => part.text)
     .join(' ')
   const result = visibleMessageText(first.id, text)
   return (typeof result === 'string' ? result : '').replace(/\s+/g, ' ').trim().slice(0, 120)

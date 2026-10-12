@@ -1,0 +1,1683 @@
+ZENUXS DESIGN — AI-NATIVE PROTOTYPING + MOTION ENGINEERING SPECIFICATION
+======================================================================
+
+PURPOSE
+-------
+This document is an engineering specification for the AI/coding agent working on
+Zenuxs Design.
+
+The goal is to extend the existing Zenuxs Design / OpenPencil-based editor so
+that it can create not only static UI designs, but also interactive prototypes,
+screen flows, states, transitions, micro-interactions, and motion/animation
+behaviors.
+
+IMPORTANT:
+We are NOT trying to replace the existing Zenuxs/OpenPencil foundation.
+We are extending it.
+
+The existing editor, scene graph, renderer, design operations, AI tools, file
+formats, and working functionality must be preserved unless a change is
+strictly required.
+
+The desired end state is:
+
+    User describes a UI/UX experience
+              ↓
+    AI understands what kind of experience it is
+              ↓
+    AI selects the appropriate design + prototype + motion primitives
+              ↓
+    Zenuxs stores those primitives as real editable document data
+              ↓
+    Designer can inspect/edit them
+              ↓
+    Preview mode actually runs the interactions/motion
+              ↓
+    Save/reopen/import/export preserve the behavior
+              ↓
+    AI can understand and modify the same behavior later
+
+This is NOT a request to simply install an animation library and call it done.
+
+
+======================================================================
+1. CURRENT ZENUXS / OPENPENCIL FOUNDATION
+======================================================================
+
+Zenuxs Design is based on an OpenPencil fork.
+
+Current upstream/reference:
+https://github.com/open-pencil/open-pencil
+
+Zenuxs project:
+https://github.com/developer-rs5/zenuxs-desigen
+https://github.com/developer-rs5/zenuxs-desigen.git
+
+OpenPencil's core architectural idea is important:
+
+    A design is a node tree / editable document model,
+    and editor, CLI, SDK, MCP and AI operations work against the same
+    underlying document/operation model.
+
+The existing ecosystem includes, among other things:
+
+- scene graph / nodes
+- frames
+- text
+- shapes
+- images
+- components
+- variants
+- variables/design data
+- auto layout
+- CSS Grid
+- .fig / .pen handling
+- rendering
+- editor operations
+- AI tools
+- MCP
+- CLI
+- Vue SDK
+- design-to-code / code-to-design capabilities
+
+DO NOT rebuild these capabilities.
+
+The purpose of this project is to add a native interaction/prototyping/motion
+layer on top of the existing design model.
+
+
+======================================================================
+2. IMPORTANT REFERENCE PROJECTS
+======================================================================
+
+These projects are REFERENCE IMPLEMENTATIONS.
+
+Do NOT blindly embed them.
+Do NOT blindly copy their code.
+Do NOT turn Zenuxs into a wrapper around another editor.
+
+Study their:
+
+- architecture
+- document models
+- interaction semantics
+- motion models
+- state handling
+- editor/runtime separation
+- preview behavior
+- APIs
+- data structures
+- serialization patterns
+- testing strategies
+- performance strategies
+- failure handling
+
+Then implement a Zenuxs-native solution that fits the existing architecture.
+
+----------------------------------------------------------------------
+2.1 OpenPencil — BASE ARCHITECTURE REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/open-pencil/open-pencil
+
+What it is:
+An open-source AI-native visual design editor whose core model is a
+programmable node tree. The editor, tools, CLI, MCP, and SDK operate on the
+same design/operation model.
+
+Study especially:
+
+- packages/scene-graph
+- packages/core
+- packages/mcp
+- packages/cli
+- packages/vue
+- document serialization
+- node/object model
+- operation execution
+- undo/redo
+- selection and tree traversal
+- AI tool architecture
+- renderer/update lifecycle
+
+Rule:
+Zenuxs should continue to treat the design document/scene graph as the source
+of truth.
+
+
+----------------------------------------------------------------------
+2.2 Penpot — PROTOTYPING / INTERACTION REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/penpot/penpot
+
+What it is:
+An open-source design and prototyping platform.
+
+Why study it:
+Penpot demonstrates that a design tool can represent not only static design
+objects, but also realistic user flows and interactive prototypes, including
+concepts such as:
+
+- interactions
+- triggers
+- actions
+- navigation
+- overlays
+- transitions
+- flows
+- preview/runtime behavior
+- stateful interaction patterns
+
+Study it to understand how prototype information can live as structured
+design data rather than being treated as an animation attached to a screenshot.
+
+DO NOT copy Penpot's full architecture into Zenuxs.
+
+Use it as a source of design/prototyping concepts and implementation ideas.
+
+
+----------------------------------------------------------------------
+2.3 XState — STATE MACHINE / INTERACTION LOGIC REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/statelyai/xstate
+
+What it is:
+A JavaScript/TypeScript state-management and orchestration system based on
+state machines, statecharts, actors, and event-driven logic.
+
+Why it matters:
+Many "animations" users request are actually visual transitions between
+states.
+
+Examples:
+
+    Login
+      idle
+      ↓ submit
+      loading
+      ↓ success
+      home
+
+    Button
+      default
+      ↓ hover
+      hover
+      ↓ press
+      pressed
+      ↓ release
+      default
+
+    Modal
+      closed
+      ↓ open
+      entering
+      ↓ transition complete
+      open
+      ↓ close
+      exiting
+      ↓
+      closed
+
+Study:
+
+- state definitions
+- transitions
+- events
+- guards/conditions
+- actions
+- deterministic state changes
+- serialization ideas
+- visualization/debugging ideas
+
+Do not automatically install XState as a required runtime dependency.
+
+First determine whether a smaller Zenuxs-native state model is better.
+
+The important thing is to adopt the CONCEPTUAL MODEL where useful.
+
+
+----------------------------------------------------------------------
+2.4 Motion for Vue / Motion-V — MOTION PRIMITIVE REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/motiondivision/motion-vue
+
+What it is:
+An open-source production animation library for Vue. It provides primitives
+such as:
+
+- springs
+- keyframes
+- layout animations
+- gestures
+- hover/tap/drag behavior
+- exit animations
+- scroll animations
+- orchestration
+- transforms
+- easing-related capabilities
+
+License:
+The repository describes Motion for Vue as MIT licensed.
+
+Why study it:
+It is a useful reference for how modern motion APIs express animation intent.
+
+IMPORTANT ARCHITECTURE CONSTRAINT:
+
+Zenuxs uses a design-editor/scene-graph renderer rather than simply being a
+DOM application.
+
+Therefore:
+
+    DO NOT assume that <motion.div> is the correct implementation model
+    for the Zenuxs editor canvas.
+
+Instead study:
+
+- motion semantics
+- interpolation
+- spring behavior
+- keyframes
+- orchestration
+- gesture concepts
+- enter/exit behavior
+
+Then implement equivalent concepts against Zenuxs' own scene graph and renderer.
+
+The Zenuxs document should describe motion.
+The Zenuxs runtime should evaluate motion.
+The renderer should render the current evaluated state.
+
+
+----------------------------------------------------------------------
+2.5 MotionForge — END-TO-END ANIMATION EDITOR REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/alesloa/motion-forge-animation
+
+What it is:
+A browser-based Figma-style animation editor with:
+
+- device frames
+- editable element trees
+- keyframe timelines
+- live preview
+- animation editing
+- components
+- multi-target exports
+- AI assistance
+- undoable document operations
+
+Why study it:
+It is unusually close to the product direction we are building:
+design editor + animation + AI + editable document model.
+
+Study:
+
+- how animation is represented
+- keyframe timeline concepts
+- animation targets
+- preview vs edit modes
+- timeline semantics
+- how AI manipulates the same document
+- export model
+- document/runtime boundaries
+
+Do not turn MotionForge into a dependency or rewrite Zenuxs around it.
+
+
+----------------------------------------------------------------------
+2.6 Rive — RICH INTERACTIVE ANIMATION ASSET REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/rive-app/rive-wasm
+
+What it is:
+A JavaScript/TypeScript + WebAssembly runtime for Rive content, supporting
+animations, artboards, state machines, events and interactive playback.
+
+Why study it:
+Rive demonstrates a strong model for reusable interactive animation assets.
+
+Potential Zenuxs use:
+Optional embedded/rich animation assets, not the foundation of the Zenuxs
+editor's prototype model.
+
+Study:
+
+- state machines
+- animation states
+- events
+- runtime driving
+- loading
+- render loop
+
+Do not replace the Zenuxs scene graph with Rive.
+
+
+----------------------------------------------------------------------
+2.7 Lottie Web — ANIMATION ASSET REFERENCE
+----------------------------------------------------------------------
+
+Repository:
+https://github.com/airbnb/lottie-web
+
+What it is:
+A runtime for playback of Lottie animation data using SVG/canvas/HTML
+renderers.
+
+Why study it:
+Useful for thinking about:
+
+- reusable animation assets
+- playback
+- timing
+- pause/resume
+- speed control
+- event hooks
+- animation asset portability
+
+Potential Zenuxs use:
+Optional imported/reusable motion assets.
+
+Lottie is NOT a substitute for Zenuxs native prototype/state/motion data.
+
+
+======================================================================
+3. WHAT ZENUXS SHOULD BUILD
+======================================================================
+
+The target system should have FOUR related but separate layers.
+
+----------------------------------------------------------------------
+A. EXISTING DESIGN LAYER
+----------------------------------------------------------------------
+
+Keep the current design model:
+
+- pages
+- frames
+- groups
+- text
+- images
+- vectors
+- components
+- instances
+- variants
+- variables
+- layout
+- visual properties
+
+No unnecessary rewrite.
+
+----------------------------------------------------------------------
+B. PROTOTYPE / INTERACTION LAYER
+----------------------------------------------------------------------
+
+Add a native structured model representing interaction behavior.
+
+Conceptually:
+
+    PrototypeFlow
+    Interaction
+    Trigger
+    Condition
+    Action
+    Target
+    Transition
+
+Examples:
+
+    OnClick
+        → NavigateTo
+        → Home
+        → SlideLeft
+
+    OnClick
+        → OpenOverlay
+        → Menu
+        → Spring
+
+    Hover
+        → SetVariant
+        → Button
+        → Hover
+
+    Drag
+        → UpdateState
+        → Drawer
+        → x-position
+
+The exact TypeScript/database schema must be designed after inspecting the
+existing document architecture.
+
+Do not blindly use these exact names if the project already has conventions.
+
+
+----------------------------------------------------------------------
+C. STATE LAYER
+----------------------------------------------------------------------
+
+Represent interactive state where required.
+
+Examples:
+
+    default
+    hover
+    pressed
+    focused
+    disabled
+    loading
+    success
+    error
+    open
+    closed
+    expanded
+    collapsed
+
+A state should be data that can be understood by both:
+
+- the editor
+- the AI
+- the runtime/preview
+
+The state model must be deterministic and serializable.
+
+
+----------------------------------------------------------------------
+D. MOTION LAYER
+----------------------------------------------------------------------
+
+Represent actual animation intent.
+
+Possible primitives:
+
+    animation
+    keyframes
+    duration
+    delay
+    easing
+    spring
+    iteration
+    direction
+    interpolation
+    sequence
+    parallel/orchestration
+
+Property targets could include:
+
+    x
+    y
+    width
+    height
+    opacity
+    rotation
+    scale
+    fill/color
+    stroke
+    corner radius
+    blur/effects
+    clip/mask values
+    component state/variant
+    visibility
+
+Where technically appropriate, support both:
+
+    keyframe animation
+
+and:
+
+    spring-based animation
+
+The exact model must remain compatible with the scene graph.
+
+
+======================================================================
+4. PROTOTYPE VS MOTION — KEEP THE CONCEPTS DISTINCT
+======================================================================
+
+The AI must understand:
+
+    Prototype interaction
+        answers:
+        "What happens when the user does something?"
+
+    Motion
+        answers:
+        "How does a visual change happen over time?"
+
+Examples:
+
+    Tap button
+        = trigger
+
+    Navigate to Home
+        = action
+
+    Slide left
+        = transition
+
+    400ms ease-out
+        = motion timing
+
+    Spring open
+        = motion model
+
+Do not collapse all of these into a single "animation" object.
+
+Similarly:
+
+    Variant change
+    ≠ Page navigation
+
+    Component state
+    ≠ Prototype flow
+
+    Motion
+    ≠ State machine
+
+The architecture should allow them to work together.
+
+
+======================================================================
+5. WHAT THE AI MUST UNDERSTAND
+======================================================================
+
+The AI must become intent-aware.
+
+Users should NOT have to understand the internal model.
+
+If the user says:
+
+"Make a splash screen that fades into the home screen."
+
+The AI should infer something like:
+
+    two screens
+    splash
+    home
+    trigger = load/start
+    action = navigate
+    transition = fade
+    duration = sensible default
+    easing = sensible default
+
+If the user says:
+
+"Make this button feel pressable."
+
+The AI should infer:
+
+    interaction = pointer/tap
+    states = default / pressed
+    visual state change
+    motion = small scale/position/effect
+    fast spring or easing
+
+If the user says:
+
+"Create a login flow with loading and error states."
+
+The AI should infer:
+
+    state model
+    idle
+    loading
+    success
+    error
+
+    events:
+    submit
+    success
+    failure
+
+    visual transitions between states
+
+If the user says:
+
+"Build an onboarding flow where the cards slide between steps."
+
+The AI should infer:
+
+    multiple screens/frames
+    flow
+    next/previous actions
+    transition
+    horizontal motion
+    progress state
+
+The AI must choose the appropriate Zenuxs primitives automatically.
+
+
+======================================================================
+6. AI SKILLS / SLASH COMMANDS
+======================================================================
+
+We want reusable AI expertise, but slash commands must NOT be the only way to
+access capabilities.
+
+A user can use:
+
+    /motion
+    /prototype
+    /loading
+    /splash
+    /onboarding
+    /modal
+    /bottom-sheet
+    /page-transition
+    /micro-interaction
+    /carousel
+    /navigation
+    /responsive
+    /mobile
+    /dashboard
+    /landing-page
+
+But the AI must also infer these capabilities from natural language.
+
+Example:
+
+User:
+"Make the checkout come up from the bottom with a dimmed backdrop."
+
+AI should automatically understand:
+
+    bottom-sheet
+    overlay
+    enter transition
+    translateY
+    backdrop opacity
+    exit transition
+
+No slash command required.
+
+Slash commands are explicit shortcuts.
+Natural language is the default experience.
+
+
+----------------------------------------------------------------------
+SKILL STRUCTURE
+----------------------------------------------------------------------
+
+A skill should teach the AI:
+
+1. What the capability is.
+2. When it should be used.
+3. What Zenuxs primitives are normally required.
+4. Valid combinations.
+5. Useful defaults.
+6. Common mistakes.
+7. How to verify the result.
+8. How to modify an existing design safely.
+
+Example conceptual /motion skill:
+
+    /motion
+
+    Understand:
+    - keyframes
+    - springs
+    - easing
+    - duration
+    - delay
+    - enter/exit
+    - orchestration
+    - gestures
+    - motion on variants/states
+
+    Prefer:
+    - subtle
+    - purposeful
+    - performant
+    - editable
+    - reversible
+
+    Avoid:
+    - fake timers unrelated to actual operations
+    - excessive animation
+    - non-editable hacks
+
+
+======================================================================
+7. EDITOR UX REQUIREMENTS
+======================================================================
+
+A designer must be able to inspect and edit prototype/motion behavior.
+
+Do not hide the behavior completely inside AI-generated metadata.
+
+The editor should eventually expose appropriate UX such as:
+
+    Prototype / Interactions panel
+    Motion / Animation panel
+    State / Variant editing
+    Preview / Present mode
+    Timeline where needed
+
+The exact UI should fit the existing Zenuxs Design system.
+
+Do not start by building a giant complex timeline if a smaller inspector-driven
+motion editor is enough for the first implementation.
+
+Build the smallest coherent foundation first.
+
+
+======================================================================
+8. PREVIEW / RUNTIME
+======================================================================
+
+The editor and runtime should be conceptually separate.
+
+EDIT MODE:
+    inspect
+    modify
+    configure
+    select
+    keyframe
+    connect interactions
+
+PREVIEW MODE:
+    user clicks/taps
+    events fire
+    state changes
+    prototype actions execute
+    transitions run
+    motion is evaluated
+    screen changes
+    overlays open/close
+
+The exact same saved document should drive both.
+
+Do not create one fake preview representation that differs from the actual
+editable design model.
+
+
+======================================================================
+9. SAVE / LOAD / DATABASE REQUIREMENTS
+======================================================================
+
+Zenuxs now has a connected backend/database.
+
+Prototype and motion information must eventually survive persistence.
+
+Minimum expectation:
+
+    Create interaction
+        ↓
+    Save
+        ↓
+    Refresh/reopen
+        ↓
+    Interaction still exists
+
+Likewise:
+
+    Create animation
+        ↓
+    Save
+        ↓
+    Reopen
+        ↓
+    Animation still exists
+
+Database persistence must not be implemented as a disconnected shadow system.
+
+If behavior belongs in the design document, it should remain document data.
+
+If server-side project metadata is required, keep that clearly separate.
+
+Test:
+
+    editor state
+    serialized document
+    database record
+    reload
+    deserialization
+    runtime behavior
+
+All must agree.
+
+
+======================================================================
+10. EXPORT / CODE GENERATION
+======================================================================
+
+Longer-term, the system should be able to convert the same motion/prototype
+intent into code.
+
+Potential targets:
+
+    React
+    Vue
+    HTML/CSS
+    Motion
+    CSS animations/transitions
+    SVG
+    other supported runtimes
+
+Do NOT implement every export target immediately.
+
+First establish a clean internal model.
+
+Then adapters can translate:
+
+    Zenuxs Prototype/Motion Model
+             ↓
+    Target Runtime / Code
+
+Do not store React-specific implementation details as the primary document
+model.
+
+
+======================================================================
+11. LIVE AI BUILDING EXPERIENCE
+======================================================================
+
+When AI creates a design, the canvas should visibly show the real work being
+performed.
+
+This is separate from prototype/motion support, but it is part of the target
+AI experience.
+
+IMPORTANT:
+
+Keep the ONE existing Magic Box in the AI chat.
+
+Do not show individual technical tool-call cards in the chat.
+
+Instead, let the actual canvas show live construction.
+
+Example:
+
+    AI creates frame
+        ↓
+    frame appears on canvas
+
+    AI creates navbar
+        ↓
+    navbar appears
+
+    AI creates hero
+        ↓
+    hero appears
+
+    AI creates cards
+        ↓
+    cards appear
+
+This must be tied to actual AI/editor operations.
+
+Do NOT create a fake timer-based animation.
+
+Use actual operation lifecycle/state wherever possible.
+
+The Magic Box = chat status.
+The canvas = actual work in progress.
+
+
+======================================================================
+12. HOW TO STUDY THE REFERENCE REPOS
+======================================================================
+
+Before implementation, inspect the reference repositories in enough depth to
+understand their architecture.
+
+At minimum inspect:
+
+    repository structure
+    relevant source folders
+    data models
+    serialization
+    runtime/preview code
+    editor integration
+    tests
+    examples
+    documentation
+    issue/roadmap context where useful
+
+If the agent can directly access the repository and read the relevant files,
+do that.
+
+If a remote repository cannot be read reliably, clone the needed repository
+locally under:
+
+    /home/azaz/Documents/zenuxs-reference-repos/
+
+Suggested local layout:
+
+    /home/azaz/Documents/zenuxs-reference-repos/open-pencil
+    /home/azaz/Documents/zenuxs-reference-repos/penpot
+    /home/azaz/Documents/zenuxs-reference-repos/xstate
+    /home/azaz/Documents/zenuxs-reference-repos/motion-vue
+    /home/azaz/Documents/zenuxs-reference-repos/motionforge
+    /home/azaz/Documents/zenuxs-reference-repos/rive-wasm
+    /home/azaz/Documents/zenuxs-reference-repos/lottie-web
+
+Do not assume these repositories should be installed as runtime dependencies.
+
+They are primarily engineering references.
+
+If you copy or adapt any code, inspect the repository license and ensure the
+result is legally/technically appropriate for this project. Prefer writing
+new Zenuxs-native code based on architectural understanding rather than
+copy/paste.
+
+
+======================================================================
+13. RECOMMENDED ENGINEERING DIRECTION
+======================================================================
+
+Current recommended direction:
+
+PRIMARY:
+    Build a Zenuxs-native Prototype + State + Motion model.
+
+STUDY PENPOT:
+    for prototype/interaction concepts.
+
+STUDY XSTATE:
+    for state-machine semantics and deterministic interaction logic.
+
+STUDY MOTION-VUE:
+    for modern motion primitives, springs, keyframes, gestures and
+    orchestration.
+
+STUDY MOTIONFORGE:
+    for how a design editor can combine editable elements, animation,
+    preview and AI.
+
+OPTIONAL STUDY/INTEGRATION:
+    Rive / Lottie for imported or reusable animation assets.
+
+DO NOT:
+    replace the Zenuxs renderer
+    replace the scene graph
+    create a separate parallel design document model
+    make DOM-only animation the editor's source of truth
+    hardcode user-request-specific animation logic
+    depend on arbitrary timers
+
+
+======================================================================
+14. FIRST ARCHITECTURAL MILESTONE
+======================================================================
+
+Before implementing dozens of motion features, prove the architecture with
+a small but complete vertical slice.
+
+Implement enough to support:
+
+EXAMPLE:
+
+    Frame A = Splash
+    Frame B = Home
+
+    Interaction:
+        OnLoad
+        → Navigate to Home
+
+    Transition:
+        Fade
+        500ms
+        ease-out
+
+Then verify:
+
+    create in editor
+    save
+    refresh
+    reopen
+    preview
+    transition executes
+    inspect/edit transition
+    save edited transition
+    reopen
+    behavior remains correct
+
+Then add a stateful example:
+
+    Button:
+        default
+        hover
+        pressed
+
+    Press:
+        small scale-down
+        spring back
+
+Then add:
+
+    Bottom sheet
+        open
+        overlay backdrop
+        slide from bottom
+        close
+        reverse transition
+
+Only after these work should the system expand.
+
+
+======================================================================
+15. IMPLEMENTATION ORDER
+======================================================================
+
+Follow this order unless source inspection proves another order is safer:
+
+PHASE A — RESEARCH
+    inspect Zenuxs/OpenPencil document architecture
+    inspect operation system
+    inspect renderer lifecycle
+    inspect serialization
+    inspect AI tools
+    inspect reference projects
+
+PHASE B — MODEL
+    define prototype schema
+    define interaction schema
+    define state schema
+    define motion schema
+    define serialization/versioning
+
+PHASE C — RUNTIME
+    implement event handling
+    implement state transitions
+    implement transition evaluation
+    implement interpolation
+    implement easing/spring primitives
+    implement preview execution
+
+PHASE D — EDITOR UX
+    interaction creation/editing
+    motion editing
+    state editing
+    preview/present
+
+PHASE E — AI
+    add AI operations for prototype/motion/state
+    add semantic skill knowledge
+    natural-language intent mapping
+    validation of generated behavior
+
+PHASE F — PERSISTENCE
+    save/load
+    migration/versioning
+    database integration where required
+
+PHASE G — EXPORT
+    first export target
+    then expand
+
+Do not skip directly to a large visual UI without validating the underlying
+document model first.
+
+
+======================================================================
+16. AI TOOL DESIGN
+======================================================================
+
+The AI must not be forced to express everything through low-level generic
+node operations.
+
+Add higher-level semantic operations where appropriate.
+
+Examples:
+
+    createPrototypeFlow
+    createInteraction
+    setInteractionTrigger
+    setInteractionAction
+    setTransition
+    createState
+    setState
+    createAnimation
+    addKeyframe
+    setSpring
+    setEasing
+    createOverlayBehavior
+    connectScreens
+    previewPrototype
+
+These higher-level operations should internally use the same validated,
+undoable document mutation system as the rest of the editor.
+
+The goal is:
+
+    AI semantic intent
+        ↓
+    validated Zenuxs operation
+        ↓
+    document mutation
+        ↓
+    renderer/runtime
+        ↓
+    saved document
+
+Not:
+
+    AI invents arbitrary JavaScript
+        ↓
+    hidden side effect
+        ↓
+    uneditable behavior
+
+
+======================================================================
+17. AI MUST VALIDATE ITS OWN WORK
+======================================================================
+
+After generating prototype/motion behavior, AI should verify:
+
+- referenced targets exist
+- destination pages exist
+- interactions point to valid nodes
+- state names are valid
+- variants exist
+- motion properties are valid
+- keyframe order is valid
+- durations are sane
+- transitions are serializable
+- no circular/dead flow accidentally created
+- preview can execute
+- document remains valid
+
+For design generation, AI should also be able to inspect what it actually
+created rather than trusting its own assumptions.
+
+
+======================================================================
+18. TESTING WHILE BUILDING
+======================================================================
+
+This requirement is STRICT.
+
+Do NOT implement the whole feature and only test at the end.
+
+After each meaningful capability:
+
+    implement
+    ↓
+    unit tests
+    ↓
+    integration test
+    ↓
+    real UI test
+    ↓
+    inspect console/network
+    ↓
+    inspect backend/database
+    ↓
+    test refresh/reload
+    ↓
+    test failure/cancel
+    ↓
+    continue
+
+Every new feature must be tested before the next major dependency is added.
+
+
+======================================================================
+19. MULTIPLE ROUNDS OF FINAL TESTING
+======================================================================
+
+When the implementation appears complete, do NOT stop.
+
+Run several independent testing passes.
+
+PASS 1:
+    functional happy paths
+
+PASS 2:
+    edge cases
+
+PASS 3:
+    broken input / invalid state
+
+PASS 4:
+    rapid actions / race conditions
+
+PASS 5:
+    refresh / restart / persistence
+
+PASS 6:
+    existing editor regression
+
+PASS 7:
+    AI regression
+
+PASS 8:
+    backend/database regression
+
+PASS 9:
+    console/network/log review
+
+PASS 10:
+    code-level consistency review
+
+The purpose is to catch future breakage caused by the new architecture.
+
+
+======================================================================
+20. BUG HUNTING
+======================================================================
+
+Act like an aggressive but safe QA engineer.
+
+Look for:
+
+- undefined behavior
+- null/undefined targets
+- broken references
+- stale state
+- duplicate listeners
+- memory leaks
+- race conditions
+- state desynchronization
+- undo/redo corruption
+- serialization bugs
+- reload bugs
+- migration bugs
+- preview/editor mismatch
+- AI creating invalid structures
+- inaccessible controls
+- silent failures
+- fake success
+- console errors
+- console warnings
+- network failures
+- backend errors
+- database inconsistencies
+- performance regressions
+
+Do not dismiss warnings automatically.
+
+Determine whether they are:
+
+    real application issue
+    environment noise
+    test harness limitation
+    intentional behavior
+
+Document the distinction.
+
+
+======================================================================
+21. DATABASE TESTING
+======================================================================
+
+For any functionality that uses the connected database:
+
+    Frontend action
+        ↓
+    request
+        ↓
+    backend validation
+        ↓
+    database write
+        ↓
+    response
+        ↓
+    frontend state
+        ↓
+    refresh/reopen
+        ↓
+    persisted state
+
+Verify each step.
+
+Specifically look for:
+
+- writes that only change frontend state
+- data that disappears after refresh
+- duplicate records
+- orphaned records
+- stale records
+- wrong ownership
+- incorrect updates
+- partial writes
+- migration problems
+- schema mismatches
+- inconsistent serialized behavior
+
+
+======================================================================
+22. FUTURE-BREAK CHECK
+======================================================================
+
+Every architectural addition must be reviewed against current functionality.
+
+Ask:
+
+    Does this break .fig loading?
+    Does this break .pen loading?
+    Does this break undo/redo?
+    Does this break components?
+    Does this break variants?
+    Does this break variables?
+    Does this break AI?
+    Does this break MCP?
+    Does this break CLI?
+    Does this break export?
+    Does this break collaboration?
+    Does this break save/load?
+    Does this break database persistence?
+    Does this break existing editor shortcuts?
+    Does this break rendering?
+    Does this break performance?
+
+Run regression tests after implementation.
+
+Do not assume because TypeScript compiles that the feature is safe.
+
+
+======================================================================
+23. VERSIONING / MIGRATIONS
+======================================================================
+
+Prototype and motion data may become part of persisted design documents.
+
+Design the model with future evolution in mind.
+
+Prefer:
+
+    versioned schema
+    explicit defaults
+    migrations
+    backwards-compatible reads
+    graceful handling of unknown optional fields
+
+Avoid:
+
+    unversioned arbitrary blobs
+    provider-specific data as document truth
+    impossible-to-migrate structures
+    breaking all previous documents for one feature
+
+
+======================================================================
+24. PERFORMANCE
+======================================================================
+
+Motion and interaction should not make the editor sluggish.
+
+Be especially careful with:
+
+- large node trees
+- many keyframes
+- many simultaneous animations
+- continuous pointer events
+- drag gestures
+- scroll-linked effects
+- springs
+- repeated render loops
+- preview transitions
+- event listener counts
+
+Prefer:
+
+    event-driven updates
+    bounded work
+    requestAnimationFrame where appropriate
+    memoized/static data
+    clean listener lifecycle
+    incremental updates
+
+Do not animate the entire scene graph when only one target changes.
+
+
+======================================================================
+25. ERROR / CANCELLATION BEHAVIOR
+======================================================================
+
+AI generation can stop.
+Network requests can fail.
+Operations can fail.
+Targets can disappear.
+
+The runtime must fail gracefully.
+
+Examples:
+
+    AI stop
+        → stop active generation
+        → do not corrupt document
+
+    target deleted
+        → interaction becomes invalid/clearly reported
+        → no runtime crash
+
+    malformed animation
+        → validation error
+        → no infinite loop
+
+    missing destination
+        → clear error
+        → editor remains usable
+
+
+======================================================================
+26. HUMAN-LIKE TESTING REQUIREMENT
+======================================================================
+
+When the feature is implemented, use the product like a real designer.
+
+Do not test only by calling internal functions.
+
+Examples:
+
+    "Create a mobile onboarding flow."
+
+    "Make the splash fade into login."
+
+    "Make the login button animate when pressed."
+
+    "Make the bottom sheet slide up."
+
+    "Create loading, success and error states."
+
+    "Make the card carousel swipe horizontally."
+
+    "Modify this existing screen so its modal enters from the bottom."
+
+For each:
+
+    inspect what AI understood
+    inspect what was created
+    preview it
+    edit it manually
+    save it
+    reload it
+    reopen it
+    run it again
+    ask AI to modify it
+    verify the modification
+
+
+======================================================================
+27. SECURITY / TRUST BOUNDARIES
+======================================================================
+
+Do not allow AI-generated behavior to bypass editor validation.
+
+AI actions must pass through the same:
+
+    validation
+    permission
+    document mutation
+    undo/redo
+    persistence
+
+rules as normal editor actions.
+
+Do not execute arbitrary generated JavaScript inside the editor as the primary
+implementation of prototype/motion behavior.
+
+If code execution is eventually supported for advanced exports, sandbox and
+separate it clearly from the editable document model.
+
+
+======================================================================
+28. WHAT "DONE" MEANS
+======================================================================
+
+This work is NOT done because:
+
+- a motion library was installed
+- a prototype panel exists
+- a button says "Preview"
+- AI generated an animation-like result
+- one demo works
+- TypeScript compiles
+
+It is done only when:
+
+1. The underlying model exists.
+2. The editor can create/edit it.
+3. AI can create/edit it.
+4. Preview executes it.
+5. The behavior is saved.
+6. The behavior survives reload.
+7. Invalid structures are rejected safely.
+8. Existing editor functionality still works.
+9. AI still works.
+10. Database persistence works where applicable.
+11. Console/network/server errors are clean.
+12. Multiple independent test rounds pass.
+13. Real user-like flows work.
+14. The feature is extensible without redesigning the whole architecture.
+
+
+======================================================================
+29. REQUIRED FINAL REPORT
+======================================================================
+
+At the end of the implementation, report:
+
+A. REFERENCE STUDY
+    Which repositories were inspected
+    Which source areas were relevant
+    What architectural lessons were taken
+
+B. ZENUXS DESIGN
+    New model(s)
+    New editor behavior
+    New runtime behavior
+    AI capabilities
+    Persistence
+
+C. FILES CHANGED
+    file
+    purpose
+    architectural reason
+
+D. TESTING
+    unit
+    integration
+    E2E
+    real UI
+    preview/runtime
+    database
+    AI
+    regression
+
+E. BUGS FOUND
+    severity
+    reproduction
+    root cause
+    fix
+    verification
+
+F. FAILURES / LIMITATIONS
+    only real remaining issues
+
+G. REGRESSION STATUS
+    what existing features were retested
+
+H. FINAL ACCEPTANCE
+    clearly answer whether the requested capability is actually working in
+    the running application.
+
+Do not claim "complete" unless the end-to-end behavior has been demonstrated.
+
+
+======================================================================
+30. FINAL PRODUCT VISION
+======================================================================
+
+The final Zenuxs Design experience should let a user say things like:
+
+    "Make a modern SaaS landing page."
+
+    "Create a mobile onboarding flow."
+
+    "Add a splash screen that fades into the home screen."
+
+    "Make the button feel interactive."
+
+    "Add a bottom sheet that springs up."
+
+    "Create loading, success and error states."
+
+    "Make this modal slide from the bottom."
+
+    "Make the cards swipe horizontally."
+
+    "Add a subtle hover animation."
+
+    "Turn this static mockup into an interactive prototype."
+
+And the AI should understand:
+
+    what needs to be designed
+    what needs to be a state
+    what needs to be an interaction
+    what needs to be a transition
+    what needs to be a motion
+    which Zenuxs primitives represent it
+    how to build it
+    how to validate it
+    how to save it
+    how to preview it
+    how to modify it later
+
+The result should remain:
+
+    EDITABLE
+    STRUCTURED
+    SERIALIZABLE
+    PREVIEWABLE
+    AI-MODIFIABLE
+    TESTABLE
+    PERSISTENT
+    EXTENSIBLE
+
+The core principle is:
+
+    LEARN FROM EXISTING OPEN-SOURCE SYSTEMS.
+    DO NOT BLINDLY DEPEND ON THEM.
+    BUILD THE RIGHT ZENUXS-NATIVE MODEL.
+
+And the final test is not:
+
+    "Did we implement the feature?"
+
+The final test is:
+
+    "Can a real user ask for an interactive animated UI,
+     can Zenuxs actually build it,
+     can the user see/preview it,
+     can they edit it,
+     can it be saved and reopened,
+     can AI understand it later,
+     and do all existing features still work?"
+
+Only then consider the work complete.

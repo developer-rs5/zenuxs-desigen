@@ -19,7 +19,7 @@ for (const theme of ['light', 'dark']) {
       }
     })
     test('values and long variable bindings share space with sizing controls', async ({ page }) => {
-      await page.goto('/?test')
+      await page.goto('/editor?test')
       await new CanvasHelper(page).waitForInit()
       await page.evaluate(() => {
         const editor = window.openPencil?.getStore?.()

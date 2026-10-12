@@ -3,6 +3,7 @@ import type { Color, Rect, Vector } from '@open-pencil/scene-graph/primitives'
 import type { SnapGuide } from '@open-pencil/scene-graph/snap'
 
 import type { GuideOverlayState } from '#core/canvas/guides/types'
+import type { PrototypeRenderState } from '#core/prototype/runtime'
 import type { TextEditor } from '#core/text/editor'
 
 export interface RulerTheme {
@@ -25,6 +26,8 @@ export interface RenderOverlays {
   guides?: GuideOverlayState
   rotationPreview?: { nodeId: string; angle: number } | null
   dropTargetId?: string | null
+  /** Preview-mode prototype state: screen filter, backdrop, and node visuals. */
+  prototype?: PrototypeRenderState | null
   layoutInsertIndicator?: {
     x: number
     y: number

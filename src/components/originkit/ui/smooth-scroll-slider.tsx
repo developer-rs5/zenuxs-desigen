@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 
-type ImageValue = string | { src?: string } | null | undefined
+type ImageValue = string | { src?: string; alt?: string } | null | undefined
 
 type ImageInput = ImageValue | { image?: ImageValue; offsetY?: number }
 
 interface Slide {
   src: string | null
   offsetY: number
+  alt: string
 }
 
 export interface SmoothScrollSliderProps {
@@ -57,10 +58,20 @@ function imageOf(item: ImageInput): string | null {
   return resolveSrc(item as ImageValue)
 }
 
+function altText(value: ImageValue): string {
+  if (value && typeof value === 'object') return value.alt ?? ''
+  return ''
+}
+
+function altOf(item: ImageInput): string {
+  if (item && typeof item === 'object' && 'image' in item) return altText(item.image)
+  return altText(item as ImageValue)
+}
+
 function offsetOf(item: ImageInput): number {
   if (item && typeof item === 'object' && 'offsetY' in item) {
     const offset = item.offsetY
-    return typeof offset === 'number' && isFinite(offset) ? offset : 0
+    return typeof offset === 'number' && Number.isFinite(offset) ? offset : 0
   }
   return 0
 }
@@ -176,15 +187,16 @@ export default function SmoothScrollSlider({
 
   const source = useMemo<Slide[]>(() => {
     const resolved: Slide[] = []
-    for (const item of images ?? []) {
+    for (const item of images) {
       const src = imageOf(item)
-      if (src) resolved.push({ src, offsetY: offsetOf(item) })
+      if (src) resolved.push({ src, offsetY: offsetOf(item), alt: altOf(item) })
     }
     return resolved.length
       ? resolved
       : Array.from({ length: PLACEHOLDER_COUNT }, () => ({
           src: null,
-          offsetY: 0
+          offsetY: 0,
+          alt: ''
         }))
   }, [images])
 
@@ -237,7 +249,7 @@ export default function SmoothScrollSlider({
 
   useEffect(() => {
     const node = containerRef.current
-    if (!node) return
+    if (!node) return undefined
     const observer = new ResizeObserver((entries) => {
       setWidth(entries[0].contentRect.width)
     })
@@ -273,7 +285,7 @@ export default function SmoothScrollSlider({
         target.current = clamp(target.current, 0, (c.count - 1) * c.step)
       }
 
-      const k = 1 - Math.pow(1 - c.ease, delta * 60)
+      const k = 1 - (1 - c.ease) ** (delta * 60)
       current.current += (target.current - current.current) * k
 
       const pad = (c.width - c.slideWidth) / 2
@@ -317,7 +329,7 @@ export default function SmoothScrollSlider({
 
   useEffect(() => {
     const node = containerRef.current
-    if (!node) return
+    if (!node) return undefined
     const onWheel = (event: WheelEvent) => {
       event.preventDefault()
       const dominant = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
@@ -329,7 +341,7 @@ export default function SmoothScrollSlider({
 
   useEffect(() => {
     const node = containerRef.current
-    if (!node) return
+    if (!node) return undefined
     let pointer: number | null = null
     let lastX = 0
 
@@ -402,7 +414,7 @@ export default function SmoothScrollSlider({
           {slide.src ? (
             <img
               src={slide.src}
-              alt=""
+              alt={slide.alt}
               draggable={false}
               style={{
                 width: '100%',

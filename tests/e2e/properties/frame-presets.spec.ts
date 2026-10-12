@@ -2,7 +2,7 @@ import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
 import { getSelectedNode } from '#tests/helpers/store'
 import { toolbarToolTestId } from '#tests/helpers/test-ids'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('creates and resizes a frame with presets', async () => {
   await editor.page.evaluate(() => {
@@ -25,8 +25,11 @@ test('creates and resizes a frame with presets', async () => {
 
   let frame = await getSelectedNode(editor.page)
   expect(frame).toMatchObject({ type: 'FRAME', name: 'iPhone Air', width: 420, height: 912 })
+  // Active-tool state moved to aria-pressed when the toolbar was re-composed
+  // (e69ba75c, 2026-09-10): reka's ToolbarButton no longer forwards data-active
+  // (it still reaches flyout sub-items). Same intent, current signal.
   await expect(editor.page.getByTestId(toolbarToolTestId('SELECT'))).toHaveAttribute(
-    'data-active',
+    'aria-pressed',
     'true'
   )
 

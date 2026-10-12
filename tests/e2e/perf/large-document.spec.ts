@@ -25,7 +25,7 @@ test.describe.serial('large-document performance', () => {
   for (const nodeCount of SCALES) {
     test(`profiles representative ${nodeCount}-node interactions`, async ({ page }, testInfo) => {
       test.setTimeout(120_000)
-      await page.goto('/?test&no-chrome&no-rulers')
+      await page.goto('/editor?test&no-chrome&no-rulers')
       const canvas = new CanvasHelper(page)
       await canvas.waitForInit()
       await canvas.clearCanvas()

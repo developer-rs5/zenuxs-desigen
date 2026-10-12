@@ -3,7 +3,8 @@ import { useTextareaAutosize } from '@vueuse/core'
 import { computed, nextTick, ref, watch } from 'vue'
 
 import { ACP_AGENTS } from '@open-pencil/core/constants'
-import { useSelectionState } from '@open-pencil/vue'
+import { listCommands } from '@open-pencil/core/skills'
+import { useI18n, useSelectionState } from '@open-pencil/vue'
 
 import { MAX_IMAGE_ATTACHMENTS } from '@/app/ai/attachment/image/types'
 import type { ChatSubmission } from '@/app/ai/chat/submission/types'
@@ -14,8 +15,10 @@ import ChatNodePreview from '@/components/chat/ChatNodePreview.vue'
 import ChatProfileSelect from '@/components/chat/ChatProfileSelect.vue'
 import ChatSkillsPopover from '@/components/chat/ChatSkillsPopover.vue'
 import { useAttachmentDrafts } from '@/components/chat/input/useAttachments'
+import Tip from '@/components/ui/overlay/Tip.vue'
 
 const { providerID, providerDef, modelID, customModelID, chatInputDraft } = useAIChat()
+const { ai } = useI18n()
 const { editor, selectedIds } = useSelectionState()
 
 const { status, disabled = false } = defineProps<{
@@ -91,8 +94,87 @@ const selectedProfileName = computed(
 
 const hasVisionModel = computed(() => resolveAIModelRole('vision') !== null)
 
+/**
+ * `/`-command suggestions (spec §39 discoverability): only while the composer
+ * holds a single slash token, so a slash command with arguments still submits
+ * on Enter exactly as before. AppCombobox owns its own search input, so the
+ * list renders inline against the popover theme instead.
+ */
+const COMMAND_LIST_ID = 'chat-command-list'
+const SUGGESTION_LIMIT = 8
+const SLASH_FRAGMENT = /^\/[a-z0-9-]*$/
+
+const dismissedSuggestions = ref(false)
+const activeSuggestion = ref(0)
+
+const slashFragment = computed(() => {
+  const text = input.value
+  return SLASH_FRAGMENT.test(text) ? text.slice(1).toLowerCase() : null
+})
+
+const commandSuggestions = computed(() => {
+  const query = slashFragment.value
+  if (query === null) return []
+  return listCommands()
+    .filter((entry) => entry.command.startsWith(query))
+    .slice(0, SUGGESTION_LIMIT)
+})
+
+const commandPanelVisible = computed(
+  () => slashFragment.value !== null && !dismissedSuggestions.value
+)
+
+const activeSuggestionID = computed(() => {
+  const entry = commandSuggestions.value[activeSuggestion.value]
+  return entry ? `${COMMAND_LIST_ID}-${entry.command}` : undefined
+})
+
+watch(input, () => {
+  dismissedSuggestions.value = false
+  activeSuggestion.value = 0
+})
+
+function moveSuggestion(delta: number): void {
+  const count = commandSuggestions.value.length
+  if (count === 0) return
+  activeSuggestion.value = (activeSuggestion.value + delta + count) % count
+}
+
+function acceptSuggestion(entry: { command: string }): void {
+  input.value = `/${entry.command} `
+  void nextTick(() => {
+    triggerResize()
+    textarea.value?.focus()
+  })
+}
+
 function handleInputKeydown(event: KeyboardEvent) {
-  if (event.code !== 'Enter' || event.shiftKey || event.isComposing) return
+  if (event.isComposing) return
+  if (commandPanelVisible.value) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      moveSuggestion(1)
+      return
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      moveSuggestion(-1)
+      return
+    }
+    if (event.key === 'Escape') {
+      dismissedSuggestions.value = true
+      return
+    }
+    if (event.key === 'Enter' || event.key === 'Tab') {
+      const entry = commandSuggestions.value[activeSuggestion.value]
+      if (entry) {
+        event.preventDefault()
+        acceptSuggestion(entry)
+        return
+      }
+    }
+  }
+  if (event.code !== 'Enter' || event.shiftKey) return
   event.preventDefault()
   submitInput()
 }
@@ -130,6 +212,7 @@ function submitInput(): void {
       <div
         v-for="node in referencedNodes"
         :key="node.id"
+        data-slot="chat-context-chip"
         class="flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-[#292D33] bg-[#1B1E22] p-1.5"
       >
         <ChatNodePreview :editor="editor" :node="node" />
@@ -137,6 +220,7 @@ function submitInput(): void {
           {{ node.name || node.type }}
         </span>
         <button
+          :aria-label="`Remove ${node.name || node.type}`"
           class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]"
           @click="removeReferencedNode(node.id)"
         >
@@ -157,6 +241,7 @@ function submitInput(): void {
           image.file.name
         }}</span>
         <button
+          :aria-label="`Remove image ${image.file.name}`"
           class="flex size-4 items-center justify-center rounded text-[#9CA3AF] hover:text-[#F5F7FA]"
           @click="removeImage(index)"
         >
@@ -167,19 +252,52 @@ function submitInput(): void {
 
     <!-- Input area -->
     <div
-      class="flex flex-col rounded-xl border border-[#292D33] bg-[#1B1E22] transition-colors focus-within:border-[#3B82F6]/50"
+      class="relative flex flex-col rounded-xl border border-[#292D33] bg-[#1B1E22] transition-colors focus-within:border-[#3B82F6]/50"
     >
       <textarea
         ref="textarea"
         v-model="input"
+        data-test-id="chat-input"
         placeholder="Describe what you want..."
         :disabled="isStreaming"
+        :aria-controls="commandPanelVisible ? COMMAND_LIST_ID : undefined"
+        :aria-activedescendant="commandPanelVisible ? activeSuggestionID : undefined"
         rows="1"
         class="min-h-[40px] w-full resize-none bg-transparent px-3 pt-2.5 pb-1 text-[13px] leading-relaxed text-[#F5F7FA] outline-none placeholder-[#6B7280] disabled:cursor-not-allowed disabled:opacity-60"
         @keydown="handleInputKeydown"
         @copy.stop
         @cut.stop
       />
+
+      <!-- `/command` suggestions -->
+      <div
+        v-if="commandPanelVisible"
+        :id="COMMAND_LIST_ID"
+        role="listbox"
+        :aria-label="ai.commandSuggestions"
+        class="absolute inset-x-2 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-[#292D33] bg-[#1B1E22] p-1 shadow-xl"
+      >
+        <button
+          v-for="(entry, index) in commandSuggestions"
+          :id="`${COMMAND_LIST_ID}-${entry.command}`"
+          :key="entry.command"
+          type="button"
+          role="option"
+          :aria-selected="index === activeSuggestion"
+          :data-active="index === activeSuggestion"
+          class="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-[#1E2126] data-[active=true]:bg-[#1E2126]"
+          @mouseenter="activeSuggestion = index"
+          @click="acceptSuggestion(entry)"
+        >
+          <span class="shrink-0 font-mono text-xs text-[#F5F7FA]">/{{ entry.command }}</span>
+          <span class="min-w-0 flex-1 truncate text-[11px] text-[#9CA3AF]">
+            {{ entry.description }}
+          </span>
+        </button>
+        <p v-if="commandSuggestions.length === 0" class="px-2 py-1.5 text-[11px] text-[#9CA3AF]">
+          {{ ai.noCommandMatches }}
+        </p>
+      </div>
 
       <!-- Bottom toolbar: model selector + actions -->
       <div class="flex items-center gap-1 px-2 pb-2">
@@ -199,23 +317,30 @@ function submitInput(): void {
         <div class="flex-1" />
 
         <!-- Selection context -->
-        <button
-          :disabled="isStreaming || !canAddSelection"
-          class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA] disabled:opacity-40"
-          :class="selectionContextActive ? 'text-[#3B82F6]' : ''"
-          @click="toggleCurrentSelection"
-        >
-          <icon-lucide-mouse-pointer-2 class="size-4" />
-        </button>
+        <Tip :label="ai.addSelectionContext">
+          <button
+            :aria-label="ai.addSelectionContext"
+            :data-state="selectionContextActive ? 'on' : 'off'"
+            :disabled="isStreaming || !canAddSelection"
+            class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA] disabled:opacity-40"
+            :class="selectionContextActive ? 'text-[#3B82F6]' : ''"
+            @click="toggleCurrentSelection"
+          >
+            <icon-lucide-mouse-pointer-2 class="size-4" />
+          </button>
+        </Tip>
 
         <!-- Attach images -->
-        <button
-          :disabled="isStreaming || images.length >= MAX_IMAGE_ATTACHMENTS"
-          class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA] disabled:opacity-40"
-          @click="openImageDialog()"
-        >
-          <icon-lucide-paperclip class="size-4" />
-        </button>
+        <Tip :label="ai.attachImages">
+          <button
+            :aria-label="ai.attachImages"
+            :disabled="isStreaming || images.length >= MAX_IMAGE_ATTACHMENTS"
+            class="flex size-7 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-[#1E2126] hover:text-[#F5F7FA] disabled:opacity-40"
+            @click="openImageDialog()"
+          >
+            <icon-lucide-paperclip class="size-4" />
+          </button>
+        </Tip>
 
         <!-- Skills -->
         <ChatSkillsPopover />
@@ -231,6 +356,7 @@ function submitInput(): void {
         </button>
         <button
           v-else
+          data-test-id="chat-send-button"
           class="flex size-7 items-center justify-center rounded-lg bg-[#3B82F6] text-white transition-colors hover:bg-[#2563EB] disabled:opacity-40"
           :disabled="!input.trim()"
           @click="handleSubmit"

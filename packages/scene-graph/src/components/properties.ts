@@ -236,3 +236,48 @@ export function removeComponentProperty(
   for (const node of nodes) removePropertyFromNode(graph, node, propertyId)
   return true
 }
+
+/**
+ * Parse a variant spec (`Name=Value[,Name=Value]`) into property pairs.
+ * Returns null when nothing parseable remains.
+ */
+export function parseVariantSpec(spec: string): Record<string, string> | null {
+  const pairs: Record<string, string> = {}
+  for (const part of spec.split(',')) {
+    const trimmed = part.trim()
+    if (!trimmed) continue
+    const eq = trimmed.indexOf('=')
+    if (eq === -1) return null
+    const name = trimmed.slice(0, eq).trim()
+    const value = trimmed.slice(eq + 1).trim()
+    if (!name || !value) return null
+    pairs[name] = value
+  }
+  return Object.keys(pairs).length > 0 ? pairs : null
+}
+
+/**
+ * Resolve an instance plus variant spec to the sibling variant component id,
+ * or null when the instance is not variant-backed or no variant matches.
+ */
+export function resolveVariantComponentId(
+  graph: SceneGraph,
+  instanceId: string,
+  spec: string
+): string | null {
+  const pairs = parseVariantSpec(spec)
+  if (!pairs) return null
+  const instance = graph.getNode(instanceId)
+  if (instance?.type !== 'INSTANCE' || !instance.componentId) return null
+  const component = graph.getNode(instance.componentId)
+  if (component?.type !== 'COMPONENT' || !component.parentId) return null
+  const componentSet = graph.getNode(component.parentId)
+  if (!componentSet) return null
+  for (const childId of componentSet.childIds) {
+    const variant = graph.getNode(childId)
+    if (variant?.type !== 'COMPONENT') continue
+    const values = variant.componentPropertyValues
+    if (Object.entries(pairs).every(([name, value]) => values[name] === value)) return variant.id
+  }
+  return null
+}

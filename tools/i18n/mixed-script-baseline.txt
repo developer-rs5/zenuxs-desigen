@@ -224,3 +224,14 @@ ja:credentials.settingsTitle
 ja:credentials.rememberDevice
 zh-cn:credentials.settingsTitle
 zh-cn:credentials.rememberDevice
+
+ja:ai.skillsPopoverFooter
+ja:ai.skillsPopoverTitle
+ja:ai.skillsSectionDescription
+ja:ai.skillsSectionTitle
+ja:ai.skillsTriggerLabel
+zh-cn:ai.skillsPopoverFooter
+zh-cn:ai.skillsPopoverTitle
+zh-cn:ai.skillsSectionDescription
+zh-cn:ai.skillsSectionTitle
+zh-cn:ai.skillsTriggerLabel

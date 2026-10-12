@@ -45,6 +45,14 @@ test('saved transcripts remain readable after reload without provider setup', as
   await chat.submit('A durable conversation')
   await expect(chat.assistantMessage()).toBeVisible()
   await page.getByRole('button', { name: 'New chat', exact: true }).first().click()
+  // Session restore prunes the document tab when the server answers 404 for its
+  // never-saved document and falls back to the home tab. Reset the tab session so
+  // the reload keeps the editor; conversation transcripts live in IndexedDB and are
+  // unaffected.
+  await page.evaluate(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access
+    localStorage.removeItem('zenuxs:tabs:session')
+  })
   await page.reload()
   await chat.chatTab.click()
   await page.getByRole('button', { name: 'Conversation history', exact: true }).click()

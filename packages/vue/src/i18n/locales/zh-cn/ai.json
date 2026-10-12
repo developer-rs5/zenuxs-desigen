@@ -149,5 +149,17 @@
   "reasoningExpanded": "默认展开",
   "jumpToLatest": "跳转到最新消息",
   "chatAgentImagesUnsupported": "该智能体只接收文本，附件图片未发送。使用参考图请切换为直连模型。",
-  "chatModelImagesUnsupported": "当前设计模型无法读取图片，附件未发送。请在设置中指定支持视觉的模型。"
+  "chatModelImagesUnsupported": "当前设计模型无法读取图片，附件未发送。请在设置中指定支持视觉的模型。",
+  "skillsPopoverTitle": "AI 设计技能",
+  "skillsActive": "已启用 {count} 个",
+  "skillsTriggerLabel": "AI 技能：已启用 {count} 个",
+  "skillsPopoverFooter": "Taste Skill 与 UI/UX Pro Max",
+  "skillsPopoverSettings": "设置",
+  "skillsSectionTitle": "AI 技能与设计框架",
+  "skillsSectionDescription": "启用的技能会把专门的设计规则、反套路准则与 UI/UX 经验注入 AI 生成提示词。",
+  "skillsSectionActive": "已启用 {active} / {total} 个技能",
+  "commandSuggestions": "技能命令",
+  "noCommandMatches": "没有匹配的命令",
+  "unknownCommand": "未知命令 \"/{command}\"。",
+  "unknownCommandSuggestions": "未知命令 \"/{command}\"。你是想用 {suggestions} 吗？"
 }

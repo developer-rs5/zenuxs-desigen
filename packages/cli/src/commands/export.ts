@@ -8,14 +8,16 @@ import { BUILTIN_IO_FORMATS, IORegistry } from '@open-pencil/core/io'
 import type { RasterExportFormat } from '@open-pencil/core/io'
 import {
   exportHTMLBundle,
+  exportPrototypeBundle,
   sceneGraphToDesignDocument,
-  type ExportHTMLBundleOptions
+  type ExportHTMLBundleOptions,
+  type PrototypeExportReport
 } from '@open-pencil/dom-css'
 
 import { isAppMode, requireFile, rpc } from '#cli/app-client'
 import { appTargetOptions, appTargetRPCArgs } from '#cli/app-target'
 import { applyExportFontPolicy, exportFontRoots, FONT_POLICIES } from '#cli/export-font-policy'
-import { ok, printError } from '#cli/format'
+import { dim, kv, ok, printError } from '#cli/format'
 import { loadDocument, populateDocumentPage, populateWholeDocument } from '#cli/headless'
 
 const io = new IORegistry(BUILTIN_IO_FORMATS)
@@ -46,6 +48,8 @@ interface ExportArgs {
   height: string
   'document-id'?: string
   'page-id'?: string
+  prototype?: boolean
+  json?: boolean
 }
 
 async function writeAndLog(path: string, content: string | Uint8Array) {
@@ -115,7 +119,8 @@ type FileExportTarget = { scope: 'node'; nodeId: string } | { scope: 'page'; pag
 
 async function writeHTMLFiles(
   output: string,
-  bundle: Awaited<ReturnType<typeof exportHTMLBundle>>
+  bundle: Awaited<ReturnType<typeof exportHTMLBundle>>,
+  quiet = false
 ) {
   const entrypoint = bundle.files.find((file) => file.path === bundle.entrypoint)
   if (!entrypoint) {
@@ -123,7 +128,11 @@ async function writeHTMLFiles(
     process.exit(1)
   }
 
-  await writeAndLog(output, entrypoint.content)
+  if (quiet) {
+    await writeFile(output, entrypoint.content)
+  } else {
+    await writeAndLog(output, entrypoint.content)
+  }
   const outputDir = dirname(output)
   const assetFiles = bundle.files.filter((file) => file.path !== bundle.entrypoint)
   for (const file of assetFiles) {
@@ -131,7 +140,32 @@ async function writeHTMLFiles(
     await mkdir(dirname(assetPath), { recursive: true })
     await writeFile(assetPath, file.content)
   }
-  if (assetFiles.length > 0) console.log(ok(`Assets: ${assetFiles.length} files`))
+  if (assetFiles.length > 0 && !quiet) console.log(ok(`Assets: ${assetFiles.length} files`))
+}
+
+function printPrototypeReport(report: PrototypeExportReport, json: boolean): void {
+  if (json) {
+    console.log(JSON.stringify(report, null, 2))
+    return
+  }
+  const line = (label: string, counts: PrototypeExportReport['interactions']) =>
+    kv(
+      label,
+      `${counts.total} total - ${counts.exported} exported, ${counts.approximate} approximate, ${counts.skipped} skipped`
+    )
+  console.log(ok('Prototype export report'))
+  console.log(line('interactions', report.interactions))
+  console.log(line('states', report.states))
+  console.log(line('animations', report.animations))
+  console.log(line('flows', report.flows))
+  for (const issue of report.issues) {
+    if (issue.status === 'exported') continue
+    const suffix = issue.reason ?? issue.emittedAs ?? ''
+    console.log(
+      dim(`  ${issue.status}: [${issue.feature}] ${issue.detail}${suffix ? ` (${suffix})` : ''}`)
+    )
+  }
+  for (const warning of report.warnings) console.log(dim(`  warning: ${warning}`))
 }
 
 async function exportHTMLFromFile(
@@ -140,11 +174,25 @@ async function exportHTMLFromFile(
   target: FileExportTarget,
   defaultName: string
 ) {
-  const document = sceneGraphToDesignDocument(graph, {
-    rootId: target.scope === 'page' ? target.pageId : target.nodeId
-  })
+  const rootId = target.scope === 'page' ? target.pageId : target.nodeId
   const output = resolve(args.output ?? exportFileName(defaultName, 'html'))
   const assetBasePath = `${basename(output, extname(output))}.assets`
+
+  if (args.prototype) {
+    const { bundle, report } = await exportPrototypeBundle(graph, {
+      rootId,
+      style: args.css as ExportHTMLBundleOptions['style'],
+      assets: args.assets as ExportHTMLBundleOptions['assets'],
+      fonts: args.fonts as ExportHTMLBundleOptions['fonts'],
+      assetBasePath
+    })
+    await writeHTMLFiles(output, bundle, Boolean(args.json))
+    printPrototypeReport(report, Boolean(args.json))
+    if (!args.json) console.log(ok(`Target: ${targetLabel(args.page, args.node)}`))
+    return
+  }
+
+  const document = sceneGraphToDesignDocument(graph, { rootId })
   const bundle = await exportHTMLBundle(document, {
     html: args.html as ExportHTMLBundleOptions['html'],
     style: args.css as ExportHTMLBundleOptions['style'],
@@ -330,6 +378,14 @@ export default defineCommand({
       description: 'Raster/PDF font policy: warn, strict, or allow (default: warn)',
       default: 'warn'
     },
+    prototype: {
+      type: 'boolean',
+      description: 'Export HTML with prototype interactions as CSS/JS (implies standalone)'
+    },
+    json: {
+      type: 'boolean',
+      description: 'Print the prototype export report as JSON'
+    },
     thumbnail: { type: 'boolean', description: 'Export page thumbnail instead of full render' },
     width: { type: 'string', description: 'Thumbnail width (default: 1920)', default: '1920' },
     height: { type: 'string', description: 'Thumbnail height (default: 1080)', default: '1080' },
@@ -366,6 +422,11 @@ export default defineCommand({
 
     if (format === 'HTML' && !HTML_FONTS.has(args.fonts)) {
       printError(`Invalid HTML font output "${args.fonts}". Use assets or none.`)
+      process.exit(1)
+    }
+
+    if (args.prototype && format !== 'HTML') {
+      printError('--prototype requires --format html.')
       process.exit(1)
     }
 

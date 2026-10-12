@@ -5,7 +5,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 test('keyboard switches document tabs and middle-click closes an inactive tab', async ({
   page
 }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await new CanvasHelper(page).waitForInit()
   await page.getByTestId('tabbar-new').click()
   const tabs = page.getByTestId('tabbar-tab')
@@ -19,7 +19,7 @@ test('keyboard switches document tabs and middle-click closes an inactive tab', 
 })
 
 test('closing an inactive document tab does not select it', async ({ page }) => {
-  await page.goto('/?test')
+  await page.goto('/editor?test')
   await new CanvasHelper(page).waitForInit()
   await page.getByTestId('tabbar-new').click()
   const tabs = page.getByRole('tablist').filter({ has: page.getByTestId('tabbar-tab') })

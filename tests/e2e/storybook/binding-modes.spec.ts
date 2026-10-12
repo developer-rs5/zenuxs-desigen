@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 
+// Storybook runs on its own dev server (see playwright.config.ts webServer[1]).
+test.use({ baseURL: 'http://localhost:6006' })
+
 test('missing definitions retain identity and remain explicitly detachable', async ({ page }) => {
   await page.goto('/iframe.html?id=vue-sdk-primitives-bindablevalue--mode-editing&viewMode=story')
   const identity = await page.getByLabel('Binding identity').innerText()

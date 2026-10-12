@@ -10,7 +10,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 })
@@ -74,7 +74,7 @@ test('updates normalized smoothing and undoes the committed edit', async () => {
   await fillSmoothing('75')
   expect(await selectedSmoothing()).toEqual([0.75])
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect(await selectedSmoothing()).toEqual([0])
 })
@@ -83,7 +83,7 @@ test('restores mixed per-node values in one undo step', async () => {
   await canvas.clearCanvas()
   await drawFrame(80, 80)
   await drawFrame(260, 80)
-  await canvas.pressKey('Meta+a')
+  await canvas.pressKey('ControlOrMeta+a')
   await canvas.waitForRender()
   await page.evaluate(() => {
     const store = window.openPencil?.getStore?.()
@@ -97,7 +97,7 @@ test('restores mixed per-node values in one undo step', async () => {
   await fillSmoothing('60')
   expect(await selectedSmoothing()).toEqual([0.6, 0.6])
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect(await selectedSmoothing()).toEqual([0.2, 0.8])
 })

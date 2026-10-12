@@ -1,6 +1,6 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 
-const editor = useEditorSetupWithClear('/?test&no-chrome&no-rulers')
+const editor = useEditorSetupWithClear('/editor?test&no-chrome&no-rulers')
 
 test('mixed vector regions keep open stroke segments', async () => {
   await editor.page.evaluate(() => {

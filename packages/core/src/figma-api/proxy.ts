@@ -19,17 +19,13 @@ import {
 import type { OkHCLColor, OkHCLPayload } from '#core/color/okhcl'
 import { assertNodeEditable } from '#core/editor/capabilities'
 
-import { installBasicNodeProxyAccessors } from './accessors/basic'
-import { installLayoutNodeProxyAccessors } from './accessors/layout'
-import { installVariableModeNodeProxyAccessors } from './accessors/variables'
 import {
   installVectorNodeProxyAccessors,
   type FigmaVectorNetwork,
   type FigmaVectorPath
 } from './accessors/vector'
-import { installVisualNodeProxyAccessors } from './accessors/visual'
-import { installComponentPropertyAccessors } from './components'
 import type { FigmaFontName } from './fonts'
+import { installProxyAccessors } from './install'
 import { getPageBackgrounds, setPageBackgrounds } from './page-backgrounds'
 import * as PluginData from './plugin-data'
 import { nodeProxyToJSON } from './serialization'
@@ -581,24 +577,8 @@ export class FigmaNodeProxy {
   }
 }
 
-installBasicNodeProxyAccessors(FigmaNodeProxy.prototype, {
-  id: INTERNAL_ID,
-  graph: INTERNAL_GRAPH,
-  api: INTERNAL_API
-})
-
-installVisualNodeProxyAccessors(
+installProxyAccessors(
   FigmaNodeProxy.prototype,
   { id: INTERNAL_ID, graph: INTERNAL_GRAPH, api: INTERNAL_API },
   MIXED
 )
-
-const proxyInternals = {
-  id: INTERNAL_ID,
-  graph: INTERNAL_GRAPH,
-  api: INTERNAL_API
-}
-
-installLayoutNodeProxyAccessors(FigmaNodeProxy.prototype, proxyInternals)
-installVariableModeNodeProxyAccessors(FigmaNodeProxy.prototype, proxyInternals)
-installComponentPropertyAccessors(FigmaNodeProxy.prototype, proxyInternals)

@@ -1,5 +1,7 @@
 import { shallowReactive } from 'vue'
 
+import { stripSkillContext } from '@open-pencil/core/skills'
+
 import { stripReferencedNodeContext } from '@/app/ai/chat/context'
 
 const visibleText = shallowReactive(new Map<string, string>())
@@ -9,7 +11,8 @@ export function visibleMessageText(messageId: string, fallback: string): string 
 }
 
 export function visibleUserMessageText(messageId: string, text: string): string {
-  return visibleMessageText(messageId, stripReferencedNodeContext(text))
+  // Skill context is appended after the node references, so strip it first.
+  return visibleMessageText(messageId, stripReferencedNodeContext(stripSkillContext(text)))
 }
 
 export function setVisibleMessageText(messageId: string, text: string): void {

@@ -158,8 +158,14 @@ export function createDocumentSourceActions({
     saveFigFileAs,
     getStorageBinding,
     getRecoveryId: () => recovery.getRecoveryId(),
-    adoptRecoverySnapshot: (id: string, version: number) =>
-      recovery.adoptRecoverySnapshot(id, version),
+    adoptRecoverySnapshot: (id: string, version: number) => {
+      // Snapshots only exist for documents without a writable source, so any binding
+      // present at restore time is an auto-bound empty document created after the
+      // snapshot was taken; keeping it would re-address the restored content (and its
+      // chat history) to a document that never contained it.
+      setStorageBinding(null)
+      return recovery.adoptRecoverySnapshot(id, version)
+    },
     persistRecoveryNow: () => recovery.persistNow(),
     discardRecovery: () => recovery.discardRecovery()
   }

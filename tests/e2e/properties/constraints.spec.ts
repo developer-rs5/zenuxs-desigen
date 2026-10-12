@@ -4,7 +4,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 import { propertySection } from '#tests/helpers/properties'
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/?test&no-rulers')
+  await page.goto('/editor?test&no-rulers')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
 })
@@ -112,7 +112,7 @@ test('multi-selection constraint changes undo in one step', async ({ page }) => 
     )
     .toEqual(['CENTER', 'CENTER'])
 
-  await page.keyboard.press('Meta+z')
+  await page.keyboard.press('ControlOrMeta+z')
   await expect
     .poll(() =>
       page.evaluate(({ firstId, secondId }) => {

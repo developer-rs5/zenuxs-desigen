@@ -1,12 +1,39 @@
 import { readFileSync } from 'node:fs'
 
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { CanvasHelper } from '#tests/helpers/canvas'
+
+// 9dfd0290 switched the default provider to `server-mongodb`, which has no preference or
+// credential fields, and left the S3 provider reachable only through the persisted provider
+// preference (`activeStorageProviderID` is a `useLocalStorage` ref with no settings UI).
+// Seed that preference — plus the complete S3 preferences the startup migration requires —
+// so the panel renders its Endpoint/Bucket fields and the workspace stays on S3.
+async function useS3StorageProvider(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module (same precedent as restore.spec.ts)
+    localStorage.setItem('open-pencil:storage:provider', 's3-compatible')
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access -- browser-context init script cannot import the src storage module (same precedent as restore.spec.ts)
+    localStorage.setItem(
+      'open-pencil:storage:preferences',
+      JSON.stringify({
+        's3-compatible': {
+          endpoint: 'https://s3.example.com',
+          bucket: 'designs',
+          region: ''
+        }
+      })
+    )
+  })
+}
 
 test('configured storage lists previews through ranges before opening the document', async ({
   page
 }) => {
+  // Decoding the 550KB fixture in the dev build alone takes ~9s (measured phase breakdown:
+  // read 0.1s, decode 8.6s, prepare page 2s), so this end-to-end flow exceeds the 15s default.
+  test.setTimeout(45_000)
+  await useS3StorageProvider(page)
   const fixture = readFileSync('tests/fixtures/gold-preview.fig')
   let fullDocumentGets = 0
   let rangeGets = 0
@@ -110,13 +137,17 @@ test('configured storage lists previews through ranges before opening the docume
   expect(fullDocumentGets).toBe(0)
 
   await entry.click()
-  await expect(page).toHaveURL(/\/$/)
+  // Documents now open as editor tabs and `/storage` redirects to `/editor` (src/router.ts), so
+  // the workspace URL no longer changes on open; assert the document tab plus the editor route.
+  await expect(page.getByTestId('tabbar-tab').filter({ hasText: 'Remote design' })).toBeVisible()
+  await expect(page).toHaveURL(/\/editor$/)
   await canvas.waitForInit()
   await expect(page.getByText('Remote design').first()).toBeVisible()
   expect(fullDocumentGets).toBe(1)
 })
 
 test('storage workspace directs unconfigured users to Settings', async ({ page }) => {
+  await useS3StorageProvider(page)
   await page.goto('/storage?test')
   await new CanvasHelper(page).waitForInit()
   await page.keyboard.press('ControlOrMeta+KeyN')

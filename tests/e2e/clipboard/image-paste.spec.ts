@@ -52,21 +52,21 @@ test.beforeEach(async ({ page, context }) => {
 
 test('Ctrl+V pastes an image from the system clipboard', async ({ page }) => {
   await putImageInClipboard(page)
-  await page.locator('[data-test-id="canvas-element"]').click({ position: { x: 300, y: 300 } })
+  await page.getByTestId('canvas-element').click({ position: { x: 300, y: 300 } })
   await page.keyboard.press('Control+V')
   await expect.poll(() => imageNodeCount(page)).toBe(1)
 })
 
 test('Ctrl+V pastes an image from clipboard HTML data URI', async ({ page }) => {
   await putImageHTMLInClipboard(page)
-  await page.locator('[data-test-id="canvas-element"]').click({ position: { x: 300, y: 300 } })
+  await page.getByTestId('canvas-element').click({ position: { x: 300, y: 300 } })
   await page.keyboard.press('Control+V')
   await expect.poll(() => imageNodeCount(page)).toBe(1)
 })
 
 test('context menu paste inserts an image from the system clipboard', async ({ page }) => {
   await putImageInClipboard(page)
-  await page.locator('[data-test-id="canvas-element"]').click({
+  await page.getByTestId('canvas-element').click({
     position: { x: 300, y: 300 },
     button: 'right'
   })

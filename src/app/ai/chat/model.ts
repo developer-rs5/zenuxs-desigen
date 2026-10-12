@@ -1,4 +1,4 @@
-import type { LanguageModel } from 'ai'
+import type { ImageModel, LanguageModel } from 'ai'
 
 import { modelProviderAdapter } from '@/app/ai/providers/registry'
 import type { ModelConfig } from '@/app/ai/providers/types'
@@ -27,4 +27,14 @@ function desktopFetch(): FetchFunction | undefined {
 
 export function createLanguageModel(config: ModelConfig): LanguageModel {
   return modelProviderAdapter(config.providerID).create(config, { fetch: desktopFetch() })
+}
+
+/**
+ * Builds an image-generation model, or null when the provider ships no image
+ * factory. Callers treat null as "hide the tool", never as a runtime failure.
+ */
+export function createImageModel(config: ModelConfig): ImageModel | null {
+  const adapter = modelProviderAdapter(config.providerID)
+  if (typeof adapter.createImage !== 'function') return null
+  return adapter.createImage(config, { fetch: desktopFetch() })
 }

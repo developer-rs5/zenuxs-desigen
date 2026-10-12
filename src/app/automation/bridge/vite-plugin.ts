@@ -239,7 +239,7 @@ export function automationPlugin(
       if (child === spawned) child = null
     })
 
-    if (!disabled) await waitForAutomationHealth(options.browserURL)
+    await waitForAutomationHealth(options.browserURL)
   }
 
   async function restartChild(nextConfiguration: DevMCPConfiguration): Promise<void> {

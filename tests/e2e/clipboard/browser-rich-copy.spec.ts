@@ -1,6 +1,7 @@
 import { expect, test, useEditorSetup } from '#tests/e2e/fixtures'
+import { runPaletteCommand } from '#tests/helpers/palette'
 
-const editor = useEditorSetup('/?test')
+const editor = useEditorSetup('/editor?test')
 
 test.beforeAll(async () => {
   await editor.page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -11,8 +12,8 @@ test('browser menu copy writes rich and plain OpenPencil clipboard formats', asy
   await editor.canvas.drawRect(100, 100, 120, 80)
   await editor.canvas.waitForRender()
 
-  await editor.page.getByTestId('menubar-edit').click()
-  await editor.page.getByRole('menuitem', { name: /^Copy/ }).click()
+  // The menubar was removed (~02deb986); the same command runs via the palette.
+  await runPaletteCommand(editor.page, 'Copy', 'Copy')
 
   const clipboard = await editor.page.evaluate(async () => {
     const items = await navigator.clipboard.read()
@@ -37,8 +38,7 @@ test('browser menu copy writes rich and plain OpenPencil clipboard formats', asy
     if (!store) throw new Error('OpenPencil store not initialized')
     return store.graph.getChildren(store.state.currentPageId).length
   })
-  await editor.page.getByTestId('menubar-edit').click()
-  await editor.page.getByRole('menuitem', { name: /^Paste\s+(?:⌘|Ctrl)/ }).click()
+  await runPaletteCommand(editor.page, 'Paste', 'Paste')
   await expect
     .poll(() =>
       editor.page.evaluate(() => {

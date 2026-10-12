@@ -150,14 +150,18 @@ describe('variant authoring', () => {
     expect(editor.graph.getNode(primarySmall.id)?.name).toBe('Type=Primary, Size=Small')
   })
 
-  test('uses top-left defaults and validates missing or duplicate combinations', () => {
+  test('uses declared variant defaults over position and validates missing or duplicate combinations', () => {
     const { editor, componentSet, primarySmall, primaryLarge } = setupVariants()
     const topLeft = editor.graph.getNode(primarySmall.id)
     const topRight = editor.graph.getNode(primaryLarge.id)
     if (!topLeft || !topRight) throw new Error('Expected variants')
     editor.graph.updateNode(topLeft.id, { x: 200, y: 200 })
     editor.graph.updateNode(topRight.id, { x: 0, y: 0 })
-    expect(editor.getDefaultVariantForComponentSet(componentSet.id)?.id).toBe(primaryLarge.id)
+    // Declared VARIANT defaults (fixture: Type=Primary, Size=Small) win over
+    // canvas position — position is only the fallback when no defaults are
+    // declared (product behavior from 24d3ea74, restored after the b93ffea0
+    // rewrite silently dropped it; e2e assets-panel pins the same semantics).
+    expect(editor.getDefaultVariantForComponentSet(componentSet.id)?.id).toBe(primarySmall.id)
 
     editor.graph.updateNode(primaryLarge.id, {
       componentPropertyValues: { Type: 'Primary', Size: '' }

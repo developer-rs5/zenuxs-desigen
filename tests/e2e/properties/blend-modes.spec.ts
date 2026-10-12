@@ -35,7 +35,7 @@ test.describe.configure({ mode: 'serial' })
 
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage()
-  await page.goto('/')
+  await page.goto('/editor')
   canvas = new CanvasHelper(page)
   await canvas.waitForInit()
   ;[firstId, secondId] = await page.evaluate(() => {
@@ -92,7 +92,7 @@ test.afterAll(async () => {
 test('edits fill and effect blend modes with style detachment and undo', async () => {
   await chooseBlend('Fill', 'Multiply')
   expect(await nodeState(firstId)).toMatchObject({ fillBlend: 'MULTIPLY', fillStyleId: null })
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect(await nodeState(firstId)).toMatchObject({ fillBlend: 'NORMAL', fillStyleId: '1:10' })
 
@@ -117,7 +117,7 @@ test('batches fill blend modes across a compatible selection', async () => {
   expect(await nodeState(firstId)).toMatchObject({ fillBlend: 'OVERLAY' })
   expect(await nodeState(secondId)).toMatchObject({ fillBlend: 'OVERLAY' })
 
-  await canvas.pressKey('Meta+z')
+  await canvas.pressKey('ControlOrMeta+z')
   await canvas.waitForRender()
   expect(await nodeState(firstId)).toMatchObject({ fillBlend: 'NORMAL' })
   expect(await nodeState(secondId)).toMatchObject({ fillBlend: 'NORMAL' })

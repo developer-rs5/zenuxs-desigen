@@ -1,3 +1,4 @@
+de:ai.chatSettings
 de:ai.completions
 de:ai.harnessThinkingMinimal
 de:ai.modelAgentConnection
@@ -23,6 +24,9 @@ de:panels.colorFormatHsl
 de:panels.colorFormatOkhcl
 de:panels.colorFormatRgb
 de:panels.design
+de:panels.easing
+de:panels.easingEase
+de:panels.easingLinear
 de:panels.export
 de:panels.frame
 de:panels.framePresetCategoryDesktop
@@ -35,8 +39,10 @@ de:panels.maskTypeAlpha
 de:panels.maxHeightShort
 de:panels.minHeightShort
 de:panels.position
+de:panels.prototypeOverlay
 de:panels.radialGradient
 de:panels.radius
+de:panels.stateName
 de:panels.textCaseOriginal
 de:storage.bucket
 de:storage.providerAmazonS3
@@ -49,6 +55,7 @@ de:tools.polygon
 de:tools.text
 de:variableTypes.boolean
 de:variableTypes.text
+es:ai.chatSettings
 es:ai.completions
 es:ai.responses
 es:ai.toolError
@@ -105,12 +112,14 @@ fr:panels.colorFormatOkhcl
 fr:panels.colorFormatRgb
 fr:panels.description
 fr:panels.design
+fr:panels.destination
 fr:panels.dimensions
 fr:panels.direction
 fr:panels.documentation
 fr:panels.export
 fr:panels.framePresetCategoryFigmaCommunity
 fr:panels.image
+fr:panels.interactions
 fr:panels.libraryDestination
 fr:panels.maskTypeAlpha
 fr:panels.maskTypeLuminance
@@ -119,9 +128,13 @@ fr:panels.minHeightShort
 fr:panels.page
 fr:panels.pages
 fr:panels.position
+fr:panels.prototype
+fr:panels.prototypeAction
 fr:panels.radialGradient
 fr:panels.rotation
 fr:panels.saturation
+fr:panels.slideDirection
+fr:panels.transition
 fr:panels.variables
 fr:settings.diagnostics
 fr:settings.notifications
@@ -133,6 +146,7 @@ fr:tools.ellipse
 fr:tools.rectangle
 fr:tools.section
 fr:variables.modes
+it:ai.chatSettings
 it:ai.completions
 it:ai.responses
 it:code.editorDesignLabel
@@ -148,11 +162,13 @@ it:panels.colorFormatHsl
 it:panels.colorFormatOkhcl
 it:panels.colorFormatRgb
 it:panels.design
+it:panels.easing
 it:panels.framePresetCategoryDesktop
 it:panels.framePresetCategoryFigmaCommunity
 it:panels.framePresetCategorySocialMedia
 it:panels.framePresetCategoryTablet
 it:panels.layout
+it:panels.trigger
 it:rendering.settingsTitle
 it:settings.media
 it:storage.bucket
@@ -230,7 +246,3 @@ zh-cn:panels.maskTypeAlpha
 zh-cn:storage.providerAmazonS3
 zh-cn:storage.providerBackblaze
 zh-cn:storage.providerR2
-
-de:ai.chatSettings
-es:ai.chatSettings
-it:ai.chatSettings

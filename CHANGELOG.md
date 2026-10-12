@@ -8,6 +8,12 @@
 
 ### Added
 
+- Export prototypes to standalone HTML with `open-pencil export --format html --prototype`, covering every authored capability: fade, slide, and sampled-spring transitions, state visuals, keyframe animations, CSS hover/press triggers, and a delegated JS runtime for click, load, delay, drag, scroll, long press, release, guards with variable seeds, variable writes, screen navigation, overlays with dim backdrops, and instance variant swaps, plus a report of every exported and approximated interaction that `--json` prints.
+- Write documents back to `.pen` with `open-pencil convert --format pen`, preserving prototype flows, states, interactions, and animations through a save → reopen cycle.
+- Evaluate skill routing against the shared benchmark with `open-pencil skills-eval`, comparing documents to reference expectations and reporting per-feature results as JSON.
+- Author interactive prototypes from the Prototype panel: triggers, navigation and overlay actions, named states with visual values, and fade/slide/spring transitions, with a Present preview, flow start nodes, AI prototyping tools, and `.fig`-safe persistence.
+- Tune spring transitions in the Prototype panel with editable bounce, stiffness, damping, and mass values in time and physics modes.
+- Honor the system reduced-motion setting in prototype previews: transitions, overlays, state visuals, and keyframe animations apply instantly while navigation, timers, drags, and overlay backdrops keep working.
 - Send selected canvas layers to AI chat from the context menu, auto-mention the current selection, and show an animated magic building indicator while AI responds.
 - Show a live-building overlay on the canvas while AI responds: a work-region highlight and AI cursor follow each real tool operation, and skeleton placeholders inside newly created frames are replaced by the actual elements as they appear. Existing designs stay visible and never get a skeleton.
 - Save AI conversations and attachment previews locally, switch between chats, rename or delete them, and browse saved transcripts across documents. Choose whether reasoning stays collapsed, expands while thinking, or stays expanded, with animated disclosure controls that respect reduced motion.
@@ -35,8 +41,13 @@
 - Inspect selected designs with a configured Vision model and attach images to AI chat with bounded analysis and previews. (#232, #471)
 - Pin selected layers as explicit AI chat context, show collapsible reasoning, copy individual responses, and grow the composer with multiline prompts. (#13)
 - Render streaming AI responses with the upstream Comark-based Markdown pipeline and optional Shiki code highlighting without the former project fork.
+- Suggest slash commands while typing in the AI composer, report unknown commands with a correction, and give the model every activated skill's validation rules, safe defaults, operations, and examples through one routing engine shared by chat, ACP agents, and the `design_intent` MCP tool.
+- Add `/splash`, `/modal`, `/page-transition`, and a pattern library of screen and component skills — login, signup, settings, profile, feed, pricing, checkout, toast, tooltip, accordion, pagination — selectable by slash command or plain language.
+- Report accessibility problems from `describe`: prototype touch targets under 44×44, prototype interactions on text with no visible label, and text contrast measured against its real background with WCAG AA ratios.
 
 ### Changed
+
+- Validate prototype behavior automatically after each AI mutation and feed any failures back for one bounded repair round instead of relying on a prompt instruction.
 
 - Hide AI tool-call cards from the chat transcript so the magic building indicator is the only building state shown while AI responds.
 - Vertically center shaped section titles and allow renaming a section by double-clicking its canvas label.
@@ -49,6 +60,11 @@
 
 ### Fixed
 
+- Keep the prototype camera on the current screen during Play/Present: navigating between screens now re-frames the view, so a destination authored elsewhere on the canvas is actually visible instead of the presentation appearing to do nothing.
+- Play presentations now animate as authored: a duplicate pointer-up per click no longer cancels an in-flight transition, so fade/slide/spring navigation plays to completion on real mouse input.
+- Keep long AI tool conversations alive when a provider re-uses tool-call ids across turns, rewriting the colliding ids on each request so history replay is no longer rejected and the chat stops failing silently after the collision.
+- Restore recovered documents to their recovery identity so the conversation saved before a reload reattaches instead of switching to the auto-bound empty storage document.
+- Route "Change the mobile behavior" and "Make the card interactive." to the mobile and interaction skills so natural-language requests activate their skill knowledge.
 - Remove a deleted project from Home's recent files and storage workspace lists immediately, clearing its local index entry so the deleted document no longer reappears after closing all tabs.
 - Stop replaying the "Could not open" document restore failure on every load for a dead remote tab, dropping the missing tab from the restored session while keeping transient failures retryable without error toasts.
 - Paste images from clipboard HTML data URIs with Ctrl+V and insert copied raster images through the canvas context menu's Paste action instead of failing silently or reporting blocked clipboard access.

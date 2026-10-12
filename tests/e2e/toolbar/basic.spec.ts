@@ -6,7 +6,7 @@ import {
   toolbarToolTestId
 } from '#tests/helpers/test-ids'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test('shapes flyout opens', async () => {
   await editor.page.getByTestId(toolbarFlyoutTestId('RECTANGLE')).click()

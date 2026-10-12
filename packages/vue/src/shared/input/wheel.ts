@@ -126,6 +126,14 @@ export function setupWheelPanZoom(canvasRef: Ref<HTMLCanvasElement | null>, edit
       trusted: event.isTrusted
     })
 
+    // Preview mode: the wheel dispatches scroll triggers instead of panning.
+    if (editor.isPrototypePreviewActive()) {
+      const rect = canvas.getBoundingClientRect()
+      const { x, y } = editor.screenToCanvas(event.clientX - rect.left, event.clientY - rect.top)
+      editor.previewScroll(x, y, event.deltaY)
+      return
+    }
+
     editor.setNavigationPhase(isWheelZoom(event) ? 'zoom' : 'pan', performance.now())
 
     if (isWheelZoom(event)) {

@@ -9,9 +9,17 @@ import {
   waitForNodeNamed
 } from '#tests/helpers/code-panel'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 test.beforeEach(async () => {
+  // Session restore prunes this fixture's tab when the server answers 404 for
+  // its never-saved document (intended behaviour, covered by
+  // tests/e2e/storage/restore.spec.ts) and falls back to the home tab. Reset the
+  // persisted session so every test starts from the same fresh editor as beforeAll.
+  await editor.page.evaluate(() => {
+    // oxlint-disable-next-line open-pencil/no-direct-storage-access
+    localStorage.removeItem('zenuxs:tabs:session')
+  })
   await editor.page.reload()
   await editor.canvas.waitForInit()
 })
@@ -94,7 +102,7 @@ test('live previews Design JSX and keeps one undo transaction', async () => {
 
   await designTab().click()
   await editor.page.waitForTimeout(50)
-  await editor.page.keyboard.press('Meta+z')
+  await editor.page.keyboard.press('ControlOrMeta+z')
   await waitForNode(editor.page, originalId)
   expect(await hasNode(editor.page, originalId)).toBe(true)
   expect(await hasNodeNamed(editor.page, 'Live JSX final')).toBe(false)
@@ -155,10 +163,10 @@ test('HTML/CSS live preview commits as one undoable session', async () => {
 
   await designTab().click()
   await expect.poll(() => getUndoLabel(editor.page)).toBe('Edit HTML/CSS')
-  await editor.page.keyboard.press('Meta+z')
+  await editor.page.keyboard.press('ControlOrMeta+z')
   await waitForNode(editor.page, originalId)
   expect(await hasNode(editor.page, originalId)).toBe(true)
-  await editor.page.keyboard.press('Meta+Shift+z')
+  await editor.page.keyboard.press('ControlOrMeta+Shift+z')
   await expect.poll(() => hasNode(editor.page, originalId)).toBe(false)
 })
 
@@ -171,7 +179,7 @@ test('switching source formats commits the current live session', async () => {
   await selectSource('HTML/CSS')
   await expect(codeEditor()).toContainText('<style>')
   await expect.poll(() => getUndoLabel(editor.page)).toBe('Edit JSX')
-  await editor.page.keyboard.press('Meta+z')
+  await editor.page.keyboard.press('ControlOrMeta+z')
   await waitForNode(editor.page, originalId)
 })
 

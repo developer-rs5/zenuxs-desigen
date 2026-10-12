@@ -126,7 +126,7 @@ test('grouping updates layers', async () => {
   await editor.canvas.drawRect(800, 600, 60, 60)
   await editor.canvas.selectAll()
 
-  await editor.page.keyboard.press('Meta+g')
+  await editor.page.keyboard.press('ControlOrMeta+g')
   await editor.canvas.waitForRender()
 
   const tree = await getSceneTree()
@@ -140,7 +140,10 @@ test('grouping updates layers', async () => {
 })
 
 test('ungrouping updates layers', async () => {
-  await editor.page.keyboard.press('Shift+Meta+g')
+  // Live binding is `$mod+Shift+KeyG` (packages/vue/src/editor/commands/registry.ts) and tinykeys
+  // resolves $mod to Control off macOS, so Shift+Meta+g never dispatched selection.ungroup.
+  // Same platform-neutral form as tests/e2e/keyboard/shortcuts.spec.ts "⌘⇧G ungroups".
+  await editor.page.keyboard.press('ControlOrMeta+Shift+g')
   await editor.canvas.waitForRender()
 
   const names = await getLayerNames()

@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import type { SessionUpdate } from '@agentclientprotocol/sdk'
 
 import { mapUpdate } from '@/app/ai/acp/map-update'
-import { formatConnectionError, buildCrashChunks } from '@/app/ai/acp/transport'
+import { formatConnectionError, buildCrashChunks, routeACPPrompt } from '@/app/ai/acp/transport'
 
 const TEXT_ID = 'text-1'
 
@@ -234,5 +234,25 @@ describe('buildCrashChunks', () => {
       type: 'error',
       errorText: 'Agent process exited unexpectedly.'
     })
+  })
+})
+
+describe('routeACPPrompt', () => {
+  test('routes ACP input through the same skill engine as direct chat', () => {
+    const routed = routeACPPrompt('/motion create a dashboard')
+    expect(routed.startsWith('/motion create a dashboard')).toBe(true)
+    expect(routed).toContain('[Design skills activated for this request]')
+    expect(routed).toContain('### design.dashboard')
+    expect(routed).toContain('Routing mode: execute — explicit skill command.')
+  })
+
+  test('keeps plain ACP input untouched', () => {
+    expect(routeACPPrompt('Hello there')).toBe('Hello there')
+  })
+
+  test('surfaces an unknown command instead of dropping it', () => {
+    const routed = routeACPPrompt('/bottm-sheet make it a sheet')
+    expect(routed).toContain('Unknown command "/bottm-sheet"')
+    expect(routed).toContain('did you mean /bottom-sheet?')
   })
 })

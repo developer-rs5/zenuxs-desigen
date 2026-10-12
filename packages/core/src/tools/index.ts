@@ -7,6 +7,7 @@ export type {
   ComponentCatalogLibraryAsset
 } from './component-catalog'
 export { ALL_TOOLS, CORE_TOOLS, EXTENDED_TOOLS } from './registry'
+export { PROTOTYPE_TOOLS } from './prototype'
 export const CODEGEN_PROMPT: string = codegenPrompt
 export { exportImage } from './vector'
 export {
@@ -29,5 +30,14 @@ export {
   parseOverlapScope,
   parseOverlapSeverity
 } from './analyze/overlaps/params'
+export {
+  generateImage,
+  getActiveGeneratedImageProvider,
+  getGeneratedImageProviders,
+  registerGeneratedImageProvider,
+  setActiveGeneratedImageProvider,
+  type GeneratedImageProvider,
+  type GeneratedImageRequest
+} from './image-gen'
 export { setPexelsAPIKey, setUnsplashAccessKey } from './stock-photo'
 export { importSVG } from './create'

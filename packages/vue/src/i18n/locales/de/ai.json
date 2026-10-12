@@ -149,5 +149,17 @@
   "reasoningExpanded": "Standardmäßig ausgeklappt",
   "jumpToLatest": "Zum neuesten Beitrag",
   "chatAgentImagesUnsupported": "Dieser Agent empfängt nur Text, daher wurden die angehängten Bilder nicht gesendet. Wechsle zu einem direkten Modell, um Referenzbilder zu verwenden.",
-  "chatModelImagesUnsupported": "Das ausgewählte Design-Modell kann keine Bilder lesen, daher wurde der Anhang nicht gesendet. Weise in den Einstellungen ein Modell mit Bildunterstützung zu."
+  "chatModelImagesUnsupported": "Das ausgewählte Design-Modell kann keine Bilder lesen, daher wurde der Anhang nicht gesendet. Weise in den Einstellungen ein Modell mit Bildunterstützung zu.",
+  "skillsPopoverTitle": "KI-Design-Skills",
+  "skillsActive": "{count} aktiv",
+  "skillsTriggerLabel": "KI-Skills: {count} aktiv",
+  "skillsPopoverFooter": "Taste Skill und UI/UX Pro Max",
+  "skillsPopoverSettings": "Einstellungen",
+  "skillsSectionTitle": "KI-Skills & Design-Frameworks",
+  "skillsSectionDescription": "Aktive Skills injizieren spezielle Designregeln, Anti-Slop-Richtlinien und UI/UX-Intelligenz in KI-Generierungsprompts.",
+  "skillsSectionActive": "{active} von {total} Skills aktiv",
+  "commandSuggestions": "Skill-Befehle",
+  "noCommandMatches": "Keine passenden Befehle",
+  "unknownCommand": "Unbekannter Befehl \"/{command}\".",
+  "unknownCommandSuggestions": "Unbekannter Befehl \"/{command}\". Meintest du {suggestions}?"
 }

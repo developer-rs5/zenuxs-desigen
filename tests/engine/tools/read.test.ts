@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import { FigmaAPI } from '@open-pencil/core'
+import { fontManager } from '@open-pencil/core/text'
 
 import { getTool, setupToolTest, type ALL_TOOLS, type ToolResult } from '#tests/helpers/tools'
 
@@ -114,6 +115,12 @@ describe('query_nodes', () => {
 
 describe('get_font_status', () => {
   test('returns font fidelity diagnostics for agents', () => {
+    // The FontManager is a shared singleton: any earlier test file that loads
+    // the default family ('Inter') flips the unresolved→substituted branch and
+    // makes this result run-order dependent. Establish the precondition instead
+    // of relying on file execution order.
+    fontManager.unloadFont('Inter', 'Regular')
+
     const { figma } = setupToolTest()
     const text = figma.createText()
     text.name = 'Missing label'

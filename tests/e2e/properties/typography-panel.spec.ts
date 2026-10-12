@@ -5,7 +5,7 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 for (const theme of ['light', 'dark']) {
   test(`typography groups remain directly editable in ${theme}`, async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 1200 })
-    await page.goto('/?test')
+    await page.goto('/editor?test')
     await new CanvasHelper(page).waitForInit()
     const id = await page.evaluate(async (mode) => {
       const path = '/src/app/shell/theme.ts'

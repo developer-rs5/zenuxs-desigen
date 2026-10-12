@@ -15,11 +15,18 @@ import {
   type AIChatFailure
 } from '@/app/ai/chat/failure'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
+import { repairMessage } from '@/app/ai/chat/prototype-critic'
 import { buildReasoningProviderOptions, type AIProviderOptions } from '@/app/ai/chat/reasoning'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
 import { createAIModelRuntime, resolveModelConnectionAPIKey } from '@/app/ai/models'
 import { getActiveSkillsPrompt } from '@/app/ai/skills'
-import { MAX_AGENT_STEPS, createAITools, recordStep, resetRunSteps } from '@/app/ai/tools'
+import {
+  MAX_AGENT_STEPS,
+  createAITools,
+  recordStep,
+  resetRunSteps,
+  takePrototypeRepair
+} from '@/app/ai/tools'
 import {
   recordChatCompleted,
   recordChatFailed,
@@ -80,7 +87,7 @@ export async function createACPTransport(providerID: AIProviderID) {
   return new ACPChatTransport({ agentDef, cwd: await homeDir() })
 }
 
-export function createToolLoopTransport({
+export async function createToolLoopTransport({
   store,
   providerID,
   model,
@@ -89,7 +96,7 @@ export function createToolLoopTransport({
   reasoningEffort,
   onError
 }: ToolLoopTransportOptions) {
-  const tools = createAITools(store)
+  const tools = await createAITools(store)
   const cacheProviderOptions = supportsAnthropicCaching(providerID, effectiveModelID)
     ? ANTHROPIC_CACHE_CONTROL
     : undefined
@@ -126,6 +133,13 @@ export function createToolLoopTransport({
         cacheReadTokens: usage.inputTokenDetails.cacheReadTokens ?? null,
         cacheWriteTokens: usage.inputTokenDetails.cacheWriteTokens ?? null
       })
+    },
+    // Code-enforced repair round (audit §4.6): if a prototype mutation
+    // validated false, the failing errors ride on the next model step. The
+    // critic spends at most one round per run, so this can never loop.
+    prepareStep: ({ messages }) => {
+      const repair = takePrototypeRepair(store)
+      return repair === null ? undefined : { messages: [...messages, repairMessage(repair)] }
     }
   })
 

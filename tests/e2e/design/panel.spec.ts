@@ -2,7 +2,7 @@ import { expect, expectInViewport, test, useEditorSetup } from '#tests/e2e/fixtu
 import { expectDefined } from '#tests/helpers/assert'
 import { propertyItems, propertySection } from '#tests/helpers/properties'
 
-const editor = useEditorSetup()
+const editor = useEditorSetup('/editor')
 
 function designPanel() {
   return editor.page.getByTestId('design-panel-single')
