@@ -19,12 +19,15 @@ import { repairMessage } from '@/app/ai/chat/prototype-critic'
 import { buildReasoningProviderOptions, type AIProviderOptions } from '@/app/ai/chat/reasoning'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
 import { createAIModelRuntime, resolveModelConnectionAPIKey } from '@/app/ai/models'
+import type { ImageGenerationReason } from '@/app/ai/models/image'
 import { getActiveSkillsPrompt } from '@/app/ai/skills'
 import {
   MAX_AGENT_STEPS,
   createAITools,
+  imageGenerationUnavailableReason,
   recordStep,
   resetRunSteps,
+  takeLayoutRepair,
   takePrototypeRepair
 } from '@/app/ai/tools'
 import {
@@ -87,6 +90,51 @@ export async function createACPTransport(providerID: AIProviderID) {
   return new ACPChatTransport({ agentDef, cwd: await homeDir() })
 }
 
+/**
+ * The image-generation section of the system prompt, delimited by markers so a
+ * session without `generate_image` can drop it instead of teaching the model a
+ * tool that is not in its schema.
+ */
+const IMAGE_GENERATION_SECTION =
+  /<!-- image-generation:start -->[\s\S]*?<!-- image-generation:end -->\n*/
+
+/**
+ * Guidance that stays even when image generation is unavailable. Vector-first
+ * is not conditional on having a bitmap tool — dropping it would tell a
+ * key-less session to do the opposite of what it should.
+ */
+const VECTOR_ONLY_GUIDANCE = `# Image Sources — vector only
+
+You cannot generate raster images in this session. Build vector geometry instead: \`create_vector\`, \`create_shape\`, \`import_svg\`, or an icon from the library via \`<Icon name="lucide:heart" />\` / \`search_icons\` / \`insert_icon\`.
+
+Vector output is resolution-independent, recolorable, editable as real nodes, and survives \`.fig\` export. Check your work with \`describe\` (or \`export_image\` when appearance is the question) and confirm it reads correctly at the target size. If you cannot make it read correctly, leave the placeholder color as-is and tell the user why — never fake it with \`eval\` gradients or hand-drawn polygons.`
+
+/**
+ * Builds the system instructions for a session.
+ *
+ * When `generate_image` is not in the tool set the section is replaced with
+ * vector-only guidance. Leaving the image section in place would invite the
+ * model to promise something it cannot do.
+ */
+function imageUnavailableReason(reason: ImageGenerationReason): string {
+  if (reason === 'no-api-key') return 'The Design model has no API key saved'
+  if (reason === 'provider-unsupported') {
+    return 'The active Design model provider cannot generate images'
+  }
+  return 'No Design model is configured'
+}
+
+function assembleInstructions(skillsPrompt: string): string {
+  const unavailable = imageGenerationUnavailableReason()
+  let base = SYSTEM_PROMPT
+  if (unavailable) {
+    base = base.replace(IMAGE_GENERATION_SECTION, '\n')
+    const reason = imageUnavailableReason(unavailable)
+    base = `${base}\n> Image generation unavailable: ${reason}.\n\n${VECTOR_ONLY_GUIDANCE}\n`
+  }
+  return skillsPrompt ? `${base}\n\n${skillsPrompt}` : base
+}
+
 export async function createToolLoopTransport({
   store,
   providerID,
@@ -106,7 +154,7 @@ export async function createToolLoopTransport({
   )
 
   const skillsPrompt = getActiveSkillsPrompt()
-  const instructions = skillsPrompt ? `${SYSTEM_PROMPT}\n\n${skillsPrompt}` : SYSTEM_PROMPT
+  const instructions = assembleInstructions(skillsPrompt)
 
   const agent = new ToolLoopAgent({
     model,
@@ -137,8 +185,10 @@ export async function createToolLoopTransport({
     // Code-enforced repair round (audit §4.6): if a prototype mutation
     // validated false, the failing errors ride on the next model step. The
     // critic spends at most one round per run, so this can never loop.
+    // Layout containment works the same way: after a write, anything that
+    // escaped its area is fed back before the model replies.
     prepareStep: ({ messages }) => {
-      const repair = takePrototypeRepair(store)
+      const repair = takePrototypeRepair(store) ?? takeLayoutRepair(store)
       return repair === null ? undefined : { messages: [...messages, repairMessage(repair)] }
     }
   })

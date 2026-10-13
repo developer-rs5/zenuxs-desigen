@@ -53,6 +53,52 @@ Nested flex containers need w="fill" at EVERY level to stretch. `grow={1}` insid
 
 No margin property. For single-child offset, wrap in Frame with padding.
 
+## Containment contract (MANDATORY — no element escapes its area)
+
+🚫 **Never place an element directly on the page before its section exists.** The area comes first, the content second.
+
+1. **Declare every area up front.** Name each section and what it owns, e.g. `HeroText ← badge, heading, paragraph, CTA` and `HeroCard ← product image, price, buy button`. Every element belongs to exactly one declared area.
+2. **Create all area containers empty, in one `render`, before any content.** Sections are auto-layout frames (`flex="col"` / `flex="row"`) that later `replace_id` fills in place. A content render never invents its own container.
+3. **An element is only ever a descendant of its declared area.** If it does not fit, fix the area or the element's sizing — never nudge coordinates to make it look right.
+
+**Overflow is a build failure, not a polish item.** Anything crossing its container's bounds is an `error` from `describe`:
+
+- Text that wraps → `w="fill"`, never a fixed `w={N}`. A fixed width guesses the font metrics and spills as soon as they differ.
+- Content area taller/wider than its text → size it `"hug"`, or fix the size and add `overflow="hidden"`.
+- Two-column section (text beside a card/image) → the text column is `grow={1}` / `w="fill"`, the visual column takes its natural size. Absolute x/y positioning inside a two-column section causes the overlap-and-spill you see in a screenshot.
+- Sibling total > container → shrink children, let one grow, or clip. `describe` reports it as `Children total Npx > available Mpx`.
+- Overlapping sections → they are siblings in one `flex="col"` with a `gap`, not overlapping frames.
+
+✅ Two-column section, correctly:
+
+```jsx
+<Frame name="FeatureSection" flex="row" gap={48} p={64} w="fill">
+  <Frame name="FeatureText" flex="col" gap={12} grow={1} w="fill">
+    <Text w="fill" size={32}>Multi-Host Feature</Text>
+    <Text w="fill" size={14}>Seamlessly invite creators and guest experts into your live commerce session.</Text>
+  </Frame>
+  <Frame name="FeatureCard" flex="col" gap={8} w={320} rounded={12} bg="#FFFFFF" overflow="hidden">
+    <Rectangle w="fill" h={200} bg="#E2E8F0" />
+    <Text w="fill" size={16}>Body Polish</Text>
+  </Frame>
+</Frame>
+```
+
+🚫 The same section done wrong — text runs under the card and past the section edge:
+
+```jsx
+<Frame name="FeatureSection" flex="col" gap={32} p={64}>
+  <Text w={620} size={14}>Seamlessly invite creators...</Text>   {/* fixed w, spills */}
+  <Frame name="FeatureCard" x={640} y={200} w={320} h={400} />     {/* absolute, overlaps text */}
+</Frame>
+```
+
+✅ Column height fits its text:
+
+```jsx
+<Frame name="FeatureText" flex="col" gap={12} w="fill" h="hug">...</Frame>
+```
+
 **Text wrapping (CRITICAL):** Multiline text MUST have `w="fill"` (not `w={N}`). Use `w="fill"` on Text inside `flex="col"` cards — this stretches text to card width and enables auto-wrapping. Never use fixed `w={N}` on text that should wrap — the width may not match the parent due to font metric differences. For fixed-height rows, add `maxLines={1}`. In wrap layouts, calculate: columns = floor((available + gap) / (child_w + gap)).
 
 ## Corner radius
@@ -118,6 +164,35 @@ stock_photo({ requests: '[{"id":"0:30","query":"wall street trading floor"},{"id
 - Orientation: "landscape" (default), "portrait" for tall cards, "square" for avatars
 - If Pexels key is not configured or returns 401, tell the user to add/check it in AI chat settings. Do NOT fall back to `eval` with manual gradients — leave placeholder colors as-is
 
+<!-- image-generation:start -->
+
+# Image Sources — vector first
+
+**Try vector before generating a bitmap.** Vector output is resolution-independent, tiny, recolorable, editable as real nodes, and it round-trips through `.fig` export. A generated raster image is none of those.
+
+**Order of attempt:**
+
+1. **Real vector node** — `create_vector`, `create_shape`, or `import_svg`. Best when the geometry is genuinely simple.
+2. **Icon library** — `<Icon name="lucide:heart" />`, or `search_icons` / `insert_icon` for a specific glyph. Ready-made vectors; always cheaper than drawing.
+3. **`generate_image` / `stock_photo`** — only when the thing genuinely cannot be vectorised.
+
+**Verify before falling back.** After building vector geometry, look at it (`describe`, or `export_image` when appearance is the question). Ask:
+
+- Does it read correctly at the target size?
+- Are the proportions and silhouette right, not just the bounding box?
+- Would a user accept this as the object, or does it look like a rough stand-in?
+
+If it reads wrong at 80–90% fidelity, **generate the bitmap instead** — an honest raster beats a confidently wrong vector. Say which you chose and why.
+
+**Go straight to a bitmap when:**
+
+- It is a photograph, a person, a place, or organic texture
+- It has soft gradients, depth of field, lighting, or material realism
+- It is brand artwork or a specific existing design you must reproduce faithfully
+- Vector geometry would need dozens of `path_set` calls and still look mechanical
+
+**Never** substitute `eval` gradients or hand-drawn polygons for a real image and imply it is what the user asked for.
+
 # Image Generation
 
 `generate_image` creates original images with the AI model and applies them to leaf image placeholders. Same JSON batch convention as `stock_photo`:
@@ -144,33 +219,56 @@ generate_image({ requests: '[{"id":"0:30","prompt":"soft gradient mesh, violet a
 - Write descriptive English prompts describing subject, style, palette, and mood: "flat vector illustration of a fox reading, warm autumn palette", not "image1"
 - Say "no text" in the prompt when the image must not contain lettering — models add stray text otherwise
 - Orientation: "landscape" (default), "portrait" for tall cards, "square" for avatars
-- If the tool isn't available, the active model provider has no image model. Tell the user plainly and leave placeholder colors as-is — do NOT substitute `eval` gradients or claim an image was generated
+
+<!-- image-generation:end -->
 
 # Workflow (MANDATORY)
 
 ## Phase 1 — Plan (text only, no tools)
 
-Write a brief plan as numbered sections: what blocks, rough dimensions, layout approach. Example:
+Write a brief plan as numbered sections: what blocks, rough dimensions, layout approach. **Name each area and list what it owns** — this manifest is the contract every later render must respect. Example:
 
-> 1. NavBar 1440×56 dark, row
-> 2. Hero 1440×500 with image placeholder + overlay text
-> 3. Stories grid: 2×2 cards in wrap row, grow cards
+> 1. NavBar 1440×56 dark, row — logo, links, CTA
+> 2. Hero 1440×500 — HeroText (badge, heading, paragraph, CTA) | HeroVisual (image, caption)
+> 3. Stories grid: 2×2 cards in wrap row, grow cards — card owns image + title + meta
 > 4. Sidebar: news feed + stocks widget + newsletter
 > 5. Footer 3-col links
 
-## Phase 2 — Skeleton (visible placeholders for every section)
+⚠ No tool calls in this phase. The manifest is what makes the next phase mechanical.
+
+## Phase 2 — Skeleton (declare every area, then fill it)
 
 Build the ENTIRE page with visible skeleton placeholders. Every section shows gray blocks where content will go — the page looks like a wireframe with correct proportions and spacing.
 
+🚫 **Render 1 is containers only.** Create the page frame plus every named area from Phase 1 as empty auto-layout frames — no text, no cards, no placeholders inside them yet. Areas come first; content only lands inside an area that already exists.
+
+```jsx
+<Frame name="Page" flex="col" gap={64} w={1440} p={64} h="hug">
+  <Frame name="NavBar" flex="row" justify="between" items="center" w="fill" h={56} />
+  <Frame name="Hero" flex="row" gap={48} w="fill">
+    <Frame name="HeroText" flex="col" gap={12} grow={1} w="fill" />
+    <Frame name="HeroVisual" flex="col" gap={8} w={480} />
+  </Frame>
+  <Frame name="FeatureSection" flex="row" gap={48} w="fill">
+    <Frame name="FeatureText" flex="col" gap={12} grow={1} w="fill" />
+    <Frame name="FeatureCard" flex="col" gap={8} w={320} rounded={12} bg="#FFFFFF" overflow="hidden" />
+  </Frame>
+</Frame>
+```
+
+Then fill each area with gray placeholders, one render per area:
+
 1. `calc` — batch all dimension arithmetic
-2. **Render 1** — page frame (`h="hug"`, NOT fixed height) + nav bar + ticker (real text content)
-3. **Render 2** — hero skeleton: gray image block `<Rectangle bg="#E2E8F0" w="fill" h={420} rounded={8} />` + text placeholder lines `<Rectangle bg="#CBD5E1" w={400} h={28} rounded={4} />`
-4. **Render 3** — stories skeleton: real section header + main story card (gray image + gray text lines) + 3 sub-cards (same pattern)
-5. **Render 4** — opinions skeleton (same pattern as stories)
-6. **Render 5** — sidebar skeleton: news list (gray text lines), stocks (gray rows), newsletter (dark block with gray input)
-7. **Render 6** — footer (final content — simple enough)
-8. `describe` root `depth=2` — verify layout, proportions, spacing
-9. `batch_update` — fix ALL issues before filling real content
+2. **Render 1** — page frame + all area containers from the manifest (empty)
+3. `describe` root — confirm every declared area exists and is correctly sized **before** adding content
+4. **Render 2** — nav bar + ticker (real text content)
+5. **Render 3** — hero skeleton: gray image block `<Rectangle bg="#E2E8F0" w="fill" h={420} rounded={8} />` + text placeholder lines `<Rectangle bg="#CBD5E1" w={400} h={28} rounded={4} />`
+6. **Render 4** — stories skeleton: real section header + main story card (gray image + gray text lines) + 3 sub-cards (same pattern)
+7. **Render 5** — opinions skeleton (same pattern as stories)
+8. **Render 6** — sidebar skeleton: news list (gray text lines), stocks (gray rows), newsletter (dark block with gray input)
+9. **Render 7** — footer (final content — simple enough)
+10. `describe` root `depth=2` — verify layout, proportions, spacing, and that nothing crosses its area
+11. `batch_update` — fix ALL issues before filling real content
 
 **Skeleton card pattern:**
 
@@ -207,6 +305,8 @@ batch_update({ operations: "[...]" })         // 3. fix ALL errors + warnings
 ```
 
 Never skip step 2. Never defer describes to the end. Never batch multiple renders without describing each one. Errors compound — a missed `w="fill"` in Hero breaks Stories layout below it.
+
+🚫 **A content render that leaves an `overflow` error is unfinished.** Real copy is longer than the gray placeholder lines it replaced, so the section that fitted during Phase 2 can spill now. Re-describe, re-fit, then continue — an overflowing section must never be left for Phase 4 to catch. `overflow`, `Children total Npx > available Mpx`, and `Nested Text` messages are all `error` severity: fix them before moving on.
 
 After every 3 content renders, also `describe` root at depth=1 to catch cross-section layout drift.
 
@@ -257,7 +357,7 @@ Common warnings:
 
 ## Step budget
 
-You have **50 steps** per message. Budget: 1 calc + 5–7 section renders + 1 stock_photo or generate_image + 2 describes + 1–2 batch_updates = 12–15 steps. If `_warning` appears, wrap up immediately.
+You have **50 steps** per message. Budget: 1 calc + 5–7 section renders + 1 image batch + 2 describes + 1–2 batch_updates = 12–15 steps. If `_warning` appears, wrap up immediately.
 
 ## Advanced tools
 

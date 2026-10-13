@@ -15,6 +15,12 @@ import type { StepBudget, ToolLogEntry } from '@open-pencil/core/tools'
 import type { SceneNode } from '@open-pencil/scene-graph'
 
 import { clearAIPendingWork, setAIPendingWork } from '@/app/ai/chat/build-state'
+import {
+  collectPageOverflowErrors,
+  createLayoutCritic,
+  type LayoutCritic,
+  type LayoutCriticReport
+} from '@/app/ai/chat/layout-critic'
 import { resolveAIWorkRect } from '@/app/ai/chat/live-build'
 import {
   createPrototypeCritic,
@@ -23,7 +29,7 @@ import {
   type PrototypeCritic,
   type PrototypeCriticReport
 } from '@/app/ai/chat/prototype-critic'
-import { resolveImageModel } from '@/app/ai/models/image'
+import { resolveImageGeneration, type ImageGenerationReason } from '@/app/ai/models/image'
 import { createAIGeneratedImageProvider } from '@/app/ai/tools/image-gen-provider'
 import { makeFigmaFromStore } from '@/app/automation/bridge/figma-factory'
 import { getActiveEditorStore } from '@/app/editor/active-store'
@@ -38,10 +44,13 @@ class RunState {
   currentSteps = 0
   /** Post-generation prototype validation for this run (audit §4.6). */
   critic: PrototypeCritic = createPrototypeCritic()
+  /** Post-generation overflow containment check for this run. */
+  layout: LayoutCritic = createLayoutCritic()
 
   resetSteps(): void {
     this.currentSteps = 0
     this.critic.reset()
+    this.layout.reset()
   }
 
   hitLimit(): boolean {
@@ -52,6 +61,7 @@ class RunState {
     this.toolLog = []
     this.currentSteps = 0
     this.critic.reset()
+    this.layout.reset()
   }
 }
 
@@ -100,6 +110,33 @@ export function getPrototypeCriticReport(store?: EditorStore): PrototypeCriticRe
   return getRunState(store).critic.report()
 }
 
+/**
+ * Consumes the run's one automatic overflow repair round: runs the real
+ * containment check over the current page and, when anything escaped its area,
+ * returns the instruction the transport appends to the next model step. Null
+ * when nothing overflows or the round is already spent.
+ */
+export function takeLayoutRepair(store: EditorStore): string | null {
+  const runState = getRunState(store)
+  return runState.layout.takeRepair(collectPageOverflowErrors(makeFigmaFromStore(store)))
+}
+
+/** Layout critic verdicts for the debug log; safe to read at any time. */
+export function getLayoutCriticReport(store?: EditorStore): LayoutCriticReport {
+  return getRunState(store).layout.report()
+}
+
+/**
+ * Why `generate_image` is absent from the current session, or null when it is
+ * available. Diagnostics and settings read this so a silently missing tool is
+ * explainable instead of looking like the AI ignored the request.
+ */
+let imageGenerationReason: ImageGenerationReason | null = null
+
+export function imageGenerationUnavailableReason(): ImageGenerationReason | null {
+  return imageGenerationReason
+}
+
 export async function createAITools(store: EditorStore) {
   let beforeSnapshot: Map<string, SceneNode> | null = null
   const runState = getRunState(store)
@@ -110,7 +147,9 @@ export async function createAITools(store: EditorStore) {
   // The image tool exists only when the active Design provider can actually
   // generate images. Hiding it beats exposing a tool that can only fail — the
   // model would spend a step and the user money discovering that.
-  const imageModel = await resolveImageModel()
+  const imageGeneration = await resolveImageGeneration()
+  const imageModel = imageGeneration.available ? imageGeneration.model : null
+  imageGenerationReason = imageGeneration.available ? null : imageGeneration.reason
   if (imageModel) {
     registerGeneratedImageProvider(createAIGeneratedImageProvider(imageModel))
     setActiveGeneratedImageProvider('ai-image-model')
@@ -175,6 +214,9 @@ export async function createAITools(store: EditorStore) {
             runState.critic.noteMutation()
             runState.critic.recordValidation(runPrototypeValidation(makeFigmaFromStore(store)))
           }
+          // Any write can push a sibling past its container, so containment is
+          // checked for every mutation before the model gets to reply.
+          runState.layout.noteMutation()
         }
       },
       onFlashNodes: (nodeIds) => {

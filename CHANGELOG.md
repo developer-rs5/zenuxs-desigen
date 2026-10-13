@@ -18,6 +18,7 @@
 - Show a live-building overlay on the canvas while AI responds: a work-region highlight and AI cursor follow each real tool operation, and skeleton placeholders inside newly created frames are replaced by the actual elements as they appear. Existing designs stay visible and never get a skeleton.
 - Save AI conversations and attachment previews locally, switch between chats, rename or delete them, and browse saved transcripts across documents. Choose whether reasoning stays collapsed, expands while thinking, or stays expanded, with animated disclosure controls that respect reduced motion.
 - Undo or edit any sent chat message: canvas changes from that message onward are reverted, the tail of the transcript is removed, and the prompt returns to the composer for editing and resending.
+- Keep AI-built layouts inside their areas: the assistant declares each section and its contents up front, creates the area containers before any content, and wraps text to its container instead of guessing a fixed width. When an element still escapes its container, the overflow is detected in code and fed back to the model as a repair round before it replies.
 
 - Add a searchable command palette for editor and application actions.
 - Search current AI provider catalogs from model pickers, with curated recommendations, recent compatible models, and offline fallbacks.
