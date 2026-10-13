@@ -113,7 +113,7 @@ function partKey(part: UIMessagePart<UIDataTypes, UITools>, index: number): stri
       <!-- User message -->
       <template v-else-if="message.role === 'user'">
         <AttachmentList v-if="attachments.length" :attachments="attachments" />
-        <div class="group/usermessage relative flex flex-col items-end gap-1">
+        <div class="relative flex flex-col items-end gap-1">
           <div
             data-test-id="chat-text-bubble"
             class="rounded-xl rounded-br-md bg-accent px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap text-white"
@@ -129,13 +129,13 @@ function partKey(part: UIMessagePart<UIDataTypes, UITools>, index: number): stri
               )
             }}
           </div>
-          <div
-            v-if="showUserActions"
-            class="flex items-center gap-0.5 opacity-0 focus-within:opacity-100 group-hover/usermessage:opacity-100"
-          >
+          <!-- Always visible: these are the only way to reach a prompt's
+               canvas changes after it has been sent. -->
+          <div v-if="showUserActions" class="flex items-center gap-0.5">
             <IconButton
               :label="commandMessages.undo"
               size="xs"
+              class="text-muted hover:text-surface"
               data-test-id="chat-undo-message"
               @click="emit('undo', message.id)"
             >
@@ -144,6 +144,7 @@ function partKey(part: UIMessagePart<UIDataTypes, UITools>, index: number): stri
             <IconButton
               :label="menuMessages.edit"
               size="xs"
+              class="text-muted hover:text-surface"
               data-test-id="chat-edit-message"
               @click="emit('edit', message.id)"
             >
