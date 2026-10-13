@@ -4,7 +4,7 @@ import { isReasoningUIPart, isTextUIPart } from 'ai'
 import type { UIDataTypes, UIMessage, UIMessagePart, UITools } from 'ai'
 import { computed } from 'vue'
 
-import { useI18n, vTestId } from '@open-pencil/vue'
+import { useCommandMessages, useI18n, useMenuMessages, vTestId } from '@open-pencil/vue'
 
 import { attachmentsForMessage } from '@/app/ai/attachment/presentation/store'
 import type { AttachmentPresentation } from '@/app/ai/attachment/presentation/types'
@@ -18,13 +18,28 @@ import IconButton from '@/components/ui/button/IconButton.vue'
 const {
   message,
   streaming = false,
-  presentation
+  presentation,
+  revertable = false,
+  actionsDisabled = false
 } = defineProps<{
   message: UIMessage
   streaming?: boolean
   presentation?: { text?: string; attachments?: AttachmentPresentation[] }
+  /** A canvas checkpoint exists for this user message, so undo/edit can revert it. */
+  revertable?: boolean
+  /** Streaming or busy — transcript actions stay hidden. */
+  actionsDisabled?: boolean
+}>()
+const emit = defineEmits<{
+  undo: [messageId: string]
+  edit: [messageId: string]
 }>()
 const { ai } = useI18n()
+const commandMessages = useCommandMessages()
+const menuMessages = useMenuMessages()
+const showUserActions = computed(
+  () => message.role === 'user' && revertable && !actionsDisabled && !streaming
+)
 const markdownMode = computed(() => (streaming ? 'streaming' : 'static'))
 const storedAttachments = attachmentsForMessage(message.id)
 const attachments = computed(() => presentation?.attachments ?? storedAttachments.value)
@@ -98,20 +113,43 @@ function partKey(part: UIMessagePart<UIDataTypes, UITools>, index: number): stri
       <!-- User message -->
       <template v-else-if="message.role === 'user'">
         <AttachmentList v-if="attachments.length" :attachments="attachments" />
-        <div
-          data-test-id="chat-text-bubble"
-          class="rounded-xl rounded-br-md bg-accent px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap text-white"
-        >
-          {{
-            presentation?.text ??
-            visibleUserMessageText(
-              message.id,
-              message.parts
-                .filter(isTextUIPart)
-                .map((p) => p.text)
-                .join('')
-            )
-          }}
+        <div class="group/usermessage relative flex flex-col items-end gap-1">
+          <div
+            data-test-id="chat-text-bubble"
+            class="rounded-xl rounded-br-md bg-accent px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap text-white"
+          >
+            {{
+              presentation?.text ??
+              visibleUserMessageText(
+                message.id,
+                message.parts
+                  .filter(isTextUIPart)
+                  .map((p) => p.text)
+                  .join('')
+              )
+            }}
+          </div>
+          <div
+            v-if="showUserActions"
+            class="flex items-center gap-0.5 opacity-0 focus-within:opacity-100 group-hover/usermessage:opacity-100"
+          >
+            <IconButton
+              :label="commandMessages.undo"
+              size="xs"
+              data-test-id="chat-undo-message"
+              @click="emit('undo', message.id)"
+            >
+              <icon-lucide-undo-2 class="size-3" />
+            </IconButton>
+            <IconButton
+              :label="menuMessages.edit"
+              size="xs"
+              data-test-id="chat-edit-message"
+              @click="emit('edit', message.id)"
+            >
+              <icon-lucide-pencil class="size-3" />
+            </IconButton>
+          </div>
         </div>
       </template>
     </div>

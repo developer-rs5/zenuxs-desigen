@@ -17,14 +17,20 @@ import { useScrollFollowing } from './transcript/useScrollFollowing'
 const {
   messages,
   status,
-  showContinue = false
+  showContinue = false,
+  revertableIds,
+  actionsDisabled = false
 } = defineProps<{
   messages: UIMessage[]
   status: ChatStatus
   showContinue?: boolean
   presentations?: Record<string, { text?: string; attachments?: AttachmentPresentation[] }>
+  /** User message ids holding a canvas checkpoint — eligible for undo/edit. */
+  revertableIds?: ReadonlySet<string>
+  /** Streaming or busy — transcript actions stay hidden. */
+  actionsDisabled?: boolean
 }>()
-const emit = defineEmits<{ continue: [] }>()
+const emit = defineEmits<{ continue: []; undo: [messageId: string]; edit: [messageId: string] }>()
 const { ai } = useI18n()
 const running = computed(() => status === 'submitted' || status === 'streaming')
 const isThinking = computed(() => {
@@ -69,6 +75,10 @@ const { arrivedState, resumeFollowing } = useScrollFollowing(
           :message="msg"
           :presentation="presentations?.[msg.id]"
           :streaming="running && msg.role === 'assistant' && index === messages.length - 1"
+          :revertable="revertableIds?.has(msg.id) ?? false"
+          :actions-disabled="actionsDisabled"
+          @undo="emit('undo', $event)"
+          @edit="emit('edit', $event)"
         />
 
         <!-- Magic Building 360° skeleton loading indicator -->

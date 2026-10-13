@@ -9,7 +9,7 @@ import { DirectChatTransport, ToolLoopAgent } from 'ai'
 import type { LanguageModel, UIMessage } from 'ai'
 import { computed, shallowRef } from 'vue'
 
-import { SceneGraph } from '@open-pencil/scene-graph'
+import { SceneGraph, UndoManager } from '@open-pencil/scene-graph'
 
 import { resumableTransport } from '@/app/ai/chat/history/continuation'
 import { resolveImageSupport } from '@/app/ai/chat/submission/image-support'
@@ -103,6 +103,7 @@ function makeEditorStore(): EditorStore {
   return {
     graph,
     state: { currentPageId: page.id, selectedIds: new Set<string>() },
+    undo: new UndoManager(),
     renderExportImage: async () => null
   } as EditorStore
 }

@@ -6,7 +6,9 @@ import { computed, markRaw, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from '@open-pencil/vue'
 
 import { chatBuilding } from '@/app/ai/chat/build-state'
+import { hasMessageCheckpoint } from '@/app/ai/chat/history/checkpoints'
 import { chatDocumentId } from '@/app/ai/chat/history/document'
+import { revertUserMessage } from '@/app/ai/chat/history/revert'
 import { buildTextSubmission } from '@/app/ai/chat/submission/build'
 import { useChatSubmission } from '@/app/ai/chat/submission/use'
 import { useAIChat } from '@/app/ai/chat/use'
@@ -24,7 +26,15 @@ import ChatInput from '@/components/chat/ChatInput.vue'
 import ChatTranscript from '@/components/chat/ChatTranscript.vue'
 import ProviderSetup from '@/components/chat/ProviderSetup.vue'
 
-const { isConfigured, ensureChat, history, chatFailure, clearChatFailure, providerID } = useAIChat()
+const {
+  isConfigured,
+  ensureChat,
+  history,
+  chatFailure,
+  clearChatFailure,
+  providerID,
+  chatInputDraft
+} = useAIChat()
 const { ai } = useI18n()
 const notifications = useNotificationMessages()
 
@@ -188,6 +198,45 @@ function handleStop() {
   submission.stop()
 }
 
+/**
+ * Undo + edit share one revert: canvas changes from the message onward are
+ * undone, the tail of the transcript is dropped, and the prompt returns to
+ * the composer (focused by the draft watcher) for editing and resending.
+ */
+const revertableIds = computed(
+  () =>
+    new Set(
+      (chat.value?.messages ?? [])
+        .filter((message) => message.role === 'user' && hasMessageCheckpoint(message.id))
+        .map((message) => message.id)
+    )
+)
+const transcriptActionsDisabled = computed(
+  () =>
+    status.value !== 'ready' ||
+    submission.busy.value ||
+    history.busy.value ||
+    agentHistoryReadOnly.value ||
+    history.readOnly.value
+)
+async function handleRevertMessage(messageId: string) {
+  const live = chat.value
+  if (!live || status.value !== 'ready') return
+  try {
+    const reverted = await revertUserMessage(messageId, {
+      chat: live,
+      editor: getActiveEditorStore(),
+      flush: history.flush,
+      restoreDraft: (text) => {
+        chatInputDraft.value = text
+      }
+    })
+    if (!reverted) toast.error(ai.value.chatHistoryFailed)
+  } catch {
+    toast.error(ai.value.chatHistoryFailed)
+  }
+}
+
 const diagnosticNotice = ref('')
 async function copyDiagnostics(operation: () => Promise<void>) {
   diagnosticNotice.value = ''
@@ -254,6 +303,8 @@ async function handleCopyDebug() {
           :messages="messages"
           :status="status"
           :show-continue="showContinue"
+          :revertable-ids="revertableIds"
+          :actions-disabled="transcriptActionsDisabled"
           @continue="
             submission.submit({
               modelText: 'Continue where you left off',
@@ -262,6 +313,8 @@ async function handleCopyDebug() {
               nodes: []
             })
           "
+          @undo="handleRevertMessage"
+          @edit="handleRevertMessage"
         />
 
         <p v-if="agentHistoryReadOnly" role="status" class="px-3 py-2 text-xs text-muted">

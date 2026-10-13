@@ -148,4 +148,32 @@ describe('SceneGraph + UndoManager — updateNode undo integration', () => {
     expect(getNodeOrThrow(graph, id).x).toBe(0)
     expect(getNodeOrThrow(graph, id).y).toBe(0)
   })
+
+  test('depth tracks push/undo and undoToDepth reverts to a checkpoint', () => {
+    const { graph, undo, pageId, updateWithUndo } = makeSetup()
+    const id = graph.createNode('RECTANGLE', pageId, { x: 0, y: 0, width: 100, height: 100 }).id
+
+    expect(undo.depth).toBe(0)
+    updateWithUndo(id, { x: 10 }, 'first')
+    const checkpoint = undo.depth
+    updateWithUndo(id, { x: 20 }, 'second')
+    updateWithUndo(id, { x: 30 }, 'third')
+    expect(undo.depth).toBe(checkpoint + 2)
+
+    undo.undoToDepth(checkpoint)
+    expect(getNodeOrThrow(graph, id).x).toBe(10)
+    expect(undo.depth).toBe(checkpoint)
+  })
+
+  test('undoToDepth is a no-op at or below the current depth', () => {
+    const { graph, undo, pageId, updateWithUndo } = makeSetup()
+    const id = graph.createNode('RECTANGLE', pageId, { x: 0, y: 0, width: 100, height: 100 }).id
+
+    updateWithUndo(id, { x: 10 }, 'first')
+    undo.undoToDepth(5)
+    expect(getNodeOrThrow(graph, id).x).toBe(10)
+    undo.undoToDepth(-1)
+    expect(getNodeOrThrow(graph, id).x).toBe(0)
+    expect(undo.depth).toBe(0)
+  })
 })

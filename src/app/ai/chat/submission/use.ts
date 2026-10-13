@@ -10,6 +10,7 @@ import {
 import { imageDraftPresentations } from '@/app/ai/attachment/image/presentation'
 import { snapshotNode } from '@/app/ai/attachment/node/snapshot'
 import { setMessageAttachments } from '@/app/ai/attachment/presentation/store'
+import { recordMessageCheckpoint } from '@/app/ai/chat/history/checkpoints'
 import { setVisibleMessageText } from '@/app/ai/chat/presentation'
 import {
   reportRoutingNotice,
@@ -58,11 +59,16 @@ export function useChatSubmission(options: SubmissionOptions) {
 
   async function sendText(currentChat: ChatInstance, submission: ChatSubmission): Promise<void> {
     const previousIds = new Set(currentChat.messages.map((message) => message.id))
+    // Checkpoint before the model runs so "undo from here" reverts its edits.
+    const checkpoint = options.getEditor().undo.depth
     await currentChat.sendMessage({ text: submission.modelText }).catch(() => undefined)
     const message = currentChat.messages.find(
       (candidate) => candidate.role === 'user' && !previousIds.has(candidate.id)
     )
-    if (message) setVisibleMessageText(message.id, submission.displayText)
+    if (message) {
+      setVisibleMessageText(message.id, submission.displayText)
+      recordMessageCheckpoint(message.id, checkpoint)
+    }
   }
 
   /**
@@ -113,6 +119,7 @@ export function useChatSubmission(options: SubmissionOptions) {
     const nodeAttachments = submission.nodes
       .map((node) => snapshotNode(editor, messageId, node))
       .filter((attachment) => attachment !== null)
+    recordMessageCheckpoint(messageId, editor.undo.depth)
     currentChat.messages = [
       ...currentChat.messages,
       { id: messageId, role: 'user', parts: [{ type: 'text', text: submission.modelText }] }

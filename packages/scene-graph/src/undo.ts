@@ -115,6 +115,21 @@ export class UndoManager {
     return this.redoStack.length > 0
   }
 
+  /** Number of undoable entries. Chat checkpoints record this before a send. */
+  get depth(): number {
+    return this.undoStack.length
+  }
+
+  /**
+   * Pops entries until the stack holds `depth` entries. Newer entries —
+   * including manual edits made after the checkpoint — are reverted too,
+   * which is what "undo everything since this message" needs.
+   */
+  undoToDepth(depth: number): void {
+    const target = Math.max(0, Math.floor(depth))
+    while (this.undoStack.length > target) this.undo()
+  }
+
   get undoLabel(): string | null {
     return this.undoStack.at(-1)?.label ?? null
   }

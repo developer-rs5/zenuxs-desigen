@@ -19,6 +19,10 @@ export function setVisibleMessageText(messageId: string, text: string): void {
   visibleText.set(messageId, text)
 }
 
+export function deleteVisibleMessageText(messageId: string): void {
+  visibleText.delete(messageId)
+}
+
 export function clearVisibleMessageText(): void {
   visibleText.clear()
 }
