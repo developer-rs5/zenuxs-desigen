@@ -1,0 +1,33 @@
+# Keep build context small for production images.
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.tsbuildinfo
+.git/
+.worktrees/
+scratch/
+.mimosa/
+.zcode/
+.opencode/
+.originkit/
+test-results/
+playwright-report/
+blob-report/
+storybook-static/
+.publish/
+storybook-static/
+# NOTE: desktop/ must stay in context — public/favicon*.png|ico are
+# symlinks into desktop/icons and `vite build` fails on dangling links.
+tests/
+.vite/
+.turbo/
+.wrangler/
+packages/docs/.vitepress/cache/
+packages/docs/.vitepress/dist/
+*.log
+logs/
+.DS_Store
+.env
+.env.*
+!.env.example

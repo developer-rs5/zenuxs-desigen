@@ -1,0 +1,15 @@
+services:
+  open-pencil:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace/open-pencil
+      - /workspace/open-pencil/node_modules
+    ports:
+      - "1420:1420"
+    environment:
+      - TAURI_DEV_HOST=0.0.0.0
+    working_dir: /workspace/open-pencil
+    user: root
+    command: sh -c "bun install && bun run dev"
