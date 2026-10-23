@@ -140,6 +140,17 @@ Hierarchy via one property at a time: size OR weight OR color. Light bg: primary
 
 Fonts are loaded automatically — use any Google Fonts family (Inter, Georgia, Roboto, Playfair Display, etc.). The first render with a new font may take a moment to load.
 
+## Icon discipline (always on)
+
+Icons come from real Iconify collections through `<Icon name="collection:glyph" />` — never invented shapes, unicode glyphs, or emoji (renders as □). The name is a real glyph id, so choose it like a designer choosing from a library, not a placeholder.
+
+- **One collection per design.** Pick the family first, then use it everywhere: `lucide` (outline), `tabler` (outline), `heroicons` (outline/solid), `solar` (linear/bold), `ph` (light/bold), `mdi` (filled), `mingcute`. Mixing outline and filled families in one screen is a build failure, not a style choice.
+- **Style matches the surface.** Outline families for light, restrained UIs; filled families for dense, dark, or high-contrast surfaces. Same stroke character across every icon — a thin outline next to a chunky solid reads as two systems bolted together.
+- **Size on the scale.** 16 inline with text, 20 in controls, 24 in nav and toolbars, 32+ as a feature glyph. One size per role — never vary the size of the same role across a screen.
+- **Color is a prop, always.** `color` inherits nothing — an unset icon renders black. Set it to the text role the icon accompanies; an icon is never its own random hue.
+- **Name real glyphs.** `lucide:arrow-right`, `mdi:check-circle-outline`, `tabler:chart-bar`, `ph:clock-bold`, `solar:settings-linear`, `mingcute:check-line`. If you cannot name the glyph, you have not decided what the icon is — describe the action and pick again.
+- **Icon or illustration.** Functional, repeatable, small (arrows, statuses, tools, nav, feature bullets) → icon. Singular, expressive, brand-scale (hero art, empty states, mascots) → illustration or generated image. Never place a 60px "icon".
+
 ## Prohibited
 
 No style={{}}, className, CSS. No named colors or rgb(). No percentage values. No TypeScript casts. No Math.random(). No `Math.` prefix in calc — use `floor(x)` not `Math.floor(x)`. No emoji in UI elements (use `<Icon>` instead) — emoji renders as □.
@@ -159,6 +170,21 @@ No style={{}}, className, CSS. No named colors or rgb(). No percentage values. N
 **Tab bar / Bottom nav:** Outer frame `flex="row" w="fill" justify="between" px={32}`. Each tab `flex="col" items="center" gap={4}`. Tab items are HUG-width — `justify="between"` distributes them. Don't use `grow` on individual tabs.
 
 **Dividers:** Use `<Rectangle w="fill" h={1} bg="#E2E8F0" />` for horizontal dividers inside `flex="col"`. Use `<Rectangle w={1} h="fill" bg="#E2E8F0" />` for vertical dividers inside `flex="row"`. ⚠ **Never use `stroke` on a container frame as a divider hack** — stroke creates a full border around the frame, not a single separator line. Set the parent `gap={0}` and interleave Rectangle dividers between items.
+
+## Component best practices (always on)
+
+Build from real component patterns with their established rules — not generic scaffolds. Decide which pattern each element is, then follow that pattern's discipline.
+
+- **Buttons**: verb-first labels ("Create project", not "Submit"). 40–48h, px 16–24, rounded 8–12. One filled primary per section; secondary = outline, tertiary = text. Never two filled CTAs in one view.
+- **Cards**: one idea per card — media top, title, one line, action. rounded 12–16; shadow OR 1px border, never both heavy. Card grids use `grow={1}`, never fixed `w`.
+- **Forms**: label above the field, never placeholder-as-label. Input 44h, label-to-input gap 8, field gap 16. Errors sit directly under their field. Group related fields in one card.
+- **Navigation**: top bar 56–64h — logo left, links, CTA right. Active tab visibly distinct (weight, underline, or accent). Bottom nav: 4–5 items max, icon + label each.
+- **Modals and overlays**: X top-right, title + one line of description, actions bottom-right with cancel left of primary. Never a modal for a task that needs neither interruption nor protected focus.
+- **Tables**: caption-style header row, 48–56h rows, dividers OR zebra — not both. Numbers right-aligned in their columns.
+- **Empty states**: icon or illustration + one line explaining what belongs here + the action that creates it. Never a bare "No data".
+- **Pricing**: 3 tiers max, middle tier highlighted (border or badge), one CTA per column.
+
+Anti-patterns — never ship: a kicker/eyebrow label above every heading; placeholder-only form fields; 10px body text; nested cards; rainbow or multi-accent sections; a decorative border on every element; emoji as icons; lorem or "Feature One/Two/Three" copy — write specific, product-real content; and the centered-logo + three-even-columns + gradient-blob default.
 
 <!-- stock-photo:start -->
 

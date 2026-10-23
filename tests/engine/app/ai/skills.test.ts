@@ -16,8 +16,8 @@ describe('AI Skills System', () => {
     resetAISkillsToDefaults()
   })
 
-  it('loads four default skills, enabled by default', () => {
-    expect(aiSkills.value.length).toBe(4)
+  it('loads six default skills, enabled by default', () => {
+    expect(aiSkills.value.length).toBe(6)
     expect(aiSkills.value.every((skill) => skill.enabled && skill.isDefault)).toBe(true)
   })
 
@@ -74,6 +74,33 @@ describe('AI Skills System', () => {
     expect(frontendDesign?.promptContent).toContain('WRITING IN DESIGN')
   })
 
+  it('ships Vercel Web Design Guidelines as a default skill', () => {
+    const guidelines = aiSkills.value.find((s) => s.name === 'web-design-guidelines')
+    expect(guidelines).toBeDefined()
+    expect(guidelines?.id).toBe('web-design-guidelines')
+    expect(guidelines?.displayName).toBe('Web Design Guidelines')
+    expect(guidelines?.version).toBe('1.0.0')
+    expect(guidelines?.author).toBe('Vercel')
+    expect(guidelines?.sourceUrl).toBe('https://github.com/vercel-labs/agent-skills')
+    expect(guidelines?.tags).toContain('review')
+    expect(guidelines?.promptContent).toContain('=== WEB DESIGN GUIDELINES (VERCEL) ===')
+    expect(guidelines?.promptContent).toContain('INTERACTIVE AFFORDANCE')
+    expect(guidelines?.promptContent).toContain('ANTI-PATTERNS')
+  })
+
+  it('ships Designer Skills as a default skill', () => {
+    const designer = aiSkills.value.find((s) => s.name === 'designer-skills')
+    expect(designer).toBeDefined()
+    expect(designer?.id).toBe('designer-skills')
+    expect(designer?.displayName).toBe('Designer Skills')
+    expect(designer?.version).toBe('1.0.0')
+    expect(designer?.author).toBe('Owl-Listener')
+    expect(designer?.sourceUrl).toBe('https://github.com/Owl-Listener/designer-skills')
+    expect(designer?.tags).toContain('critique')
+    expect(designer?.promptContent).toContain('=== DESIGNER SKILLS — CRAFT SYSTEMS & CRITIQUE ===')
+    expect(designer?.promptContent).toContain('CRITIQUE PASS (MANDATORY BEFORE REPLYING)')
+  })
+
   it('computes active skills correctly', () => {
     expect(activeAISkills.value.length).toBe(DEFAULT_SKILLS.length)
 
@@ -94,6 +121,10 @@ describe('AI Skills System', () => {
     expect(prompt).toContain('=== FRONTEND DESIGN — DISTINCTIVE')
     expect(prompt).toContain('=== UI/UX PRO MAX — DESIGN INTELLIGENCE ===')
     expect(prompt).toContain('=== TASTE SKILL (ANTI-SLOP FRONTEND FRAMEWORK) ===')
+    expect(prompt).toContain('## Skill: web-design-guidelines (v1.0.0)')
+    expect(prompt).toContain('=== WEB DESIGN GUIDELINES (VERCEL) ===')
+    expect(prompt).toContain('## Skill: designer-skills (v1.0.0)')
+    expect(prompt).toContain('=== DESIGNER SKILLS — CRAFT SYSTEMS & CRITIQUE ===')
   })
 
   it('states that skills are guidance, not a template to repeat', () => {
@@ -111,6 +142,8 @@ describe('AI Skills System', () => {
     toggleAISkill('ui-ux-pro-max', false)
     toggleAISkill('impeccable', false)
     toggleAISkill('frontend-design', false)
+    toggleAISkill('web-design-guidelines', false)
+    toggleAISkill('designer-skills', false)
     expect(getActiveSkillsPrompt()).toBe('')
   })
 

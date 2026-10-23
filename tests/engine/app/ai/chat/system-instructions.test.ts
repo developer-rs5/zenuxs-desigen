@@ -68,6 +68,18 @@ describe('buildSystemInstructions image tool contract', () => {
     expect(without).not.toContain('Active Design Skills')
   })
 
+  test('always carries the forced icon discipline and component best practices', () => {
+    // These sections are not registry skills: they are part of the base
+    // prompt and must survive every session shape, with or without skills.
+    const withSkills = instructionsFor({ sourcing: true, skills: SKILL_PROMPT })
+    const without = instructionsFor({ sourcing: false, generation: 'no-api-key' })
+    for (const instructions of [withSkills, without]) {
+      expect(instructions).toContain('## Icon discipline (always on)')
+      expect(instructions).toContain('## Component best practices (always on)')
+      expect(instructions).toContain('One collection per design')
+    }
+  })
+
   test('never repeats a tool it removed from the schema in the examples', () => {
     const instructions = instructionsFor({ sourcing: true })
     expect(instructions).not.toContain('1 stock_photo')
