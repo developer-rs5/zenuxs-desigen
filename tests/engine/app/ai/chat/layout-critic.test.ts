@@ -5,7 +5,7 @@ import { FigmaAPI } from '@open-pencil/core/figma-api'
 
 import {
   MAX_LAYOUT_REPAIR_ROUNDS,
-  collectPageOverflowErrors,
+  collectPageLayoutErrors,
   createLayoutCritic
 } from '@/app/ai/chat/layout-critic'
 
@@ -43,7 +43,7 @@ function buildOverflowingColumn(figma: ReturnType<typeof store>): void {
   })
 }
 
-describe('collectPageOverflowErrors', () => {
+describe('collectPageLayoutErrors', () => {
   test('reports nothing for a page whose children fit', () => {
     const figma = store()
     const pageId = figma.currentPageId
@@ -60,17 +60,83 @@ describe('collectPageOverflowErrors', () => {
       y: 0,
       width: 280,
       height: 24,
-      characters: 'Multi-Host Feature'
+      characters: 'Multi-Host Feature',
+      fills: [{ type: 'SOLID', visible: true, opacity: 1, color: { r: 0.1, g: 0.1, b: 0.1, a: 1 } }]
     })
-    expect(collectPageOverflowErrors(figma)).toEqual([])
+    expect(collectPageLayoutErrors(figma)).toEqual([])
   })
 
   test('reports the child that escapes its container', () => {
     const figma = store()
     buildOverflowingColumn(figma)
-    const errors = collectPageOverflowErrors(figma)
+    const errors = collectPageLayoutErrors(figma)
     expect(errors.length).toBeGreaterThan(0)
     expect(errors.join(' ')).toContain('FeatureText')
+  })
+
+  test('reports two siblings stacked on the same coordinates', () => {
+    const figma = store()
+    const pageId = figma.currentPageId
+    figma.graph.createNode('FRAME', pageId, {
+      name: 'Hero',
+      x: 0,
+      y: 0,
+      width: 480,
+      height: 320
+    })
+    figma.graph.createNode('FRAME', pageId, {
+      name: 'HeroCard',
+      x: 0,
+      y: 0,
+      width: 480,
+      height: 320
+    })
+    const errors = collectPageLayoutErrors(figma)
+    expect(errors.join(' ')).toContain('overlaps')
+    expect(errors.join(' ')).toContain('Hero')
+  })
+
+  test('does not report a deliberate overlay on a larger surface', () => {
+    const figma = store()
+    const pageId = figma.currentPageId
+    const hero = figma.graph.createNode('FRAME', pageId, {
+      name: 'Hero',
+      x: 0,
+      y: 0,
+      width: 480,
+      height: 320
+    })
+    figma.graph.createNode('RECTANGLE', hero.id, {
+      name: 'PlayButton',
+      x: 200,
+      y: 120,
+      width: 80,
+      height: 80,
+      fills: [{ type: 'SOLID', visible: true, opacity: 1, color: { r: 0.1, g: 0.1, b: 0.1, a: 1 } }]
+    })
+    expect(collectPageLayoutErrors(figma)).toEqual([])
+  })
+
+  test('reports a collapsed element that occupies no area', () => {
+    const figma = store()
+    const pageId = figma.currentPageId
+    const section = figma.graph.createNode('FRAME', pageId, {
+      name: 'Section',
+      x: 0,
+      y: 0,
+      width: 480,
+      height: 320
+    })
+    figma.graph.createNode('FRAME', section.id, {
+      name: 'Ghost',
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 40
+    })
+    const errors = collectPageLayoutErrors(figma)
+    expect(errors.join(' ')).toContain('collapses to')
+    expect(errors.join(' ')).toContain('Ghost')
   })
 })
 
@@ -85,7 +151,7 @@ describe('layout critic repair budget', () => {
     expect(repair).not.toBeNull()
     expect(repair).toContain('FeatureText')
     expect(repair).toContain('w="fill"')
-    expect(repair).toContain('containment check failed')
+    expect(repair).toContain('Automatic layout check failed')
 
     // The second round is the final review before the reply.
     const finalReview = critic.takeRepair(['FeatureText: still overflowing'])
@@ -96,6 +162,19 @@ describe('layout critic repair budget', () => {
     // The budget is spent: a third overflow cannot inject another round.
     expect(critic.takeRepair(['FeatureText: yet again'])).toBeNull()
     expect(critic.report().repairRoundsUsed).toBe(MAX_LAYOUT_REPAIR_ROUNDS)
+  })
+
+  test('carries overlap and collapsed repairs in the instruction', () => {
+    const critic = createLayoutCritic()
+    critic.noteMutation()
+    const repair = critic.takeRepair([
+      'Hero: "HeroText" overlaps "HeroCard" (70% of "HeroText") in "Hero"',
+      'Section: "Ghost" collapses to 0×40 — invisible'
+    ])
+    expect(repair).not.toBeNull()
+    expect(repair).toContain('overlaps')
+    expect(repair).toContain('collapses to')
+    expect(repair).toContain('flex="col"/"row"')
   })
 
   test('reset restores the budget for the next message', () => {

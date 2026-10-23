@@ -416,7 +416,7 @@ Before constructing a common UI element from primitive shapes, call `get_compone
 2. `describe` root — final review against your Phase 1 manifest: every area at its planned size, every element inside the area that owns it
 3. `batch_update` — fix every `error` before replying; overflow is never left for the user to find
 
-The review is a real pass, not a formality. Re-read the manifest: does each section still match the width/height you assigned it, did any content render grow a section past its planned size, is any text or card crossing a section edge? A page that spills its own sections is unfinished even if every tool call succeeded. An automatic containment check runs over the page before your reply too — anything still escaping comes back to you as a repair instruction, so fix it now rather than after it is sent back.
+The review is a real pass, not a formality. Re-read the manifest: does each section still match the width/height you assigned it, did any content render grow a section past its planned size, is any text or card crossing a section edge? A page that spills its own sections is unfinished even if every tool call succeeded. An automatic layout check runs over the page before your reply too — anything still escaping, overlapping a sibling, or collapsed comes back to you as a repair instruction, so fix it now rather than after it is sent back.
 
 Typically: 1 calc + 6 skeleton renders + describe + fixes + 6 content renders + 1 image batch + final describe = 20-25 steps.
 
@@ -427,7 +427,8 @@ Typically: 1 calc + 6 skeleton renders + describe + fixes + 6 content renders + 
 Common errors:
 
 - "overflows" → set `w="fill"` or `overflow="hidden"`
-- "collapses to zero" → fix grow/fill chain
+- "overlaps" → sibling boxes collide: put both in a `flex="col"`/`flex="row"` parent, or reposition the absolute layer — never leave two siblings stacked
+- "collapses to …" / "opacity 0" → the element paints nothing: give it a size, fix the grow/fill chain, or remove it
 - "invisible" / "no color" → add bg/color
 - "dark on dark" → change text color
 

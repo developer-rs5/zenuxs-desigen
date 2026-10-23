@@ -221,3 +221,67 @@ describe('describe text contrast issues (spec §55)', () => {
     expect(lowContrast(figma, labelId)).toEqual([])
   })
 })
+
+describe('describe overlap and broken-element issues', () => {
+  test('flags two siblings stacked on the same coordinates as an error', () => {
+    const { figma } = setupToolTest()
+    const first = figma.createFrame()
+    first.name = 'Hero'
+    first.resize(480, 320)
+    const second = figma.createFrame()
+    second.name = 'HeroCard'
+    second.resize(480, 320)
+
+    const issue = matching(issuesOf(figma, figma.currentPageId), 'overlaps')
+    expect(issue).toBeDefined()
+    expect(issue?.message).toContain('Hero')
+    expect(issue?.message).toContain('HeroCard')
+    expect(issue?.severity).toBe('error')
+  })
+
+  test('does not flag a deliberate overlay inside a larger surface', () => {
+    const { figma, graph } = setupToolTest()
+    const hero = figma.createFrame()
+    hero.name = 'Hero'
+    hero.resize(480, 320)
+    const play = figma.createRectangle()
+    play.name = 'PlayButton'
+    play.resize(80, 80)
+    hero.appendChild(play)
+    graph.updateNode(play.id, { x: 200, y: 120, fills: solidFills(BLACK) })
+
+    expect(matching(issuesOf(figma, hero.id), 'overlaps')).toBeUndefined()
+  })
+
+  test('flags a visible element that collapses to zero width', () => {
+    const { figma, graph } = setupToolTest()
+    const section = figma.createFrame()
+    section.name = 'Section'
+    section.resize(480, 320)
+    const ghost = figma.createFrame()
+    ghost.name = 'Ghost'
+    section.appendChild(ghost)
+    graph.updateNode(ghost.id, { width: 0, height: 40 })
+
+    const issue = matching(issuesOf(figma, section.id), 'collapses to')
+    expect(issue).toBeDefined()
+    expect(issue?.message).toContain('Ghost')
+    expect(issue?.severity).toBe('error')
+  })
+
+  test('flags a visible element painted at zero opacity', () => {
+    const { figma, graph } = setupToolTest()
+    const section = figma.createFrame()
+    section.name = 'Section'
+    section.resize(480, 320)
+    const hidden = figma.createRectangle()
+    hidden.name = 'Hidden'
+    hidden.resize(120, 40)
+    section.appendChild(hidden)
+    graph.updateNode(hidden.id, { opacity: 0, fills: solidFills(BLACK) })
+
+    const issue = matching(issuesOf(figma, section.id), 'opacity 0')
+    expect(issue).toBeDefined()
+    expect(issue?.severity).toBe('error')
+  })
+})

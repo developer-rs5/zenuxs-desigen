@@ -2,17 +2,20 @@ import type { FigmaAPI } from '@open-pencil/core/figma-api'
 import { CORE_TOOLS, type ToolDef } from '@open-pencil/core/tools'
 
 /**
- * Automatic containment enforcement for AI-built layouts.
+ * Automatic layout enforcement for AI-built layouts.
  *
  * The system prompt makes areas a contract ("declare the area, fill it, never
  * spill"), but a prompt cannot stop a long paragraph from outgrowing the box it
- * replaced. This is the code path that does: before the model replies, the real
- * `describe` checks run over the current page, and any overflow error is fed
- * back into the next model step as a bounded repair round — the same shape as
- * the prototype critic, applied to geometry.
+ * replaced, two siblings from stacking on the same coordinates, or a node from
+ * collapsing to nothing. This is the code path that does: before the model
+ * replies, the real `describe` checks run over the current page, and any
+ * blocking layout error is fed back into the next model step as a bounded
+ * repair round — the same shape as the prototype critic, applied to geometry.
  *
- * Detection is deliberately narrow. Only overflow-class issues block, so a
- * design that merely has a radius or spacing nit is never interrupted.
+ * Detection is deliberately narrow. Only `error`-severity issues are
+ * collected — overflow, sibling overlap, collapsed or unpainted elements,
+ * unreadable text — so a design that merely has a radius or spacing nit is
+ * never interrupted.
  */
 
 /**
@@ -36,16 +39,15 @@ export const MAX_LAYOUT_REPAIR_ROUNDS = 2
 export const CRITIC_DESCRIBE_DEPTH = 4
 
 /**
- * Containment messages, matched against what the layout inspector actually
- * emits: a child wider than its parent (`overflows`, `is Npx wide inside`,
- * `on cross axis`), siblings that outgrow their axis (`Children total`), and a
- * text node wider than the box that owns it (`is Npx wide, parent has`).
- *
- * Deliberately narrower than severity: collapse, crowding, and grow-conflict
- * issues are real layout problems but not escapes, and interrupting a run for
- * them would spend the repair round on something the design intent allows.
+ * Blocking layout messages, used as a fallback when a described node does not
+ * carry severity. The inspector classifies every issue; `error` is the set
+ * that means the output is broken — containment escape, sibling overlap, a
+ * collapsed or unpainted element, unreadable text, an undersized touch
+ * target, nested text. Warnings (crowding, grow conflicts, grid nits) and info
+ * (naming, radius suggestions) never interrupt a run.
  */
-const OVERFLOW_PATTERN = /overflow|children total|on cross axis|is \d+px wide/i
+const LAYOUT_ERROR_PATTERN =
+  /overflow|children total|on cross axis|is \d+px wide|overlaps .* in |collapses to|opacity 0|no fill and no stroke|has no color|dark on dark/i
 
 const INSPECT_TOOL_NAME = 'describe'
 
@@ -67,23 +69,29 @@ function describeTargetName(node: DescribedNode): string {
   return 'node'
 }
 
-function collectOverflowIssues(node: DescribedNode, found: string[]): void {
+function isBlockingIssue(issue: DescribeIssue): boolean {
+  if (issue.severity === 'error') return true
+  const message = typeof issue.message === 'string' ? issue.message : null
+  return message !== null && LAYOUT_ERROR_PATTERN.test(message)
+}
+
+function collectLayoutIssues(node: DescribedNode, found: string[]): void {
   for (const issue of node.issues ?? []) {
+    if (!isBlockingIssue(issue)) continue
     const message = typeof issue.message === 'string' ? issue.message : null
-    if (message && OVERFLOW_PATTERN.test(message)) {
-      const name = describeTargetName(node)
-      found.push(`${name}: ${message}`)
-    }
+    if (!message) continue
+    const name = describeTargetName(node)
+    found.push(`${name}: ${message}`)
   }
-  for (const child of node.children ?? []) collectOverflowIssues(child, found)
+  for (const child of node.children ?? []) collectLayoutIssues(child, found)
 }
 
 /**
- * Overflow issues on the current page, or an empty list when the page cannot be
- * inspected. Runs the real `describe` ToolDef so the model and the guard see
- * exactly the same verdicts.
+ * Blocking layout issues on the current page, or an empty list when the page
+ * cannot be inspected. Runs the real `describe` ToolDef so the model and the
+ * guard see exactly the same verdicts.
  */
-export function collectPageOverflowErrors(figma: FigmaAPI): string[] {
+export function collectPageLayoutErrors(figma: FigmaAPI): string[] {
   const inspector: ToolDef | undefined = CORE_TOOLS.find((tool) => tool.name === INSPECT_TOOL_NAME)
   if (!inspector) return []
   let result: unknown
@@ -95,7 +103,7 @@ export function collectPageOverflowErrors(figma: FigmaAPI): string[] {
   }
   if (!result || typeof result !== 'object') return []
   const found: string[] = []
-  collectOverflowIssues(result as DescribedNode, found)
+  collectLayoutIssues(result as DescribedNode, found)
   return found
 }
 
@@ -107,13 +115,13 @@ function buildRepairInstruction(errors: readonly string[], round: number): strin
   // the final containment review rather than another mid-build fix.
   const opening =
     round <= 1
-      ? 'Automatic layout containment check failed — an element escaped the area that owns it. Fix these in place before replying (localized repair; do not rebuild the page):'
-      : 'Final layout review before you reply — these elements still overflow the area that owns them. Fix every one now; after this check there is no further repair round:'
+      ? 'Automatic layout check failed — an element escaped the area that owns it, overlaps a sibling, or collapsed to nothing. Fix these in place before replying (localized repair; do not rebuild the page):'
+      : 'Final layout review before you reply — these elements still overflow their area, overlap a sibling, or collapsed. Fix every one now; after this check there is no further repair round:'
 
   return [
     opening,
     ...listed,
-    'Each fix belongs to the element named: give wrapping text w="fill" (never a fixed w), let a content column grow or size it "hug", add overflow="hidden" where content is intentionally clipped, and remove absolute x/y positioning that overlaps a sibling. Re-run describe and only reply once none of these remain.'
+    'Each fix belongs to the element named: give wrapping text w="fill" (never a fixed w), let a content column grow or size it "hug", add overflow="hidden" where content is intentionally clipped, remove absolute x/y positioning that overlaps a sibling (put both in a flex="col"/"row" parent instead), and give a collapsed element a real size or delete it. Re-run describe and only reply once none of these remain.'
   ].join('\n')
 }
 

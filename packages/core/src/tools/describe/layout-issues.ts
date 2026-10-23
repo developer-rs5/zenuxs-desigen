@@ -171,6 +171,120 @@ function checkChildOverflow(ctx: LayoutContext): void {
   }
 }
 
+/**
+ * Names that mark an intentional overlay: decorative/background layers and
+ * small anchored ornaments legitimately sit on top of their siblings. Pairs
+ * involving one are skipped so the check never blocks a deliberate design.
+ */
+const OVERLAY_NAME_PATTERN =
+  /bg|background|glow|gradient|overlay|noise|mesh|blur|decor|shadow|scrim|badge|avatar|dot|indicator|spinner|handle/i
+
+/** Linear size ratio above which the smaller element is an ornament on a surface. */
+const COMPARABLE_AREA_RATIO = 4
+/** Overlap must cover this much of the smaller block to count as a collision. */
+const SIGNIFICANT_OVERLAP = 0.4
+/** A fully contained smaller element is layered on purpose, not stacked by mistake. */
+const CONTAINED_RATIO = 0.98
+
+function centerInside(inner: SceneNode, outer: SceneNode): boolean {
+  const cx = inner.x + inner.width / 2
+  const cy = inner.y + inner.height / 2
+  return cx > outer.x && cx < outer.x + outer.width && cy > outer.y && cy < outer.y + outer.height
+}
+
+/**
+ * Sibling overlap: elements that cover each other inside one parent.
+ *
+ * In an auto-layout parent the flow itself prevents overlap, so only ABSOLUTE
+ * children (which sit out of flow) are paired with their siblings; in a
+ * free-positioned parent every visible pair is checked. Two narrow rules:
+ *
+ * 1. Mutual centre containment with a significant intersection — the two
+ *    elements are stacked on each other rather than placed side by side.
+ * 2. Comparable blocks (area within 4×) covering ≥40% of the smaller one.
+ *
+ * Layered ornaments survive both rules: a play button, badge, or avatar that
+ * is fully contained inside a much larger surface is a deliberate overlay, and
+ * overlay/background-named layers are skipped entirely.
+ */
+function checkSiblingOverlap(ctx: LayoutContext): void {
+  const { node, graph, issues } = ctx
+  const visible = node.childIds
+    .map((id) => graph.getNode(id))
+    .filter(
+      (child): child is SceneNode =>
+        child?.visible === true && child.width > 0 && child.height > 0 && child.type !== 'LINE'
+    )
+  const flex = node.layoutMode !== 'NONE'
+
+  for (let i = 0; i < visible.length; i += 1) {
+    for (let j = i + 1; j < visible.length; j += 1) {
+      const a = visible[i]
+      const b = visible[j]
+      if (flex && a.layoutPositioning !== 'ABSOLUTE' && b.layoutPositioning !== 'ABSOLUTE') continue
+      if (OVERLAY_NAME_PATTERN.test(a.name) || OVERLAY_NAME_PATTERN.test(b.name)) continue
+
+      const interW = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)
+      const interH = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)
+      if (interW <= 0 || interH <= 0) continue
+      const intersection = interW * interH
+      const areaA = a.width * a.height
+      const areaB = b.width * b.height
+      const smallerArea = Math.min(areaA, areaB)
+      const largerArea = Math.max(areaA, areaB)
+      if (smallerArea <= 0) continue
+
+      const contained = intersection >= smallerArea * CONTAINED_RATIO
+      const layeredOrnament = contained && largerArea / smallerArea > COMPARABLE_AREA_RATIO
+      const stacked =
+        !layeredOrnament &&
+        centerInside(a, b) &&
+        centerInside(b, a) &&
+        intersection >= smallerArea * SIGNIFICANT_OVERLAP
+      const comparable =
+        largerArea / smallerArea <= COMPARABLE_AREA_RATIO &&
+        intersection >= smallerArea * SIGNIFICANT_OVERLAP
+
+      if (!stacked && !comparable) continue
+
+      const smaller = areaA <= areaB ? a : b
+      const percent = Math.round((intersection / smallerArea) * 100)
+      issues.push({
+        message: `"${a.name}" overlaps "${b.name}" (${percent}% of "${smaller.name}") in "${node.name}"`,
+        suggestion:
+          'Put both in a flex="col"/"row" parent or close the gap — do not position siblings over each other'
+      })
+    }
+  }
+}
+
+/**
+ * Broken elements: a visible node that occupies no area or paints nothing.
+ * Lines are exempt from the flat-axis rule — a one-dimensional line is valid;
+ * only a 0×0 line is collapsed.
+ */
+function checkCollapsedElements(ctx: LayoutContext): void {
+  const { node, graph, issues } = ctx
+  for (const child of visibleChildren(node, graph)) {
+    const flatLine =
+      child.type === 'LINE' &&
+      (child.width <= 0 || child.height <= 0) &&
+      !(child.width <= 0 && child.height <= 0)
+    if (!flatLine && (child.width <= 0 || child.height <= 0)) {
+      issues.push({
+        message: `"${child.name}" collapses to ${Math.round(child.width)}×${Math.round(child.height)} — invisible`,
+        suggestion: 'Give it a size (w/h or hug with content) or remove it'
+      })
+    }
+    if (child.opacity === 0) {
+      issues.push({
+        message: `"${child.name}" has opacity 0 — invisible`,
+        suggestion: 'Remove it or raise the opacity'
+      })
+    }
+  }
+}
+
 function checkHugCollapse(ctx: LayoutContext): void {
   const { node, isRow, graph, children, issues } = ctx
   if (children.length === 0) return
@@ -405,9 +519,16 @@ export function detectLayoutIssues(
   graph: SceneGraph,
   issues: DescribeIssue[]
 ): void {
+  const isRow = node.layoutMode === 'HORIZONTAL'
+  // Overlap and collapsed-element checks also apply to the page, sections, and
+  // groups — containers that are not flex parents but still own children whose
+  // boxes can collide.
+  const boxCtx: LayoutContext = { node, graph, isRow, children: [], issues }
+  checkCollapsedElements(boxCtx)
+  checkSiblingOverlap(boxCtx)
+
   if (!CONTAINER_TYPES.has(node.type)) return
 
-  const isRow = node.layoutMode === 'HORIZONTAL'
   const children = node.childIds
     .map((id) => graph.getNode(id))
     .filter((c): c is SceneNode => c?.visible === true && c.layoutPositioning !== 'ABSOLUTE')

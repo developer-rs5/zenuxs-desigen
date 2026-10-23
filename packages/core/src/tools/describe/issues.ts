@@ -440,6 +440,7 @@ function detectSpacingIssues(
 
 const ERROR_PATTERNS = [
   /overflow/i,
+  /overlap/i,
   /invisible/i,
   /no color/i,
   /collapses/i,

@@ -17,7 +17,7 @@ import type { SceneNode } from '@open-pencil/scene-graph'
 
 import { clearAIPendingWork, setAIPendingWork } from '@/app/ai/chat/build-state'
 import {
-  collectPageOverflowErrors,
+  collectPageLayoutErrors,
   createLayoutCritic,
   type LayoutCritic,
   type LayoutCriticReport
@@ -129,7 +129,7 @@ export function getPrototypeCriticReport(store?: EditorStore): PrototypeCriticRe
  */
 export function takeLayoutRepair(store: EditorStore): string | null {
   const runState = getRunState(store)
-  return runState.layout.takeRepair(collectPageOverflowErrors(makeFigmaFromStore(store)))
+  return runState.layout.takeRepair(collectPageLayoutErrors(makeFigmaFromStore(store)))
 }
 
 /** Layout critic verdicts for the debug log; safe to read at any time. */
