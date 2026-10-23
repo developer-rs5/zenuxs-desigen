@@ -8,6 +8,7 @@
 
 ### Added
 
+- Source design images through a verified pipeline: each slot is routed automatically between a free image library (Openverse and Wikimedia Commons work without an API key, Pexels is used when a key is configured) and AI image generation, every candidate is inspected by the Vision model before it is applied, and custom or hard-to-find subjects skip the search and are generated directly. Attribution, license, routing decision and verification record travel with the imported asset.
 - Export prototypes to standalone HTML with `open-pencil export --format html --prototype`, covering every authored capability: fade, slide, and sampled-spring transitions, state visuals, keyframe animations, CSS hover/press triggers, and a delegated JS runtime for click, load, delay, drag, scroll, long press, release, guards with variable seeds, variable writes, screen navigation, overlays with dim backdrops, and instance variant swaps, plus a report of every exported and approximated interaction that `--json` prints.
 - Write documents back to `.pen` with `open-pencil convert --format pen`, preserving prototype flows, states, interactions, and animations through a save → reopen cycle.
 - Evaluate skill routing against the shared benchmark with `open-pencil skills-eval`, comparing documents to reference expectations and reporting per-feature results as JSON.
@@ -18,7 +19,8 @@
 - Show a live-building overlay on the canvas while AI responds: a work-region highlight and AI cursor follow each real tool operation, and skeleton placeholders inside newly created frames are replaced by the actual elements as they appear. Existing designs stay visible and never get a skeleton.
 - Save AI conversations and attachment previews locally, switch between chats, rename or delete them, and browse saved transcripts across documents. Choose whether reasoning stays collapsed, expands while thinking, or stays expanded, with animated disclosure controls that respect reduced motion.
 - Undo or edit any sent chat message: canvas changes from that message onward are reverted, the tail of the transcript is removed, and the prompt returns to the composer for editing and resending.
-- Keep AI-built layouts inside their areas: the assistant declares each section and its contents up front, creates the area containers before any content, and wraps text to its container instead of guessing a fixed width. When an element still escapes its container, the overflow is detected in code and fed back to the model as a repair round before it replies.
+- Keep AI-built layouts inside their areas: before the first render the assistant fixes an exact sizing manifest — every section and component's width, height, or hug/fill mode with its vertical budget verified arithmetically — and builds only to those numbers, creating area containers before any content and wrapping text to its container instead of guessing a fixed width. When an element still escapes its area, the containment check now descends deep enough to see text nested inside cards and sections, and feeds repairs back twice per request, the second as a final review before the reply, so a last-minute overflow is corrected instead of shipped.
+- Ship Anthropic's Frontend Design skill as a fourth default AI skill: it grounds each design in the subject matter, plans and reviews tokens against the brief before building, refuses the AI-default look, spends boldness in one place, and writes interface copy from the user's perspective.
 
 - Add a searchable command palette for editor and application actions.
 - Search current AI provider catalogs from model pickers, with curated recommendations, recent compatible models, and offline fallbacks.
@@ -46,10 +48,15 @@
 - Suggest slash commands while typing in the AI composer, report unknown commands with a correction, and give the model every activated skill's validation rules, safe defaults, operations, and examples through one routing engine shared by chat, ACP agents, and the `design_intent` MCP tool.
 - Add `/splash`, `/modal`, `/page-transition`, and a pattern library of screen and component skills — login, signup, settings, profile, feed, pricing, checkout, toast, tooltip, accordion, pagination — selectable by slash command or plain language.
 - Report accessibility problems from `describe`: prototype touch targets under 44×44, prototype interactions on text with no visible label, and text contrast measured against its real background with WCAG AA ratios.
+- Give each design request its own visual direction: the assigned composition, palette, type pairing, and signature element ride on the request so consecutive prompts in one conversation produce visibly different layouts instead of a repeated template, while explicit brief constraints always win.
+- Ship `impeccable` as a default design skill next to `ui-ux-pro-max` and `taste`, so the model's craft floor, anti-default calibration, and anti-repetition rules are active in every session and listed under Settings → Skills.
 
 ### Changed
 
 - Validate prototype behavior automatically after each AI mutation and feed any failures back for one bounded repair round instead of relying on a prompt instruction.
+- Fill every image slot the AI created: a run that leaves one of its own placeholders empty is caught by an automatic check and sent back for one repair round to source it, so gray blocks are no longer left in finished designs.
+- Verify sourced images and route image requests with streaming model calls, so custom OpenAI-compatible providers that only speak streaming work for image verification and routing.
+- Broaden an image query that found nothing instead of appending more words, never repeat a query that already failed, and keep searching after the bundled fallback matched so a zero-result query is not mistaken for a usable one.
 
 - Hide AI tool-call cards from the chat transcript so the magic building indicator is the only building state shown while AI responds.
 - Vertically center shaped section titles and allow renaming a section by double-clicking its canvas label.
@@ -62,6 +69,9 @@
 
 ### Fixed
 
+- Keep an AI run alive after a successful image source: tool results carrying raw bytes are converted to JSON before they reach the model, so a sourced image no longer ends the conversation with "Invalid prompt: The messages do not match the ModelMessage[] schema".
+- Stop rejecting a good photo because its framing differs from the slot it fills: orientation and aspect ratio are now preferences judged against how the image will be cropped, not hard failures that throw the image away.
+- Read image verification verdicts as validated text instead of a structured-output response, so OpenAI-compatible relays that ignore the JSON response format no longer reject every candidate as unverified.
 - Keep the prototype camera on the current screen during Play/Present: navigating between screens now re-frames the view, so a destination authored elsewhere on the canvas is actually visible instead of the presentation appearing to do nothing.
 - Play presentations now animate as authored: a duplicate pointer-up per click no longer cancels an in-flight transition, so fade/slide/spring navigation plays to completion on real mouse input.
 - Keep long AI tool conversations alive when a provider re-uses tool-call ids across turns, rewriting the colliding ids on each request so history replay is no longer rejected and the chat stops failing silently after the collision.

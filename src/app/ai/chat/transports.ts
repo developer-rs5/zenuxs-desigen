@@ -1,12 +1,13 @@
 import { Chat } from '@ai-sdk/vue'
 import { DirectChatTransport, stepCountIs, ToolLoopAgent } from 'ai'
-import type { ChatTransport, FinishReason, LanguageModel, UIMessage } from 'ai'
+import type { ChatTransport, FinishReason, LanguageModel, ModelMessage, UIMessage } from 'ai'
 import type { ComputedRef, Ref } from 'vue'
 import { ref } from 'vue'
 
 import { ACP_AGENTS } from '@open-pencil/core/constants'
 import type { ACPAgentID, AIProviderID } from '@open-pencil/core/constants'
 
+import { nextDesignVariationDirective } from '@/app/ai/chat/design-variation'
 import {
   classifyAIChatError,
   classifyAIChatFinish,
@@ -25,9 +26,11 @@ import {
   MAX_AGENT_STEPS,
   createAITools,
   imageGenerationUnavailableReason,
+  isImageSourcingAvailable,
   recordStep,
   resetRunSteps,
   takeLayoutRepair,
+  takeMediaRepair,
   takePrototypeRepair
 } from '@/app/ai/tools'
 import {
@@ -98,6 +101,19 @@ export async function createACPTransport(providerID: AIProviderID) {
 const IMAGE_GENERATION_SECTION =
   /<!-- image-generation:start -->[\s\S]*?<!-- image-generation:end -->\n*/
 
+/** The stock photo section, replaced by the sourcing section when it is active. */
+const STOCK_PHOTO_SECTION = /<!-- stock-photo:start -->[\s\S]*?<!-- stock-photo:end -->\n*/
+
+/** The sourcing section, only present when a Vision model is configured. */
+const IMAGE_SOURCING_SECTION = /<!-- image-sourcing:start -->[\s\S]*?<!-- image-sourcing:end -->\n*/
+
+/** The vector-first guidance, which stays in every session. */
+const VECTOR_FIRST_SECTION = /<!-- vector-first:start -->([\s\S]*?)<!-- vector-first:end -->\n*/
+
+/** The Polish-phase image step, rewritten to name the tool the session actually has. */
+const IMAGE_SLOT_TOOL_SECTION =
+  /<!-- image-slot-tool:start -->[\s\S]*?<!-- image-slot-tool:end -->\n*/
+
 /**
  * Guidance that stays even when image generation is unavailable. Vector-first
  * is not conditional on having a bitmap tool — dropping it would tell a
@@ -125,14 +141,89 @@ function imageUnavailableReason(reason: ImageGenerationReason): string {
 }
 
 function assembleInstructions(skillsPrompt: string): string {
-  const unavailable = imageGenerationUnavailableReason()
+  return buildSystemInstructions({
+    skillsPrompt,
+    imageSourcingAvailable: isImageSourcingAvailable(),
+    imageGenerationReason: imageGenerationUnavailableReason()
+  })
+}
+
+export interface SystemInstructionOptions {
+  skillsPrompt: string
+  imageSourcingAvailable: boolean
+  imageGenerationReason: ImageGenerationReason | null
+}
+
+/**
+ * Assembles the instructions for one session. Pure and exported so the prompt
+ * contract — which tools the model is allowed to hear about, and which skills
+ * are injected — is testable without starting a chat.
+ */
+export function buildSystemInstructions({
+  skillsPrompt,
+  imageSourcingAvailable,
+  imageGenerationReason
+}: SystemInstructionOptions): string {
+  const unavailable = imageGenerationReason
   let base = SYSTEM_PROMPT
-  if (unavailable) {
-    base = base.replace(IMAGE_GENERATION_SECTION, '\n')
-    const reason = imageUnavailableReason(unavailable)
-    base = `${base}\n> Image generation unavailable: ${reason}.\n\n${VECTOR_ONLY_GUIDANCE}\n`
+  if (imageSourcingAvailable) {
+    // The sourcing tool verifies every image, so the unverified image tools
+    // are not part of this session and must not be advertised. The vector-first
+    // guidance stays, because it is not conditional on a bitmap tool.
+    const vectorFirst = base.match(VECTOR_FIRST_SECTION)?.[1] ?? ''
+    base = base
+      .replace(STOCK_PHOTO_SECTION, '\n')
+      .replace(IMAGE_GENERATION_SECTION, `\n${vectorFirst}\n`)
+    // Phase 4 told the model to call `stock_photo`, which this session does
+    // not have. Name the tool that actually exists.
+    base = base.replace(
+      IMAGE_SLOT_TOOL_SECTION,
+      '1. `source_image` — batch EVERY named image placeholder in one call; a gray block you created stays unfinished until it is filled\n'
+    )
+  } else {
+    base = base.replace(IMAGE_SOURCING_SECTION, '\n')
+    if (unavailable) {
+      base = base.replace(IMAGE_GENERATION_SECTION, '\n')
+      const reason = imageUnavailableReason(unavailable)
+      base = `${base}\n> Image generation unavailable: ${reason}.\n\n${VECTOR_ONLY_GUIDANCE}\n`
+      base = base.replace(
+        IMAGE_SLOT_TOOL_SECTION,
+        '1. `stock_photo` — batch every named image placeholder in one call (image generation is unavailable in this session)\n'
+      )
+    } else {
+      base = base.replace(
+        IMAGE_SLOT_TOOL_SECTION,
+        '1. `generate_image` or `stock_photo` — batch EVERY named image placeholder in one call of the tool that fits the slot\n'
+      )
+    }
   }
   return skillsPrompt ? `${base}\n\n${skillsPrompt}` : base
+}
+
+/**
+ * The last user text in a call, used to decide whether this run is a design
+ * request at all. Handles both call shapes (`messages` and `prompt`).
+ */
+function lastUserMessageText(input: {
+  messages?: ModelMessage[]
+  prompt?: string | ModelMessage[]
+}): string {
+  const messages =
+    input.messages ??
+    (typeof input.prompt === 'string'
+      ? [{ role: 'user' as const, content: input.prompt }]
+      : (input.prompt ?? []))
+
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]
+    if (message.role !== 'user') continue
+    if (typeof message.content === 'string') return message.content
+    return message.content
+      .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+      .map((part) => part.text)
+      .join('\n')
+  }
+  return ''
 }
 
 export async function createToolLoopTransport({
@@ -165,8 +256,12 @@ export async function createToolLoopTransport({
     providerOptions,
     prepareCall: (options) => {
       resetRunSteps(store)
+      // Variation is assigned per run, not per session: two requests in one
+      // conversation must not inherit one direction.
+      const variation = nextDesignVariationDirective(lastUserMessageText(options))
       return {
         ...options,
+        instructions: variation ? `${instructions}\n\n${variation}` : instructions,
         maxOutputTokens,
         providerOptions
       }
@@ -184,11 +279,14 @@ export async function createToolLoopTransport({
     },
     // Code-enforced repair round (audit §4.6): if a prototype mutation
     // validated false, the failing errors ride on the next model step. The
-    // critic spends at most one round per run, so this can never loop.
+    // critic spends a bounded budget per run, so this can never loop.
     // Layout containment works the same way: after a write, anything that
-    // escaped its area is fed back before the model replies.
+    // escaped its area is fed back before the model replies — the second
+    // layout round is the final review, so a last-minute overflow still gets
+    // corrected rather than shipped. Image slots do too — a placeholder the
+    // run created but never filled is unfinished work, not a design choice.
     prepareStep: ({ messages }) => {
-      const repair = takePrototypeRepair(store) ?? takeLayoutRepair(store)
+      const repair = takePrototypeRepair(store) ?? takeLayoutRepair(store) ?? takeMediaRepair(store)
       return repair === null ? undefined : { messages: [...messages, repairMessage(repair)] }
     }
   })
@@ -301,6 +399,7 @@ export function createChatSessionManager({
     const apiKey = await resolveModelConnectionAPIKey(runtime.role.connection.id)
     if (!apiKey) throw new Error('Credential is unavailable for the Pi agent')
     const model = runtime.role.profile.customModelID || runtime.role.profile.modelID
+    const skillsPrompt = getActiveSkillsPrompt()
     const transport = new HarnessChatTransport(
       sessionId,
       {
@@ -311,7 +410,7 @@ export function createChatSessionManager({
           thinkingLevel: runtime.role.profile.harnessThinkingLevel ?? 'medium',
           permissionMode: runtime.role.profile.harnessPermissionMode ?? 'allow-edits'
         },
-        instructions: SYSTEM_PROMPT,
+        instructions: skillsPrompt ? `${SYSTEM_PROMPT}\n\n${skillsPrompt}` : SYSTEM_PROMPT,
         mcpServers: await buildPiMCPServers()
       },
       { OPENPENCIL_HARNESS_API_KEY: apiKey }
