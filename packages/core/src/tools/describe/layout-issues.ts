@@ -179,6 +179,11 @@ function checkChildOverflow(ctx: LayoutContext): void {
 const OVERLAY_NAME_PATTERN =
   /bg|background|glow|gradient|overlay|noise|mesh|blur|decor|shadow|scrim|badge|avatar|dot|indicator|spinner|handle/i
 
+/** Compound vector icons: multiple VECTOR children are paths in one glyph, not stacked siblings. */
+function isCompoundGlyphPair(a: SceneNode, b: SceneNode): boolean {
+  return a.type === 'VECTOR' && b.type === 'VECTOR'
+}
+
 /** Linear size ratio above which the smaller element is an ornament on a surface. */
 const COMPARABLE_AREA_RATIO = 4
 /** Overlap must cover this much of the smaller block to count as a collision. */
@@ -223,6 +228,7 @@ function checkSiblingOverlap(ctx: LayoutContext): void {
       const b = visible[j]
       if (flex && a.layoutPositioning !== 'ABSOLUTE' && b.layoutPositioning !== 'ABSOLUTE') continue
       if (OVERLAY_NAME_PATTERN.test(a.name) || OVERLAY_NAME_PATTERN.test(b.name)) continue
+      if (isCompoundGlyphPair(a, b)) continue
 
       const interW = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)
       const interH = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y)

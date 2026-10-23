@@ -253,6 +253,25 @@ describe('describe overlap and broken-element issues', () => {
     expect(matching(issuesOf(figma, hero.id), 'overlaps')).toBeUndefined()
   })
 
+  test('does not flag compound glyph VECTOR paths inside an icon frame', () => {
+    const { figma, graph } = setupToolTest()
+    const icon = figma.createFrame()
+    icon.name = 'Icon / shield-check'
+    icon.resize(20, 20)
+    const pathA = figma.createVector()
+    pathA.name = 'path'
+    pathA.resize(20, 20)
+    icon.appendChild(pathA)
+    graph.updateNode(pathA.id, { x: 0, y: 0, fills: solidFills(BLACK) })
+    const pathB = figma.createVector()
+    pathB.name = 'path'
+    pathB.resize(20, 20)
+    icon.appendChild(pathB)
+    graph.updateNode(pathB.id, { x: 0, y: 0, fills: solidFills(BLACK) })
+
+    expect(matching(issuesOf(figma, icon.id), 'overlaps')).toBeUndefined()
+  })
+
   test('flags a visible element that collapses to zero width', () => {
     const { figma, graph } = setupToolTest()
     const section = figma.createFrame()
