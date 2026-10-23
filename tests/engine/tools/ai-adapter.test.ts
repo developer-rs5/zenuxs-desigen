@@ -4,7 +4,7 @@ import { valibotSchema } from '@ai-sdk/valibot'
 import { tool } from 'ai'
 import * as v from 'valibot'
 
-import { ALL_TOOLS, FigmaAPI, SceneGraph, toolsToAI } from '@open-pencil/core'
+import { ALL_TOOLS, FigmaAPI, SceneGraph, toModelOutputValue, toolsToAI } from '@open-pencil/core'
 
 import { expectDefined } from '#tests/helpers/assert'
 
@@ -224,5 +224,91 @@ describe('AI adapter', () => {
     const getNode = adapterTool(tools, 'get_node')
     const result = (await getNode.execute({ id })) as { error: string }
     expect(result.error).toContain('not found')
+  })
+})
+
+interface SourcedOutputValue {
+  id: string
+  bytes: string
+  inline: string
+}
+
+interface ListOutputValue {
+  list: unknown[]
+}
+
+interface CyclicOutputValue {
+  id: string
+  self: string
+}
+
+interface URLOutputValue {
+  url: string
+  when: string
+  mapping: Record<string, string>
+}
+
+interface ToolWithModelOutput {
+  toModelOutput?: (options: { output: unknown }) => { type: string; value: unknown }
+}
+
+describe('toModelOutputValue', () => {
+  test('replaces binary payloads with a size marker', () => {
+    const output = toModelOutputValue({
+      id: '0:1',
+      state: 'verified_from_search',
+      bytes: new Uint8Array([1, 2, 3, 250]),
+      inline: new ArrayBuffer(8)
+    }) as SourcedOutputValue
+
+    expect(output.id).toBe('0:1')
+    expect(output.bytes).toBe('4 bytes')
+    expect(output.inline).toBe('8 bytes')
+  })
+
+  test('keeps arrays as arrays and drops functions and undefined', () => {
+    const output = toModelOutputValue({
+      list: [1, 'two', null],
+      missing: undefined,
+      noop: () => undefined
+    }) as ListOutputValue
+
+    expect(output.list).toEqual([1, 'two', null])
+    expect(Object.keys(output)).toEqual(['list'])
+  })
+
+  test('survives a cyclic result without throwing', () => {
+    const value: Record<string, unknown> = { id: '0:1' }
+    value.self = value
+
+    const output = toModelOutputValue(value) as CyclicOutputValue
+
+    expect(output.id).toBe('0:1')
+    expect(output.self).toBe('[circular]')
+  })
+
+  test('converts urls, dates and maps to JSON', () => {
+    const output = toModelOutputValue({
+      url: new URL('https://example.com/a.png'),
+      when: new Date('2020-01-02T03:04:05.000Z'),
+      mapping: new Map([['provider', 'wikimedia']])
+    }) as URLOutputValue
+
+    expect(output.url).toBe('https://example.com/a.png')
+    expect(output.when).toBe('2020-01-02T03:04:05.000Z')
+    expect(output.mapping).toEqual({ provider: 'wikimedia' })
+  })
+
+  test('the adapter converts a result before it reaches the model', () => {
+    const { tools } = setup()
+    const exportImage = tools.export_image as ToolWithModelOutput
+
+    const output = exportImage.toModelOutput?.({
+      output: { base64: 'AAAA', mimeType: 'image/png', bytes: new Uint8Array([1, 2, 3]) }
+    })
+
+    expect(output?.type).toBe('content')
+    expect(JSON.stringify(output?.value)).toContain('image/png')
+    expect(JSON.stringify(output?.value)).not.toContain('bytes')
   })
 })

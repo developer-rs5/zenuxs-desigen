@@ -5,9 +5,10 @@ import type { ToolDebugLog, ToolLogEntry } from '@open-pencil/core/tools'
 import type { JSONObject } from '@open-pencil/scene-graph/primitives'
 
 import type { AIChatFailure } from '@/app/ai/chat/failure'
+import { MAX_MEDIA_REPAIR_ROUNDS } from '@/app/ai/chat/media-critic'
 import { MAX_PROTOTYPE_REPAIR_ROUNDS } from '@/app/ai/chat/prototype-critic'
 import { lastSkillRoute } from '@/app/ai/skills/route-log'
-import { getPrototypeCriticReport, getToolLogEntries } from '@/app/ai/tools'
+import { getMediaCriticReport, getPrototypeCriticReport, getToolLogEntries } from '@/app/ai/tools'
 import { diagnostics } from '@/app/diagnostics'
 
 const MAX_FAILURE_DETAIL_LENGTH = 240
@@ -124,6 +125,26 @@ function formatPrototypeCritic(): string {
       lines.push('  (repair round already spent — surfaced here only)')
     }
   }
+  return lines.join('\n')
+}
+
+/** Verdict of the automatic image-slot check: did the run fill what it built? */
+function formatMediaCritic(): string {
+  const report = getMediaCriticReport()
+  if (report.createdCount === 0) return '  (no nodes created this run)'
+  const lines = [
+    `  nodes created: ${report.createdCount}`,
+    `  repairs injected into model steps: ${report.repairRoundsUsed}/${MAX_MEDIA_REPAIR_ROUNDS}`
+  ]
+  if (report.slots.length === 0) {
+    lines.push('  image slots: none left empty')
+    return lines.join('\n')
+  }
+  lines.push(`  image slots left empty: ${report.slots.length}`)
+  for (const slot of report.slots.slice(0, 5)) {
+    lines.push(`    - ${slot.name} (${slot.id}) ${slot.width}×${slot.height}`)
+  }
+  if (report.slots.length > 5) lines.push(`    - …and ${report.slots.length - 5} more`)
   return lines.join('\n')
 }
 
@@ -269,6 +290,10 @@ export function serializeChatLog(messages: UIMessage[], failure?: AIChatFailure 
 
   sections.push('=== PROTOTYPE CRITIC ===')
   sections.push(formatPrototypeCritic())
+  sections.push('')
+
+  sections.push('=== MEDIA CRITIC ===')
+  sections.push(formatMediaCritic())
   sections.push('')
 
   sections.push('=== ERRORS ===')

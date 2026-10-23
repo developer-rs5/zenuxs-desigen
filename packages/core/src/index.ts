@@ -78,6 +78,7 @@ export {
   EXTENDED_TOOLS,
   defineTool,
   toolsToAI,
+  toModelOutputValue,
   buildDebugLog,
   requireNode,
   NodeNotFoundError,
@@ -441,3 +442,16 @@ export {
   getStockPhotoProviders
 } from './tools/stock-photo'
 export type { StockPhotoProvider, StockPhotoResult } from './tools/stock-photo'
+export { sourceImage } from './tools/source-image'
+export { getImageSourcingServices, registerImageSourcingServices } from './tools/image-sourcing'
+export type {
+  AssetProvenance,
+  ImageAsset,
+  ImageAssetProvider,
+  ImageSourcingResult,
+  ImageSourcingServices,
+  ImageSourcingState,
+  RouteDecision,
+  VerificationRecord,
+  VisualIntent
+} from './tools/image-sourcing'

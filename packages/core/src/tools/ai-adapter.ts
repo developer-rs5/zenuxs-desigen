@@ -60,6 +60,73 @@ export interface AIAdapterOptions {
 
 const STEP_WARNING_THRESHOLD = 5
 
+/** Depth beyond which a tool result is cut when it is handed to the model. */
+const MAX_MODEL_OUTPUT_DEPTH = 12
+
+/** Own-key enumeration of a plain object; class fields are not part of it. */
+function ownEntries(value: object): [string, unknown][] {
+  return Object.entries(value as { [key: string]: unknown })
+}
+
+/**
+ * Reads a scalar as the JSON the prompt schema accepts.
+ *
+ * Returns `undefined` when the value carries nothing the model can read: the
+ * caller drops such entries instead of forwarding them.
+ */
+function scalarModelValue(value: unknown, byteLength: number): unknown {
+  if (value === null) return null
+  if (typeof value === 'string' || typeof value === 'boolean') return value
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null
+  if (typeof value === 'bigint') return value.toString()
+  if (typeof value === 'function' || typeof value === 'symbol' || value === undefined) {
+    return undefined
+  }
+  if (value instanceof URL) return value.href
+  if (value instanceof Date) return value.toISOString()
+  if (value instanceof ArrayBuffer || ArrayBuffer.isView(value)) return `${byteLength} bytes`
+  return null
+}
+
+/**
+ * Converts a tool result into the JSON the prompt schema accepts.
+ *
+ * The model only ever sees a JSON value. Binary payloads (image bytes), class
+ * instances, dates and cyclic references are replaced instead of forwarded,
+ * because a single non-JSON value fails the `ModelMessage[]` schema check and
+ * ends the whole run with an opaque "Invalid prompt" error.
+ */
+export function toModelOutputValue(
+  value: unknown,
+  depth = 0,
+  seen: WeakSet<object> = new WeakSet()
+): unknown {
+  const byteLength =
+    value instanceof ArrayBuffer || ArrayBuffer.isView(value) ? value.byteLength : 0
+  const scalar = scalarModelValue(value, byteLength)
+  if (scalar !== null || value === null) return scalar
+  if (depth >= MAX_MODEL_OUTPUT_DEPTH) return '[truncated]'
+  if (seen.has(value as object)) return '[circular]'
+  seen.add(value as object)
+
+  if (value instanceof Map) {
+    return toModelOutputValue(Object.fromEntries(value), depth + 1, seen)
+  }
+  if (value instanceof Set) {
+    return toModelOutputValue([...value], depth + 1, seen)
+  }
+  if (Array.isArray(value)) {
+    return value.map((entry) => toModelOutputValue(entry, depth + 1, seen) ?? null)
+  }
+
+  const output: Record<string, unknown> = {}
+  for (const [key, entry] of ownEntries(value as object)) {
+    const converted = toModelOutputValue(entry, depth + 1, seen)
+    if (converted !== undefined) output[key] = converted
+  }
+  return output
+}
+
 function appendStepWarning(result: unknown, budget: StepBudget): unknown {
   const remaining = budget.max - budget.current
   if (remaining > STEP_WARNING_THRESHOLD) return result
@@ -160,6 +227,14 @@ export function toolsToAI(
     const toolOpts: Record<string, unknown> = {
       description: def.description,
       inputSchema: valibotSchema(v.object(shape as Record<string, never>)),
+      // Every tool result is converted to JSON here, once, at the boundary.
+      // Tool outputs reach the model as a JSON value inside a tool-result
+      // part, and a single binary field in that value fails the prompt schema
+      // and ends the run with an opaque error.
+      toModelOutput: ({ output }: { output: unknown }) => ({
+        type: 'json' as const,
+        value: toModelOutputValue(output) as JSONObject
+      }),
       execute: async (args: Record<string, unknown>) => {
         const startTime = Date.now()
         const figma = options.getFigma()
@@ -196,10 +271,16 @@ export function toolsToAI(
           const r = output as { base64: string; mimeType: string }
           return {
             type: 'content' as const,
-            value: [{ type: 'media' as const, mediaType: r.mimeType, data: r.base64 }]
+            value: [
+              {
+                type: 'file' as const,
+                data: { type: 'data' as const, data: r.base64 },
+                mediaType: r.mimeType
+              }
+            ]
           }
         }
-        return { type: 'json' as const, value: output as JSONObject }
+        return { type: 'json' as const, value: toModelOutputValue(output) as JSONObject }
       }
     }
 

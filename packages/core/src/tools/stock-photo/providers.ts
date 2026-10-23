@@ -74,7 +74,12 @@ export function setPexelsAPIKey(key: string | null): void {
   }
 }
 
-const pexelsProvider: StockPhotoProvider = {
+/** Whether a Pexels credential is currently configured. */
+export function hasPexelsAPIKey(): boolean {
+  return pexelsAPIKey !== null && pexelsAPIKey.length > 0
+}
+
+export const pexelsProvider: StockPhotoProvider = {
   name: 'pexels',
   async search(query, { perPage, orientation, targetDim }) {
     if (!pexelsAPIKey) throw new Error('Pexels API key not configured')

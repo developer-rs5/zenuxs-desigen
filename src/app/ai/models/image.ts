@@ -40,17 +40,17 @@ export async function resolveImageGeneration(): Promise<ImageGenerationResolutio
   const apiKey = await resolveModelConnectionAPIKey(resolved.connection.id)
   if (!apiKey) return { available: false, reason: 'no-api-key' }
 
-  return {
-    available: true,
-    model: createImageModel({
-      providerID: resolved.connection.providerID,
-      apiKey,
-      modelID: resolved.profile.modelID,
-      customModelID: resolved.profile.customModelID,
-      customBaseURL: resolved.connection.customBaseURL,
-      customAPIType: resolved.connection.customAPIType
-    })
-  }
+  const model = createImageModel({
+    providerID: resolved.connection.providerID,
+    apiKey,
+    modelID: resolved.profile.modelID,
+    customModelID: resolved.profile.customModelID,
+    customBaseURL: resolved.connection.customBaseURL,
+    customAPIType: resolved.connection.customAPIType
+  })
+  if (!model) return { available: false, reason: 'provider-unsupported' }
+
+  return { available: true, model }
 }
 
 /**
