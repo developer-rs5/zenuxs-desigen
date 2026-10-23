@@ -15,8 +15,25 @@ import { CORE_TOOLS, type ToolDef } from '@open-pencil/core/tools'
  * design that merely has a radius or spacing nit is never interrupted.
  */
 
-/** One automatic repair round per run: check → repair → check again, then stop. */
-export const MAX_LAYOUT_REPAIR_ROUNDS = 1
+/**
+ * Two automatic repair rounds per run. The first absorbs an early overflow
+ * (usually a skeleton that the real copy outgrew); the second is the final
+ * review — the check that runs right before the model's reply, so a last
+ * content render that spilled is still repaired instead of shipped.
+ */
+export const MAX_LAYOUT_REPAIR_ROUNDS = 2
+
+/**
+ * How deep the containment check descends from the page root.
+ *
+ * A real page nests Page → Frame → Section → Card → Text, so the overflow that
+ * users actually see ("text runs out of its section") lives at level 3–4. A
+ * depth of 2 only ever described the frame and section levels and never ran the
+ * layout checks on the card or text that spilled — the check passed while the
+ * design was broken. Depth 4 reaches the text level; the result is parsed
+ * locally (never re-sent to the model), so the extra traversal costs no tokens.
+ */
+export const CRITIC_DESCRIBE_DEPTH = 4
 
 /**
  * Containment messages, matched against what the layout inspector actually
@@ -71,7 +88,7 @@ export function collectPageOverflowErrors(figma: FigmaAPI): string[] {
   if (!inspector) return []
   let result: unknown
   try {
-    result = inspector.execute(figma, { id: figma.currentPageId, depth: 2 })
+    result = inspector.execute(figma, { id: figma.currentPageId, depth: CRITIC_DESCRIBE_DEPTH })
   } catch {
     // A crashing inspector must never take the tool run down with it.
     return []
@@ -82,11 +99,19 @@ export function collectPageOverflowErrors(figma: FigmaAPI): string[] {
   return found
 }
 
-function buildRepairInstruction(errors: readonly string[]): string {
+function buildRepairInstruction(errors: readonly string[], round: number): string {
   const listed = errors.slice(0, 12).map((error) => `- ${error}`)
   if (errors.length > 12) listed.push(`- …and ${errors.length - 12} more`)
+
+  // The second round is the last chance before the reply, so it is framed as
+  // the final containment review rather than another mid-build fix.
+  const opening =
+    round <= 1
+      ? 'Automatic layout containment check failed — an element escaped the area that owns it. Fix these in place before replying (localized repair; do not rebuild the page):'
+      : 'Final layout review before you reply — these elements still overflow the area that owns them. Fix every one now; after this check there is no further repair round:'
+
   return [
-    'Automatic layout containment check failed — an element escaped the area that owns it. Fix these in place before replying (localized repair; do not rebuild the page):',
+    opening,
     ...listed,
     'Each fix belongs to the element named: give wrapping text w="fill" (never a fixed w), let a content column grow or size it "hug", add overflow="hidden" where content is intentionally clipped, and remove absolute x/y positioning that overlaps a sibling. Re-run describe and only reply once none of these remain.'
   ].join('\n')
@@ -104,7 +129,7 @@ export interface LayoutCriticReport {
 /** Per-run layout state; the tool loop owns exactly one and resets it per message. */
 export interface LayoutCritic {
   noteMutation(): void
-  /** Consumes the one allowed repair round; null when nothing overflows or it is spent. */
+  /** Consumes the next allowed repair round; null when nothing overflows or the budget is spent. */
   takeRepair(errors: readonly string[]): string | null
   report(): LayoutCriticReport
   reset(): void
@@ -125,7 +150,7 @@ export function createLayoutCritic(): LayoutCritic {
       if (repairRoundsUsed >= MAX_LAYOUT_REPAIR_ROUNDS) return null
       repairRoundsUsed += 1
       errors = [...current]
-      lastRepair = buildRepairInstruction(errors)
+      lastRepair = buildRepairInstruction(errors, repairRoundsUsed)
       return lastRepair
     },
     report: () => ({ mutated, errors, repairRoundsUsed, lastRepair }),

@@ -75,7 +75,7 @@ describe('collectPageOverflowErrors', () => {
 })
 
 describe('layout critic repair budget', () => {
-  test('spends one round per run and never loops', () => {
+  test('spends two rounds per run and never loops', () => {
     const critic = createLayoutCritic()
     // No mutation yet — nothing to repair.
     expect(critic.takeRepair(['overflows'])).toBeNull()
@@ -85,8 +85,16 @@ describe('layout critic repair budget', () => {
     expect(repair).not.toBeNull()
     expect(repair).toContain('FeatureText')
     expect(repair).toContain('w="fill"')
-    // The budget is spent: a second overflow cannot inject another round.
-    expect(critic.takeRepair(['FeatureText: still overflowing'])).toBeNull()
+    expect(repair).toContain('containment check failed')
+
+    // The second round is the final review before the reply.
+    const finalReview = critic.takeRepair(['FeatureText: still overflowing'])
+    expect(finalReview).not.toBeNull()
+    expect(finalReview).toContain('Final layout review')
+    expect(finalReview).toContain('no further repair round')
+
+    // The budget is spent: a third overflow cannot inject another round.
+    expect(critic.takeRepair(['FeatureText: yet again'])).toBeNull()
     expect(critic.report().repairRoundsUsed).toBe(MAX_LAYOUT_REPAIR_ROUNDS)
   })
 
