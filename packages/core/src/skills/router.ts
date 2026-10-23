@@ -40,6 +40,79 @@ const ANAPHORA = new Set([
   'current'
 ])
 
+/**
+ * Words that point at an artifact that already exists. Inside a creation
+ * request they mean the element is being changed, not introduced.
+ */
+const DEFINITE_REFERENCES = new Set([
+  'the',
+  'this',
+  'that',
+  'these',
+  'those',
+  'current',
+  'selected'
+])
+
+/**
+ * Verbs that introduce a new artifact. Paired with an artifact noun they make
+ * an anaphor self-resolving: "Build a pricing page and make it bold" points at
+ * the page being created, not at an unnamed selection.
+ */
+const CREATION_VERBS = new Set([
+  'build',
+  'create',
+  'design',
+  'make',
+  'generate',
+  'draft',
+  'compose',
+  'redesign',
+  'restyle',
+  'sketch',
+  'prototype',
+  'draw',
+  'layout'
+])
+
+/** Nouns that name the artifact a creation request produces. */
+const ARTIFACT_NOUNS = new Set([
+  'page',
+  'screen',
+  'app',
+  'dashboard',
+  'landing',
+  'website',
+  'site',
+  'interface',
+  'ui',
+  'component',
+  'hero',
+  'section',
+  'poster',
+  'deck',
+  'pricing',
+  'portfolio',
+  'onboarding',
+  'flow',
+  'form',
+  'modal',
+  'menu',
+  'gallery',
+  'feed',
+  'profile',
+  'checkout',
+  'settings',
+  'table',
+  'card',
+  'button',
+  'header',
+  'footer',
+  'navbar',
+  'sidebar',
+  'state'
+])
+
 /** Variant/state vocabulary: an instance swap is state work, not screen work. */
 const INSTANCE_TASK_TERMS = new Set(['variant', 'variants', 'state', 'states', 'swap', 'swapping'])
 
@@ -156,9 +229,36 @@ export function resolveAmbiguity(text: string, context?: RoutingContext): SkillA
     return { action: 'infer', reason: 'reference resolves against the current selection' }
   }
   if (mentionsAny(text, ANAPHORA)) {
+    // "Build a pricing page and make it bold" introduces its own target, so
+    // asking which element "it" means would stall a complete request.
+    if (introducesNewArtifact(text)) {
+      return { action: 'infer', reason: 'reference resolves to the artifact this message creates' }
+    }
     return { action: 'clarify', reason: 'reference without a selection to apply it to' }
   }
   return { action: 'infer', reason: 'natural-language intent' }
+}
+
+/**
+ * A creation verb that introduces an artifact means the message carries its
+ * own target ("Build a landing page and make it bold"), unlike an edit that
+ * points at something unnamed ("make this a modal").
+ *
+ * The verb has to reach an artifact noun without a definite reference in
+ * between: an article like "a" introduces something new, while "this" or
+ * "the" points at what already exists.
+ */
+function introducesNewArtifact(text: string): boolean {
+  const words = phraseTokens(text)
+  for (let index = 0; index < words.length; index++) {
+    if (!CREATION_VERBS.has(words[index] ?? '')) continue
+    for (let step = index + 1; step < Math.min(words.length, index + 5); step++) {
+      const word = words[step] ?? ''
+      if (DEFINITE_REFERENCES.has(word)) break
+      if (ARTIFACT_NOUNS.has(word)) return true
+    }
+  }
+  return false
 }
 
 /**

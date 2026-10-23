@@ -13,6 +13,7 @@ import {
   designProviderID,
   modelConnectionCredentialRef
 } from '@/app/ai/models'
+import { aiSkills } from '@/app/ai/skills'
 import { appCredentialServices, browserCredentialsRemembered } from '@/app/settings/credentials/app'
 import {
   refreshMediaCredentials,
@@ -101,4 +102,8 @@ export function registerAIChatEffects(markTransportDirty: () => void) {
     markTransportDirty()
   })
   watch(credentialRevision, markTransportDirty)
+  // The skills prompt is assembled when the transport is created, so toggling
+  // or editing a skill mid-session has to rebuild it or the model keeps the
+  // instructions from before the change.
+  watch(aiSkills, markTransportDirty, { deep: true })
 }

@@ -366,6 +366,21 @@ describe('ambiguity resolution (spec §61)', () => {
     expect(result.reason).toContain('selection')
   })
 
+  it('infers a creation request whose anaphor names the new artifact', () => {
+    const result = resolveAmbiguity(
+      'Build a landing page for a coffee roastery. Make it look genuinely designed.'
+    )
+    expect(result.action).toBe('infer')
+    expect(result.reason).toContain('creates')
+  })
+
+  it('still clarifies a bare anaphor even with a creation verb', () => {
+    expect(resolveAmbiguity('make it feel better').action).toBe('clarify')
+    expect(resolveAmbiguity('make this nicer').action).toBe('clarify')
+    expect(resolveAmbiguity('make this a modal').action).toBe('clarify')
+    expect(resolveAmbiguity('turn this menu into a bottom sheet').action).toBe('clarify')
+  })
+
   it('infers plain natural language', () => {
     expect(resolveAmbiguity('make the splash fade into login').action).toBe('infer')
   })

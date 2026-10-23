@@ -112,16 +112,31 @@ export function resetAISkillsToDefaults(): void {
   aiSkills.value = DEFAULT_SKILLS.map((s) => ({ ...s }))
 }
 
+/**
+ * How the active skills are presented to the model.
+ *
+ * Two things matter here beyond listing the rules:
+ *
+ * 1. Each block is labelled with its skill id, so a rule the model applies is
+ *    attributable and a future turn can say which skill it followed.
+ * 2. This is guidance about decisions, never a template. Skills that all
+ *    recommend "cards in a grid" must not collapse into the same canvas on
+ *    every request, so the preamble makes variation part of following them.
+ */
+const SKILLS_PREAMBLE = [
+  '# Active Design Skills & Frameworks',
+  'These skills define HOW to decide, build, and judge your own work. Follow their rules and design discipline when planning and rendering designs.',
+  'They are guidance, not a template: never copy a layout, palette, or type pairing from a skill example, and never repeat a composition you have already produced in this conversation or document. Every new design must differ from your previous one in structure, palette, and type pairing while still meeting the same craft standard.'
+].join('\n')
+
 export function getActiveSkillsPrompt(): string {
   const active = activeAISkills.value
   if (active.length === 0) return ''
 
-  const sections = active.map((skill) => skill.promptContent)
+  const sections = active.map((skill) => {
+    const heading = `## Skill: ${skill.name}${skill.version ? ` (v${skill.version})` : ''}`
+    return `${heading}\n${skill.promptContent}`
+  })
 
-  return [
-    '# Active Design Skills & Frameworks',
-    'Follow the rules and design discipline defined in the active skills below when planning and rendering designs:',
-    '',
-    ...sections
-  ].join('\n\n')
+  return [SKILLS_PREAMBLE, '', ...sections].join('\n\n')
 }
