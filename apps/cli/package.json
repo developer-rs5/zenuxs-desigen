@@ -1,0 +1,17 @@
+{
+  "name": "@zenuxs/cli",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "bin": {
+    "zenuxs": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@zenuxs/engine": "workspace:*",
+    "@zenuxs/format": "workspace:*"
+  }
+}
