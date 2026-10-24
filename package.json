@@ -24,7 +24,18 @@
     "packages/geom",
     "packages/color",
     "packages/doc",
-    "packages/layout"
+    "packages/layout",
+    "packages/engine",
+    "packages/format",
+    "packages/pathops",
+    "packages/render",
+    "packages/svg",
+    "packages/text",
+    "packages/pdf",
+    "packages/collab",
+    "packages/plugin",
+    "packages/collab-net",
+    "apps/cli"
   ],
   "type": "module",
   "scripts": {

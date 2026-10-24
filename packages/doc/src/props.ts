@@ -645,8 +645,8 @@ export const Corners = {
 
 /** Figma constraints. */
 export interface Constraints {
-  horizontal: 'left' | 'right' | 'center' | 'leftRight' | 'scale'
-  vertical: 'top' | 'bottom' | 'center' | 'topBottom' | 'scale'
+  horizontal: 'left' | 'right' | 'leftRight' | 'center' | 'scale'
+  vertical: 'top' | 'bottom' | 'topBottom' | 'center' | 'scale'
 }
 
 export const Constraints = {
@@ -658,124 +658,219 @@ export const Constraints = {
   }
 }
 
-/** Auto layout sizing. */
+/** How a node sizes on one axis. */
 export type Sizing = 'fixed' | 'hug' | 'fill'
 
-export type LayoutMode = 'none' | 'horizontal' | 'vertical'
+export const Sizing = {
+  label(s: Sizing): string {
+    return s === 'fixed' ? 'Fixed' : s === 'hug' ? 'Hug' : 'Fill'
+  }
+}
 
-export type MainAlign = 'min' | 'center' | 'max' | 'spaceBetween'
-export type CrossAlign = 'min' | 'center' | 'max' | 'stretch' | 'baseline'
+/** Auto layout direction. */
+export type LayoutMode = 'horizontal' | 'vertical' | 'grid'
 
-export type CellAlign = 'auto' | 'min' | 'center' | 'max' | 'stretch'
+/** Alignment along the main axis. The `Space*` modes are the auto gaps. */
+export type MainAlign = 'min' | 'center' | 'max' | 'spaceBetween' | 'spaceAround' | 'spaceEvenly'
 
-/** Auto layout on a frame-like node. */
+export const MainAlign = {
+  /** An auto gap (the gap comes from the free space, not the gap value). */
+  is_auto_gap(a: MainAlign): boolean {
+    return a === 'spaceBetween' || a === 'spaceAround' || a === 'spaceEvenly'
+  }
+}
+
+/** A grid auto layout child's alignment in its cell on one axis. */
+export type CellAlign = 'min' | 'center' | 'max'
+
+/** Alignment across the main axis. */
+export type CrossAlign = 'min' | 'center' | 'max' | 'baseline'
+
+/** How the lines of a wrapping layout share the free space across the flow. */
+export type ContentAlign = 'auto' | 'spaceBetween'
+
+/** One grid auto layout track (a column or a row). */
+export interface GridTrack {
+  sizing: Sizing
+  /** Fixed: the size in px. Fill: the fractional units. Hug: unused. */
+  value: number
+}
+
+export const GridTrack = {
+  default(): GridTrack {
+    return { sizing: 'fill', value: 1 }
+  },
+  fixed(px: number): GridTrack {
+    return { sizing: 'fixed', value: px }
+  },
+  hug(): GridTrack {
+    return { sizing: 'hug', value: 0 }
+  },
+  fill(fr: number): GridTrack {
+    return { sizing: 'fill', value: fr }
+  }
+}
+
+/** Auto layout container properties (a frame with auto layout). */
 export interface AutoLayout {
   mode: LayoutMode
-  spacing: number
-  /** Padding left, top, right, bottom. */
+  wrap: boolean
+  /** Gap between items along the main axis. */
+  gap: number
+  /** Gap between wrapped rows/columns. */
+  cross_gap: number
+  /** Padding `[top, right, bottom, left]`. */
   padding: [number, number, number, number]
-  /** The frame's own sizing on (main, cross). */
-  sizing: [Sizing, Sizing]
-  /** Children's default sizing on (main, cross). */
-  child_sizing: [Sizing, Sizing]
-  align: MainAlign
-  cross: CrossAlign
-  /** Wrap and the gap between wrapped rows. */
-  wraps: boolean
-  row_gap: number
+  main_align: MainAlign
+  cross_align: CrossAlign
+  /** Wrapping layouts: how the lines are spread across the flow. */
+  content_align: ContentAlign
+  /** Grid mode: column and row counts (rows grow to fit the children). */
+  grid_columns: number
+  grid_rows: number
+  /** Grid mode: column track sizes (missing tracks are `1fr`). */
+  column_tracks: GridTrack[]
+  /** Grid mode: row track sizes. */
+  row_tracks: GridTrack[]
+  /** The frame's own inside strokes take up space in the layout (like padding). */
+  strokes_included: boolean
+  /** Canvas stacking: the first child paints on top (default: the last one does). */
   reverse_z: boolean
 }
 
 export const AutoLayout = {
   default(): AutoLayout {
     return {
-      mode: 'none',
-      spacing: 0,
-      padding: [0, 0, 0, 0],
-      sizing: ['hug', 'hug'],
-      child_sizing: ['fixed', 'fixed'],
-      align: 'min',
-      cross: 'min',
-      wraps: false,
-      row_gap: 0,
+      mode: 'horizontal',
+      wrap: false,
+      gap: 10,
+      cross_gap: 10,
+      padding: [10, 10, 10, 10],
+      main_align: 'min',
+      cross_align: 'min',
+      content_align: 'auto',
+      grid_columns: 2,
+      grid_rows: 2,
+      column_tracks: [],
+      row_tracks: [],
+      strokes_included: true,
       reverse_z: false
     }
   },
   isDefault(a: AutoLayout): boolean {
+    const d = AutoLayout.default()
     return (
-      a.mode === 'none' &&
-      a.spacing === 0 &&
-      a.padding.every((v) => v === 0) &&
-      a.sizing[0] === 'hug' &&
-      a.sizing[1] === 'hug' &&
-      a.child_sizing[0] === 'fixed' &&
-      a.child_sizing[1] === 'fixed' &&
-      a.align === 'min' &&
-      a.cross === 'min' &&
-      !a.wraps &&
-      a.row_gap === 0 &&
+      a.mode === d.mode &&
+      !a.wrap &&
+      a.gap === d.gap &&
+      a.cross_gap === d.cross_gap &&
+      a.padding.every((v, i) => v === d.padding[i]) &&
+      a.main_align === d.main_align &&
+      a.cross_align === d.cross_align &&
+      a.content_align === d.content_align &&
+      a.grid_columns === d.grid_columns &&
+      a.grid_rows === d.grid_rows &&
+      a.column_tracks.length === 0 &&
+      a.row_tracks.length === 0 &&
+      a.strokes_included === d.strokes_included &&
       !a.reverse_z
     )
   }
 }
 
-/** Grid cell placement of a child. */
+/** Layout properties a node has as a child (of an auto layout frame) or as a resizable box. */
 export interface ChildLayout {
-  grow: number
-  column_span: number
-  row_span: number
+  sizing_h: Sizing
+  sizing_v: Sizing
+  /** Ignore auto layout (absolute position inside an auto layout frame). */
+  absolute: boolean
+  min_w: number | null
+  max_w: number | null
+  min_h: number | null
+  max_h: number | null
+  /** Grid auto layout: anchor column / row (0-based); null = placed automatically. */
+  grid_column: number | null
+  grid_row: number | null
+  /** Grid auto layout: how many columns / rows the child spans (0 is read as 1). */
+  grid_column_span: number
+  grid_row_span: number
+  /** Grid auto layout: alignment in the cell (null: the frame's). */
+  grid_align_h: CellAlign | null
+  grid_align_v: CellAlign | null
 }
 
 export const ChildLayout = {
   default(): ChildLayout {
-    return { grow: 0, column_span: 1, row_span: 1 }
+    return {
+      sizing_h: 'fixed',
+      sizing_v: 'fixed',
+      absolute: false,
+      min_w: null,
+      max_w: null,
+      min_h: null,
+      max_h: null,
+      grid_column: null,
+      grid_row: null,
+      grid_column_span: 0,
+      grid_row_span: 0,
+      grid_align_h: null,
+      grid_align_v: null
+    }
   },
   isDefault(c: ChildLayout): boolean {
-    return c.grow === 0 && c.column_span === 1 && c.row_span === 1
+    return (
+      c.sizing_h === 'fixed' &&
+      c.sizing_v === 'fixed' &&
+      !c.absolute &&
+      c.min_w === null &&
+      c.max_w === null &&
+      c.min_h === null &&
+      c.max_h === null &&
+      c.grid_column === null &&
+      c.grid_row === null &&
+      c.grid_column_span === 0 &&
+      c.grid_row_span === 0 &&
+      c.grid_align_h === null &&
+      c.grid_align_v === null
+    )
+  },
+  /** Column span, at least 1. */
+  column_span(c: ChildLayout): number {
+    return Math.max(1, c.grid_column_span)
+  },
+  /** Row span, at least 1. */
+  row_span(c: ChildLayout): number {
+    return Math.max(1, c.grid_row_span)
   }
 }
 
+export type GridKind = 'grid' | 'columns' | 'rows'
+
+export type GridAlign = 'stretch' | 'min' | 'center' | 'max'
+
 /** A layout grid on a frame. */
 export interface LayoutGrid {
-  pattern: 'columns' | 'rows' | 'grid'
+  kind: GridKind
+  /** Grid: cell size. Fixed (not stretched) columns/rows: their width/height. */
+  size: number
+  /** Columns/rows: how many (0: Auto, as many fixed-size ones as fit). */
   count: number
   gutter: number
-  margin: number
-  section_size: number
+  offset: number
+  align: GridAlign
   color: Color
   visible: boolean
 }
 
 export const LayoutGrid = {
-  columns(count: number): LayoutGrid {
+  default(): LayoutGrid {
     return {
-      pattern: 'columns',
-      count,
+      kind: 'grid',
+      size: 10,
+      count: 5,
       gutter: 20,
-      margin: 0,
-      section_size: 0,
-      color: { r: 1, g: 0, b: 0, a: 0.1 },
-      visible: true
-    }
-  },
-  rows(count: number): LayoutGrid {
-    return {
-      pattern: 'rows',
-      count,
-      gutter: 20,
-      margin: 0,
-      section_size: 0,
-      color: { r: 1, g: 0, b: 0, a: 0.1 },
-      visible: true
-    }
-  },
-  grid(sectionSize: number): LayoutGrid {
-    return {
-      pattern: 'grid',
-      count: 0,
-      gutter: 0,
-      margin: 0,
-      section_size: sectionSize,
+      offset: 0,
+      align: 'stretch',
       color: { r: 1, g: 0, b: 0, a: 0.1 },
       visible: true
     }

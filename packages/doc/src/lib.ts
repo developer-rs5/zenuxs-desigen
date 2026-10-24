@@ -180,6 +180,31 @@ export class Document {
     return this.next_id.alloc()
   }
 
+  /**
+   * A copy-on-write snapshot: the node map is copied (nodes stay shared until
+   * `node_mut` clones them), so undo history entries capture real state the
+   * way Rust's `Arc<Document>` clones do.
+   */
+  clone(): Document {
+    const copy = new Document()
+    // Replace the auto-created root with the source's contents.
+    for (const [id, node] of this.nodes) copy.nodes.set(id, structuredCloneNode(node))
+    copy.nodes.delete(copy.pages[0] ?? 0)
+    if (!copy.nodes.has(copy.pages[0] ?? 0) && this.pages[0] !== undefined) {
+      const root = this.nodes.get(this.pages[0])
+      if (root) copy.nodes.set(copy.pages[0], structuredCloneNode(root))
+    }
+    copy.pages = [...this.pages]
+    copy.name = this.name
+    copy.current_page = this.current_page
+    copy.styles = structuredClone(this.styles)
+    copy.variables = structuredClone(this.variables)
+    copy.document_colors = this.document_colors.map((c) => ({ ...c }))
+    copy.color_profile = this.color_profile
+    copy.next_id = new IdAlloc(this.next_id.next, this.next_id.client)
+    return copy
+  }
+
   /** Delete `id` (and detach it from its parent); children come with it. */
   delete(id: NodeId): boolean {
     const n = this.nodes.get(id)
