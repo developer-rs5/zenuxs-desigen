@@ -1,0 +1,51 @@
+{
+  "name": "@zenuxs/geom",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./kurbo": {
+      "types": "./dist/kurbo.d.ts",
+      "bun": "./src/kurbo.ts",
+      "import": "./dist/kurbo.js",
+      "default": "./dist/kurbo.js"
+    },
+    "./lib": {
+      "types": "./dist/lib.d.ts",
+      "bun": "./src/lib.ts",
+      "import": "./dist/lib.js",
+      "default": "./dist/lib.js"
+    },
+    "./transform": {
+      "types": "./dist/transform.d.ts",
+      "bun": "./src/transform.ts",
+      "import": "./dist/transform.js",
+      "default": "./dist/transform.js"
+    },
+    "./measure": {
+      "types": "./dist/measure.d.ts",
+      "bun": "./src/measure.ts",
+      "import": "./dist/measure.js",
+      "default": "./dist/measure.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bunx tsdown --config tsdown.config.ts",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit -p tsconfig.json"
+  }
+}

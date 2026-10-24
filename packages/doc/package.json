@@ -1,0 +1,49 @@
+{
+  "name": "@zenuxs/doc",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./lib": {
+      "types": "./dist/lib.d.ts",
+      "bun": "./src/lib.ts",
+      "import": "./dist/lib.js",
+      "default": "./dist/lib.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "bun": "./src/node.ts",
+      "import": "./dist/node.js",
+      "default": "./dist/node.js"
+    },
+    "./ids": {
+      "types": "./dist/ids.d.ts",
+      "bun": "./src/ids.ts",
+      "import": "./dist/ids.js",
+      "default": "./dist/ids.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bunx tsdown --config tsdown.config.ts",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@zenuxs/color": "workspace:*",
+    "@zenuxs/geom": "workspace:*"
+  }
+}

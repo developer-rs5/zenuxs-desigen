@@ -181,6 +181,10 @@
         "@types/bun": "^1.3.14",
       },
     },
+    "packages/color": {
+      "name": "@zenuxs/color",
+      "version": "0.1.0",
+    },
     "packages/core": {
       "name": "@open-pencil/core",
       "version": "0.14.0",
@@ -223,6 +227,14 @@
         "@types/opentype.js": "^1.3.10",
         "@types/rbush": "^4.0.0",
         "typescript": "~5.8.3",
+      },
+    },
+    "packages/doc": {
+      "name": "@zenuxs/doc",
+      "version": "0.1.0",
+      "dependencies": {
+        "@zenuxs/color": "workspace:*",
+        "@zenuxs/geom": "workspace:*",
       },
     },
     "packages/docs": {
@@ -276,6 +288,10 @@
         "@open-pencil/kiwi": "workspace:*",
         "@open-pencil/scene-graph": "workspace:*",
       },
+    },
+    "packages/geom": {
+      "name": "@zenuxs/geom",
+      "version": "0.1.0",
     },
     "packages/harness": {
       "name": "@open-pencil/harness",
@@ -2042,6 +2058,12 @@
     "@yuku-parser/binding-win32-x64": ["@yuku-parser/binding-win32-x64@0.8.7", "", { "os": "win32", "cpu": "x64" }, "sha512-8vNB2DP0ou61nGb8tc/qfi41gfyDXz1MHr2zqL3nR+cJ6CEbiuWV/l/a/vv151gCgiZLLAyGkQGENpozdg716w=="],
 
     "@yuku-toolchain/types": ["@yuku-toolchain/types@0.8.7", "", {}, "sha512-2Z53dNxAJL6UvFoIrDZvYf3zlO8s4VJK4O2hhaB4mXVwwpX/7ajtss3cmfqKvamlNLWyt9FSWs4eoYdlbxpnHA=="],
+
+    "@zenuxs/color": ["@zenuxs/color@workspace:packages/color"],
+
+    "@zenuxs/doc": ["@zenuxs/doc@workspace:packages/doc"],
+
+    "@zenuxs/geom": ["@zenuxs/geom@workspace:packages/geom"],
 
     "@zip.js/zip.js": ["@zip.js/zip.js@2.8.53", "", {}, "sha512-Vr55wt21XKD0kZFCQEZOtbViUMUK/U0MH2MDsHxu6FSyYk3Wu+afh+f9xD01x0kerDNfHmUVrNpcgYAgtnRtjA=="],
 

@@ -20,7 +20,10 @@
     "tools/package-artifacts",
     "tools/package-quality",
     "tools/release-packages",
-    "tools/visual-oracles"
+    "tools/visual-oracles",
+    "packages/geom",
+    "packages/color",
+    "packages/doc"
   ],
   "type": "module",
   "scripts": {

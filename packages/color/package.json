@@ -1,0 +1,63 @@
+{
+  "name": "@zenuxs/color",
+  "version": "0.1.0",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./lib": {
+      "types": "./dist/lib.d.ts",
+      "bun": "./src/lib.ts",
+      "import": "./dist/lib.js",
+      "default": "./dist/lib.js"
+    },
+    "./blend": {
+      "types": "./dist/blend.d.ts",
+      "bun": "./src/blend.ts",
+      "import": "./dist/blend.js",
+      "default": "./dist/blend.js"
+    },
+    "./hsx": {
+      "types": "./dist/hsx.d.ts",
+      "bun": "./src/hsx.ts",
+      "import": "./dist/hsx.js",
+      "default": "./dist/hsx.js"
+    },
+    "./named": {
+      "types": "./dist/named.d.ts",
+      "bun": "./src/named.ts",
+      "import": "./dist/named.js",
+      "default": "./dist/named.js"
+    },
+    "./profile": {
+      "types": "./dist/profile.d.ts",
+      "bun": "./src/profile.ts",
+      "import": "./dist/profile.js",
+      "default": "./dist/profile.js"
+    },
+    "./icc": {
+      "types": "./dist/icc.d.ts",
+      "bun": "./src/icc.ts",
+      "import": "./dist/icc.js",
+      "default": "./dist/icc.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bunx tsdown --config tsdown.config.ts",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit -p tsconfig.json"
+  }
+}
