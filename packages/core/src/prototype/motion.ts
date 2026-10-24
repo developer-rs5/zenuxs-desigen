@@ -1,4 +1,8 @@
-import type { PrototypeEasing, PrototypeTransition } from '@open-pencil/scene-graph'
+import type {
+  PrototypeEasing,
+  PrototypeSpring,
+  PrototypeTransition
+} from '@open-pencil/scene-graph'
 
 /**
  * Pure motion math for the prototype runtime (spec §3D / FigCraft):
@@ -142,6 +146,32 @@ export function easingProgress(easing: PrototypeEasing, p: number): number {
   }
 
   return t
+}
+
+/**
+ * Normalized spring progress (compatibility export): f(0)=0, f(1)=1 exactly,
+ * overshoot inside the segment. Physics mode uses zeta = damping / (2·sqrt(k·m)).
+ */
+export function springProgress(config: PrototypeSpring, p: number): number {
+  const clamped = Math.min(1, Math.max(0, p))
+  if (clamped === 0) return 0
+  if (clamped === 1) return 1
+  const stiffness = Math.max(1e-3, config.stiffness ?? 100)
+  const damping = Math.max(0, config.damping ?? 10)
+  const mass = Math.max(1e-3, config.mass ?? 1)
+  const zeta = damping / (2 * Math.sqrt(stiffness * mass))
+  const omega = 2 * Math.PI * Math.max(0.5, Math.sqrt(stiffness / mass) / 12)
+  if (!Number.isFinite(zeta) || !Number.isFinite(omega)) return clamped
+  if (zeta >= 1) {
+    const decay = omega * zeta
+    return 1 - Math.exp(-decay * clamped) * (1 + decay * clamped)
+  }
+  const damped = omega * Math.sqrt(1 - zeta * zeta)
+  const envelope = Math.exp(-zeta * omega * clamped)
+  return (
+    1 -
+    envelope * (Math.cos(damped * clamped) + ((zeta * omega) / damped) * Math.sin(damped * clamped))
+  )
 }
 
 export const SPRING_DEFAULT_DURATION_MS = 400
