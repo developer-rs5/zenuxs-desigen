@@ -1,5 +1,6 @@
 export * from './lib'
 export * from './cmd/core'
+export * from './mcp'
 import { registerRegistry, registryReady } from './lib'
 import { allCoreSpecs } from './cmd/core'
 
