@@ -8,6 +8,8 @@ import type { Rect } from '@open-pencil/scene-graph/primitives'
 
 import { playVisual, type KeyframePlay } from './keyframes'
 import { transitionDurationMs, transitionProgress } from './motion'
+import { computeSmartAnimateVisuals } from './smart-animate'
+import { transitionFramePlacement } from './transitions'
 import {
   isIdentityVisual,
   lerpVisual,
@@ -81,40 +83,6 @@ export function screenRectOf(graph: SceneGraph, id: string): Rect | null {
   return { x: node.x, y: node.y, width: node.width, height: node.height }
 }
 
-function slideOffsets(
-  transition: PrototypeTransition,
-  progress: number,
-  width: number,
-  height: number
-): { incoming: PrototypeNodeVisual; outgoing: PrototypeNodeVisual } {
-  if (transition.kind !== 'slide') return { incoming: {}, outgoing: {} }
-  const offset = 1 - progress
-  switch (transition.direction) {
-    case 'left':
-      return {
-        incoming: { translateX: offset * width },
-        outgoing: { translateX: -progress * width }
-      }
-    case 'right':
-      return {
-        incoming: { translateX: -offset * width },
-        outgoing: { translateX: progress * width }
-      }
-    case 'up':
-      return {
-        incoming: { translateY: offset * height },
-        outgoing: { translateY: -progress * height }
-      }
-    case 'down':
-      return {
-        incoming: { translateY: -offset * height },
-        outgoing: { translateY: progress * height }
-      }
-    default:
-      return { incoming: {}, outgoing: {} }
-  }
-}
-
 export interface RenderStateInput {
   graph: SceneGraph
   screenId: string
@@ -178,21 +146,47 @@ function collectScreenVisuals(
   const toRect = screenRectOf(input.graph, toId)
   const width = toRect?.width ?? fromRect?.width ?? 0
   const height = toRect?.height ?? fromRect?.height ?? 0
-  const slide = slideOffsets(transition, progress, width, height)
-  if (transition.kind === 'fade') {
-    nodeVisuals.set(toId, mergeVisual(nodeVisuals.get(toId) ?? {}, { opacity: progress }))
-    nodeVisuals.set(fromId, mergeVisual(nodeVisuals.get(fromId) ?? {}, { opacity: 1 - progress }))
-  } else if (transition.kind === 'slide') {
-    nodeVisuals.set(toId, mergeVisual(nodeVisuals.get(toId) ?? {}, slide.incoming))
-    nodeVisuals.set(fromId, mergeVisual(nodeVisuals.get(fromId) ?? {}, slide.outgoing))
-  } else {
-    // Spring crossfade: spring progress overshoots, so clamp opacity to
-    // [0,1] — the oscillation still reads while both screens are visible.
-    const clamped = Math.min(1, Math.max(0, progress))
-    nodeVisuals.set(toId, mergeVisual(nodeVisuals.get(toId) ?? {}, { opacity: clamped }))
-    nodeVisuals.set(fromId, mergeVisual(nodeVisuals.get(fromId) ?? {}, { opacity: 1 - clamped }))
+
+  if (transition.kind === 'smartAnimate') {
+    const smartVisuals = computeSmartAnimateVisuals(
+      input.graph,
+      fromId,
+      input.graph,
+      toId,
+      progress
+    )
+    for (const [id, visual] of smartVisuals) {
+      nodeVisuals.set(id, mergeVisual(nodeVisuals.get(id) ?? {}, visual))
+    }
+    drawIds.push(fromId, toId)
+    return screen
   }
-  drawIds.push(fromId, toId)
+
+  const placement = transitionFramePlacement(transition, progress)
+
+  nodeVisuals.set(
+    toId,
+    mergeVisual(nodeVisuals.get(toId) ?? {}, {
+      translateX: placement.toOffset[0] * width,
+      translateY: placement.toOffset[1] * height,
+      opacity: placement.toAlpha
+    })
+  )
+
+  nodeVisuals.set(
+    fromId,
+    mergeVisual(nodeVisuals.get(fromId) ?? {}, {
+      translateX: placement.fromOffset[0] * width,
+      translateY: placement.fromOffset[1] * height,
+      opacity: placement.fromAlpha
+    })
+  )
+
+  if (placement.fromOnTop) {
+    drawIds.push(toId, fromId)
+  } else {
+    drawIds.push(fromId, toId)
+  }
   return screen
 }
 

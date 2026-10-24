@@ -315,7 +315,11 @@ const {
             interaction.transition &&
             (interaction.transition.kind === 'fade' || interaction.transition.kind === 'slide')
           "
-          :model-value="interaction.transition.easing"
+          :model-value="
+            typeof interaction.transition.easing === 'string'
+              ? interaction.transition.easing
+              : 'easeOut'
+          "
           :label="panels.easing"
           :options="easingOptions"
           :data-property="`interaction-${index}-easing`"
@@ -488,7 +492,9 @@ const {
             @commit="(value: number) => patchStateDuration(index, value)"
           />
           <AppSelect
-            :model-value="state.transition.easing"
+            :model-value="
+              typeof state.transition.easing === 'string' ? state.transition.easing : 'easeOut'
+            "
             :label="panels.easing"
             :options="easingOptions"
             :data-property="`state-${index}-easing`"

@@ -3,6 +3,7 @@ import type { Color, Rect, Vector } from '@open-pencil/scene-graph/primitives'
 import type { SnapGuide } from '@open-pencil/scene-graph/snap'
 
 import type { GuideOverlayState } from '#core/canvas/guides/types'
+import type { PrototypeConnectionsOverlay } from '#core/canvas/overlays/prototype-connections'
 import type { PrototypeRenderState } from '#core/prototype/runtime'
 import type { TextEditor } from '#core/text/editor'
 
@@ -28,6 +29,8 @@ export interface RenderOverlays {
   dropTargetId?: string | null
   /** Preview-mode prototype state: screen filter, backdrop, and node visuals. */
   prototype?: PrototypeRenderState | null
+  /** Interactive canvas connection noodles, arrowheads, and '+' handles. */
+  prototypeConnections?: PrototypeConnectionsOverlay | null
   layoutInsertIndicator?: {
     x: number
     y: number

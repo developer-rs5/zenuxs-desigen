@@ -24,6 +24,7 @@ import LayoutSection from './properties/layout/LayoutSection.vue'
 import MaskSection from './properties/MaskSection.vue'
 import PageSection from './properties/PageSection.vue'
 import PositionSection from './properties/PositionSection.vue'
+import PrototypeDeviceSection from './properties/PrototypeDeviceSection.vue'
 import PrototypeSection from './properties/PrototypeSection.vue'
 import SelectionActionsControl from './properties/SelectionActionsControl.vue'
 import StrokeSection from './properties/stroke/StrokeSection.vue'
@@ -182,6 +183,7 @@ const { panels } = useI18n()
     class="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto pb-4"
   >
     <PageSection />
+    <PrototypeDeviceSection />
     <VariablesSection @open-dialog="variablesOpen = true" />
     <ExportSection />
   </div>

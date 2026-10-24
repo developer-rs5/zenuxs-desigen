@@ -136,7 +136,7 @@ export function usePrototypeSection() {
     { value: 'spring', label: panels.value.transitionSpring }
   ])
 
-  const easingOptions = computed<Array<{ value: PrototypeEasing; label: string }>>(() => [
+  const easingOptions = computed<Array<{ value: string; label: string }>>(() => [
     { value: 'linear', label: panels.value.easingLinear },
     { value: 'ease', label: panels.value.easingEase },
     { value: 'easeIn', label: panels.value.easingEaseIn },
@@ -190,10 +190,15 @@ export function usePrototypeSection() {
     let action: PrototypeAction
     if (type === 'navigate') action = { type, destinationId: firstFrame }
     else if (type === 'openOverlay') action = { type, overlayId: firstFrame, backdropOpacity: 0.3 }
+    else if (type === 'swapOverlay') action = { type, overlayId: firstFrame }
     else if (type === 'closeOverlay') action = { type }
+    else if (type === 'back') action = { type }
+    else if (type === 'scrollTo') action = { type, destinationId: firstFrame }
+    else if (type === 'openUrl') action = { type, url: 'https://' }
     else if (type === 'playAnimation') action = { type, animationId: '' }
     else if (type === 'setVariant') action = { type, variant: '' }
-    else action = { type, state: stateOptions.value[0]?.value ?? '' }
+    else if (type === 'setVariableMode') action = { type, collectionId: '', modeId: '' }
+    else action = { type: 'setState', state: stateOptions.value[0]?.value ?? '' }
     patchInteraction(index, { action })
   }
 
@@ -205,11 +210,24 @@ export function usePrototypeSection() {
     if (kind === 'instant') patchInteraction(index, { transition: { kind } })
     else if (kind === 'fade')
       patchInteraction(index, { transition: { kind, durationMs: 300, easing: 'easeOut' } })
+    else if (kind === 'dissolve') patchInteraction(index, { transition: { kind, durationMs: 300 } })
+    else if (kind === 'smartAnimate')
+      patchInteraction(index, { transition: { kind, durationMs: 300 } })
     else if (kind === 'slide')
       patchInteraction(index, {
         transition: { kind, direction: 'down', durationMs: 300, easing: 'easeOut' }
       })
-    else patchInteraction(index, { transition: { kind, spring: { mode: 'time' } } })
+    else if (
+      kind === 'moveIn' ||
+      kind === 'moveOut' ||
+      kind === 'push' ||
+      kind === 'slideIn' ||
+      kind === 'slideOut'
+    )
+      patchInteraction(index, {
+        transition: { kind, direction: 'left', durationMs: 300 }
+      })
+    else patchInteraction(index, { transition: { kind: 'spring', spring: { mode: 'time' } } })
   }
 
   /** Spring edits ride the same undo-batched interaction write as duration/easing. */
@@ -276,11 +294,23 @@ export function usePrototypeSection() {
     if (kind === 'instant') patchState(index, { transition: { kind } })
     else if (kind === 'fade')
       patchState(index, { transition: { kind, durationMs: 300, easing: 'easeOut' } })
+    else if (kind === 'dissolve') patchState(index, { transition: { kind, durationMs: 300 } })
+    else if (kind === 'smartAnimate') patchState(index, { transition: { kind, durationMs: 300 } })
     else if (kind === 'slide')
       patchState(index, {
         transition: { kind, direction: 'down', durationMs: 300, easing: 'easeOut' }
       })
-    else patchState(index, { transition: { kind, spring: { mode: 'time' } } })
+    else if (
+      kind === 'moveIn' ||
+      kind === 'moveOut' ||
+      kind === 'push' ||
+      kind === 'slideIn' ||
+      kind === 'slideOut'
+    )
+      patchState(index, {
+        transition: { kind, direction: 'left', durationMs: 300 }
+      })
+    else patchState(index, { transition: { kind: 'spring', spring: { mode: 'time' } } })
   }
 
   function patchStateDuration(index: number, durationMs: number) {

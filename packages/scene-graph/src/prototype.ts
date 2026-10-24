@@ -25,7 +25,44 @@ export const PROTOTYPE_SCHEMA_VERSION = 1
 
 const duration = v.pipe(v.number(), v.minValue(0), v.maxValue(120_000))
 
-export const EasingSchema = v.picklist(['linear', 'ease', 'easeIn', 'easeOut', 'easeInOut'])
+export const DirectionSchema = v.picklist(['left', 'right', 'up', 'down'])
+export type PrototypeDirection = v.InferOutput<typeof DirectionSchema>
+
+export const CustomBezierSchema = v.object({
+  type: v.literal('customBezier'),
+  x1: v.number(),
+  y1: v.number(),
+  x2: v.number(),
+  y2: v.number()
+})
+export type PrototypeCustomBezier = v.InferOutput<typeof CustomBezierSchema>
+
+export const CustomSpringSchema = v.object({
+  type: v.literal('customSpring'),
+  mass: v.number(),
+  stiffness: v.number(),
+  damping: v.number()
+})
+export type PrototypeCustomSpring = v.InferOutput<typeof CustomSpringSchema>
+
+export const EasingSchema = v.union([
+  v.picklist([
+    'linear',
+    'ease',
+    'easeIn',
+    'easeOut',
+    'easeInOut',
+    'easeInBack',
+    'easeOutBack',
+    'easeInOutBack',
+    'gentle',
+    'quick',
+    'bouncy',
+    'slow'
+  ]),
+  CustomBezierSchema,
+  CustomSpringSchema
+])
 export type PrototypeEasing = v.InferOutput<typeof EasingSchema>
 
 export const SpringConfigSchema = v.object({
@@ -46,10 +83,50 @@ export const TransitionSchema = v.union([
     easing: EasingSchema
   }),
   v.object({
+    kind: v.literal('dissolve'),
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
+  }),
+  v.object({
+    kind: v.literal('smartAnimate'),
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
+  }),
+  v.object({
     kind: v.literal('slide'),
-    direction: v.picklist(['left', 'right', 'up', 'down']),
+    direction: DirectionSchema,
     durationMs: duration,
     easing: EasingSchema
+  }),
+  v.object({
+    kind: v.literal('moveIn'),
+    direction: DirectionSchema,
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
+  }),
+  v.object({
+    kind: v.literal('moveOut'),
+    direction: DirectionSchema,
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
+  }),
+  v.object({
+    kind: v.literal('push'),
+    direction: DirectionSchema,
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
+  }),
+  v.object({
+    kind: v.literal('slideIn'),
+    direction: DirectionSchema,
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
+  }),
+  v.object({
+    kind: v.literal('slideOut'),
+    direction: DirectionSchema,
+    durationMs: duration,
+    easing: v.optional(EasingSchema)
   }),
   v.object({
     kind: v.literal('spring'),
@@ -98,19 +175,57 @@ const varsRecord = v.pipe(
   v.maxEntries(STATE_VARS_MAX_KEYS)
 )
 
+export const OverlayPositionSchema = v.picklist([
+  'center',
+  'topLeft',
+  'topCenter',
+  'topRight',
+  'bottomLeft',
+  'bottomCenter',
+  'bottomRight',
+  'manual'
+])
+export type PrototypeOverlayPosition = v.InferOutput<typeof OverlayPositionSchema>
+
 export const PrototypeActionSchema = v.union([
-  v.object({ type: v.literal('navigate'), destinationId: v.string() }),
+  v.object({
+    type: v.literal('navigate'),
+    destinationId: v.string(),
+    preserveScroll: v.optional(v.boolean())
+  }),
+  v.object({ type: v.literal('back') }),
+  v.object({
+    type: v.literal('scrollTo'),
+    destinationId: v.string(),
+    offset: v.optional(v.tuple([v.number(), v.number()]))
+  }),
   v.object({
     type: v.literal('openOverlay'),
     overlayId: v.string(),
-    backdropOpacity: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(1)))
+    position: v.optional(OverlayPositionSchema),
+    closeOnOutside: v.optional(v.boolean()),
+    backdropOpacity: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(1))),
+    offset: v.optional(v.tuple([v.number(), v.number()]))
+  }),
+  v.object({
+    type: v.literal('swapOverlay'),
+    overlayId: v.string()
   }),
   v.object({ type: v.literal('closeOverlay') }),
+  v.object({
+    type: v.literal('openUrl'),
+    url: v.string()
+  }),
   v.object({
     type: v.literal('setState'),
     state: v.string(),
     /** Variable writes applied atomically with the state change. */
     setVars: v.optional(varsRecord)
+  }),
+  v.object({
+    type: v.literal('setVariableMode'),
+    collectionId: v.string(),
+    modeId: v.string()
   }),
   v.object({
     type: v.literal('playAnimation'),
@@ -234,12 +349,252 @@ export const PrototypeFlowSchema = v.object({
 })
 export type PrototypeFlow = v.InferOutput<typeof PrototypeFlowSchema>
 
+export const DeviceColorSchema = v.object({
+  name: v.string(),
+  rgb: v.tuple([v.number(), v.number(), v.number()])
+})
+export type PrototypeDeviceColor = v.InferOutput<typeof DeviceColorSchema>
+
+export const DeviceSchema = v.object({
+  name: v.string(),
+  width: v.number(),
+  height: v.number(),
+  rotates: v.boolean(),
+  colors: v.array(DeviceColorSchema)
+})
+export type PrototypeDevice = v.InferOutput<typeof DeviceSchema>
+
+export const DeviceRotationSchema = v.picklist(['portrait', 'landscape'])
+export type PrototypeDeviceRotation = v.InferOutput<typeof DeviceRotationSchema>
+
+export const PrototypeSettingsSchema = v.object({
+  device: v.string(),
+  background: v.string(),
+  rotation: DeviceRotationSchema,
+  color: v.string(),
+  customSize: v.tuple([v.number(), v.number()]),
+  responsive: v.boolean()
+})
+export type PrototypeSettings = v.InferOutput<typeof PrototypeSettingsSchema>
+
+export const OverflowSchema = v.picklist(['none', 'horizontal', 'vertical', 'both'])
+export type PrototypeOverflow = v.InferOutput<typeof OverflowSchema>
+
+export const ScrollPositionSchema = v.picklist(['scrolls', 'fixed', 'sticky'])
+export type PrototypeScrollPosition = v.InferOutput<typeof ScrollPositionSchema>
+
+/** 19 industry-standard device definitions ported directly from FigCraft. */
+export const PROTOTYPE_DEVICES: readonly PrototypeDevice[] = [
+  {
+    name: 'iPhone 17',
+    width: 402,
+    height: 874,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x38, 0x39, 0x3d] },
+      { name: 'White', rgb: [0xe9, 0xe9, 0xe5] }
+    ]
+  },
+  {
+    name: 'iPhone 17 Pro',
+    width: 402,
+    height: 874,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x38, 0x39, 0x3d] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone 17 Pro Max',
+    width: 440,
+    height: 956,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x38, 0x39, 0x3d] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone Air',
+    width: 420,
+    height: 912,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x38, 0x39, 0x3d] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone 16',
+    width: 393,
+    height: 852,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3a, 0x3b, 0x3f] },
+      { name: 'White', rgb: [0xee, 0xed, 0xe8] },
+      { name: 'Pink', rgb: [0xec, 0xbf, 0xcb] },
+      { name: 'Teal', rgb: [0xa3, 0xcf, 0xc6] },
+      { name: 'Blue', rgb: [0x72, 0x84, 0xd4] }
+    ]
+  },
+  {
+    name: 'iPhone 16 Pro',
+    width: 402,
+    height: 874,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3b, 0x3a, 0x38] },
+      { name: 'White', rgb: [0xec, 0xeb, 0xe6] }
+    ]
+  },
+  {
+    name: 'iPhone 16 Pro Max',
+    width: 440,
+    height: 956,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3b, 0x3a, 0x38] },
+      { name: 'White', rgb: [0xec, 0xeb, 0xe6] },
+      { name: 'Natural', rgb: [0xbf, 0xb9, 0xaf] },
+      { name: 'Sand', rgb: [0xc6, 0xac, 0x8f] }
+    ]
+  },
+  {
+    name: 'iPhone 16 Plus',
+    width: 430,
+    height: 932,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3a, 0x3b, 0x3f] },
+      { name: 'White', rgb: [0xee, 0xed, 0xe8] }
+    ]
+  },
+  {
+    name: 'iPhone 15 Pro',
+    width: 393,
+    height: 852,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3b, 0x3a, 0x38] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone 15 Pro Max',
+    width: 430,
+    height: 932,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3b, 0x3a, 0x38] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone 15 Plus',
+    width: 430,
+    height: 932,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3a, 0x3b, 0x3f] },
+      { name: 'White', rgb: [0xee, 0xed, 0xe8] }
+    ]
+  },
+  {
+    name: 'iPhone 14 Pro',
+    width: 393,
+    height: 852,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3b, 0x3a, 0x38] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone 14 Pro Max',
+    width: 430,
+    height: 932,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3b, 0x3a, 0x38] },
+      { name: 'Silver', rgb: [0xd7, 0xd7, 0xd5] }
+    ]
+  },
+  {
+    name: 'iPhone 14',
+    width: 390,
+    height: 844,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x3a, 0x3b, 0x3f] },
+      { name: 'White', rgb: [0xee, 0xed, 0xe8] }
+    ]
+  },
+  {
+    name: 'Android Compact',
+    width: 412,
+    height: 917,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x2e, 0x2f, 0x33] },
+      { name: 'Silver', rgb: [0xd6, 0xd8, 0xdb] },
+      { name: 'Green', rgb: [0xa6, 0xc0, 0xa3] }
+    ]
+  },
+  {
+    name: 'Android Medium',
+    width: 700,
+    height: 840,
+    rotates: true,
+    colors: [
+      { name: 'Black', rgb: [0x2e, 0x2f, 0x33] },
+      { name: 'Silver', rgb: [0xd6, 0xd8, 0xdb] }
+    ]
+  },
+  {
+    name: 'iPad mini',
+    width: 744,
+    height: 1133,
+    rotates: true,
+    colors: [
+      { name: 'Grey', rgb: [0x6a, 0x6b, 0x6f] },
+      { name: 'Silver', rgb: [0xe0, 0xe1, 0xe3] },
+      { name: 'Blue', rgb: [0x9c, 0xb1, 0xc9] },
+      { name: 'Purple', rgb: [0xc6, 0xbc, 0xd7] }
+    ]
+  },
+  {
+    name: 'MacBook Air',
+    width: 1280,
+    height: 832,
+    rotates: false,
+    colors: [
+      { name: 'Silver', rgb: [0xc9, 0xca, 0xce] },
+      { name: 'Grey', rgb: [0x7b, 0x7c, 0x80] },
+      { name: 'Dark blue', rgb: [0x2e, 0x33, 0x3d] },
+      { name: 'Cream', rgb: [0xe0, 0xd9, 0xcb] }
+    ]
+  },
+  {
+    name: 'Desktop',
+    width: 1440,
+    height: 1024,
+    rotates: false,
+    colors: [
+      { name: 'Silver', rgb: [0xb8, 0xb9, 0xbd] },
+      { name: 'Black', rgb: [0x2c, 0x2c, 0x2e] }
+    ]
+  }
+]
+
 /** Document-level prototype metadata stored on the root node. */
 export const PrototypeDocumentSchema = v.object({
   version: v.number(),
   flows: v.pipe(v.array(PrototypeFlowSchema), v.maxLength(64)),
   /** Flow that present/preview starts from; falls back to flows[0]. */
-  activeFlowId: v.optional(v.string())
+  activeFlowId: v.optional(v.string()),
+  /** Device frame and presentation settings. */
+  settings: v.optional(PrototypeSettingsSchema)
 })
 export type PrototypeDocument = v.InferOutput<typeof PrototypeDocumentSchema>
 

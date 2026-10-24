@@ -429,6 +429,14 @@ export {
   FIG_WIRE_MAGIC
 } from './kiwi'
 
+export * from './prototype/smart-animate'
+export * from './prototype/physics-scrolling'
+export * from './prototype/device'
+export * from './prototype/transitions'
+export * from './prototype/motion'
+export * from './prototype/render-state'
+export * from './prototype/runtime'
+
 export * from './io'
 export * from './lint'
 

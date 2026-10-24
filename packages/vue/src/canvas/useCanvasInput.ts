@@ -255,6 +255,30 @@ export function useCanvasInput(
     const selectedIdsBeforeMouseDown = new Set(editor.state.selectedIds)
     const clickCount = recordClick(sx, sy)
     if (clickCount === 1) selectedIdsBeforeClickSequence.value = selectedIdsBeforeMouseDown
+
+    const selectedId =
+      editor.state.selectedIds.size === 1 ? Array.from(editor.state.selectedIds)[0] : null
+    const selNode = selectedId ? editor.graph.getNode(selectedId) : null
+    if (
+      editor.state.prototypeConnections?.active &&
+      selectedId &&
+      selNode &&
+      selNode.type !== 'CANVAS'
+    ) {
+      const handleX = selNode.x + selNode.width + 11 / editor.state.zoom
+      const handleY = selNode.y + selNode.height / 2
+      const handleR = 12 / editor.state.zoom
+      if (Math.hypot(cx - handleX, cy - handleY) <= handleR) {
+        setDrag({
+          type: 'proto-connect',
+          sourceId: selectedId,
+          startPoint: { x: cx, y: cy }
+        })
+        e.preventDefault()
+        return
+      }
+    }
+
     handleToolMouseDown({
       event: e,
       cx,
@@ -308,6 +332,19 @@ export function useCanvasInput(
 
     if (!drag.value) return
     const d = drag.value
+
+    if (d.type === 'proto-connect') {
+      const { cx, cy } = coords
+      editor.setPrototypeConnectionsOverlay({
+        active: true,
+        selectedNodeId: d.sourceId,
+        activeDrag: {
+          sourceId: d.sourceId,
+          currentPoint: { x: cx, y: cy }
+        }
+      })
+      return
+    }
 
     if (d.type === 'pan') {
       handlePanMove(d, e)
@@ -383,6 +420,31 @@ export function useCanvasInput(
     }
     if (!drag.value) return
     const d = drag.value
+
+    if (d.type === 'proto-connect') {
+      const pointer = lastPointer.value
+      const hit = pointer ? editor.hitTestAtPoint(pointer.cx, pointer.cy) : null
+      let targetNode: SceneNode | null = hit
+      while (
+        targetNode &&
+        targetNode.type !== 'FRAME' &&
+        targetNode.parentId &&
+        targetNode.parentId !== editor.graph.rootId
+      ) {
+        targetNode = editor.graph.getNode(targetNode.parentId) ?? null
+      }
+      if (targetNode && targetNode.id !== d.sourceId) {
+        editor.connectPrototypeNodes(d.sourceId, targetNode.id)
+      }
+      editor.setPrototypeConnectionsOverlay({
+        active: true,
+        selectedNodeId: d.sourceId,
+        activeDrag: null
+      })
+      drag.value = null
+      cursorOverride.value = null
+      return
+    }
 
     if (handleNodeEditPointerUp(drag, editor)) return
 

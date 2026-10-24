@@ -13,6 +13,7 @@ import type { SnapGuide } from '@open-pencil/scene-graph/snap'
 import type { UndoManager } from '@open-pencil/scene-graph/undo'
 
 import type { GuideOverlayState } from '#core/canvas/guides/types'
+import type { PrototypeConnectionsOverlay } from '#core/canvas/overlays/prototype-connections'
 import type { RulerTheme, SkiaRenderer } from '#core/canvas/renderer'
 import type { MeasurementMode, RenderOverlays } from '#core/canvas/renderer/types'
 import type { SnappingPreferences } from '#core/editor/preferences'
@@ -98,6 +99,8 @@ export interface EditorViewState {
   cursorCanvasY?: number | null
   /** Ephemeral prototype-preview render state; null when not previewing. */
   prototypePreview: PrototypeRenderState | null
+  /** Interactive prototype connection noodles overlay. */
+  prototypeConnections?: PrototypeConnectionsOverlay | null
 }
 
 export type NavigationPhase = 'idle' | 'pan' | 'zoom' | 'momentum' | 'settling'

@@ -144,6 +144,12 @@ export interface DragGuide {
   originalPosition?: number
 }
 
+export interface DragProtoConnect {
+  type: 'proto-connect'
+  sourceId: string
+  startPoint: Vector
+}
+
 export type DragState =
   | DragDraw
   | DragMove
@@ -157,6 +163,7 @@ export type DragState =
   | DragEditHandle
   | DragBendHandle
   | DragGuide
+  | DragProtoConnect
 
 export const TOOL_TO_NODE: Partial<Record<Tool, NodeType>> = {
   FRAME: 'FRAME',

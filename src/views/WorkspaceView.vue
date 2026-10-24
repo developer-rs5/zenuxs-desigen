@@ -23,6 +23,7 @@ import CommandPalette from '@/components/commands/CommandPalette.vue'
 import EditorWorkspace from '@/components/editor/EditorWorkspace.vue'
 import FontStatusBanner from '@/components/font-status/FontStatusBanner.vue'
 import HomeWorkspace from '@/components/home/HomeWorkspace.vue'
+import PrototypePlayer from '@/components/prototype/PrototypePlayer.vue'
 import SafariBanner from '@/components/SafariBanner.vue'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog.vue'
 import TabBar from '@/components/TabBar.vue'
@@ -111,6 +112,11 @@ onUnmounted(() => {
     <template v-if="activeTab?.kind !== 'home'">
       <TopBar />
       <EditorWorkspace />
+      <PrototypePlayer
+        v-if="activeTab?.store"
+        :open="activeTab.store.state.prototypePresenterOpen"
+        @update:open="activeTab.store.state.prototypePresenterOpen = $event"
+      />
     </template>
   </div>
 </template>

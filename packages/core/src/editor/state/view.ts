@@ -29,7 +29,8 @@ export function createDefaultEditorViewState(pageId: string): EditorViewState {
     nodeEditState: null,
     cursorCanvasX: null,
     cursorCanvasY: null,
-    prototypePreview: null
+    prototypePreview: null,
+    prototypeConnections: null
   }
 }
 

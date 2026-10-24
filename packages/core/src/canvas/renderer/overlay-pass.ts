@@ -4,6 +4,7 @@ import type { SceneGraph } from '@open-pencil/scene-graph'
 
 import { drawGuides } from '#core/canvas/guides/draw'
 import { drawMeasurementSegment } from '#core/canvas/overlays/measurement'
+import { drawPrototypeConnections } from '#core/canvas/overlays/prototype-connections'
 import type { RenderOverlays, SkiaRenderer } from '#core/canvas/renderer'
 
 function measurementVisible(overlays: RenderOverlays): boolean {
@@ -55,6 +56,9 @@ export function drawOverlayPass(
   r.drawNodeEditOverlay(canvas, graph, overlays.nodeEditState)
   r.drawPenOverlay(canvas, overlays.penState)
   r.drawRemoteCursors(canvas, graph, overlays.remoteCursors)
+  if (overlays.prototypeConnections) {
+    drawPrototypeConnections(r, canvas, graph, overlays.prototypeConnections)
+  }
 }
 
 export function drawChromePass(

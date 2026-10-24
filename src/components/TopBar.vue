@@ -31,10 +31,16 @@ const documentNameTip = 'Double click to rename'
 
 const store = useEditorStore()
 
-const previewActive = computed(() => store.state.prototypePreview != null)
+const previewActive = computed(
+  () => store.state.prototypePreview != null || store.state.prototypePresenterOpen
+)
 function togglePrototypePreview() {
-  if (previewActive.value) store.stopPrototypePreview()
-  else store.startPrototypePreview()
+  if (store.state.prototypePresenterOpen) {
+    store.state.prototypePresenterOpen = false
+    store.stopPrototypePreview()
+  } else {
+    store.state.prototypePresenterOpen = true
+  }
 }
 const { rename, editingName, startRename, commitRename } = useDocumentNameRename(store)
 const nameInput = templateRef<HTMLInputElement>('nameInput')

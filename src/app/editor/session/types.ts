@@ -23,7 +23,8 @@ export function createInitialAppEditorState(pageId: string): AppEditorState {
     renameSelectionOpen: false,
     renameNodeId: null,
     numberFieldFocused: false,
-    preparation: null
+    preparation: null,
+    prototypePresenterOpen: false
   }
 }
 
@@ -44,4 +45,5 @@ export type AppEditorState = EditorState & {
   renameNodeId: string | null
   numberFieldFocused: boolean
   preparation: EditorPreparation | null
+  prototypePresenterOpen: boolean
 }

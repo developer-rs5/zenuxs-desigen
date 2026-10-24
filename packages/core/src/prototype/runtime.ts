@@ -90,6 +90,7 @@ export function createPrototypeRuntime(
 ): PrototypeRuntime {
   let running = false
   let screenId: string | null = null
+  const screenHistory: string[] = []
   let screenTransition: ScreenTransition | null = null
   let overlays: OverlayEntry[] = []
   let animations: VisualAnimation[] = []
@@ -198,6 +199,9 @@ export function createPrototypeRuntime(
   ): void {
     if (!graph.getNode(action.destinationId)) return
     const fromId = screenId
+    if (fromId && fromId !== action.destinationId) {
+      screenHistory.push(fromId)
+    }
     // Jump the in-flight animation: the visible screen becomes the new
     // outgoing so crossfades never stack.
     const outgoing =
@@ -318,12 +322,45 @@ export function createPrototypeRuntime(
       case 'navigate':
         runNavigate(action, authored, nowMs)
         break
+      case 'back': {
+        const prev = screenHistory.pop()
+        if (prev) {
+          runNavigate({ type: 'navigate', destinationId: prev }, authored, nowMs)
+        }
+        break
+      }
       case 'openOverlay':
         runOpenOverlay(action, authored, nowMs)
         break
+      case 'swapOverlay': {
+        if (overlays.length > 0) {
+          overlays[overlays.length - 1] = {
+            nodeId: action.overlayId,
+            backdropOpacity: 0.3,
+            transition: authored ?? { kind: 'instant' },
+            openedAt: nowMs,
+            closing: false,
+            closeAt: null
+          }
+        } else {
+          runOpenOverlay({ type: 'openOverlay', overlayId: action.overlayId }, authored, nowMs)
+        }
+        break
+      }
       case 'closeOverlay':
         runCloseOverlay(authored, nowMs)
         break
+      case 'openUrl': {
+        if (typeof window !== 'undefined' && action.url) {
+          try {
+            const parsed = new URL(action.url)
+            if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+              window.open(action.url, '_blank', 'noopener,noreferrer')
+            }
+          } catch {}
+        }
+        break
+      }
       case 'setState':
         runSetState(nodeId, action, authored, nowMs)
         break
@@ -384,6 +421,7 @@ export function createPrototypeRuntime(
 
   function reset(): void {
     screenId = null
+    screenHistory.length = 0
     screenTransition = null
     overlays = []
     animations = []

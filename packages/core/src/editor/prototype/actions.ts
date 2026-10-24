@@ -4,6 +4,7 @@ import {
   PROTOTYPE_DOC_PLUGIN_KEY,
   PROTOTYPE_PLUGIN_ID,
   PROTOTYPE_SCHEMA_VERSION,
+  readNodeInteractions,
   readPrototypeDocument,
   resolveVariantComponentId,
   serializePluginValue,
@@ -11,10 +12,13 @@ import {
   type PrototypeDocument,
   type PrototypeFlow,
   type PrototypeInteraction,
+  type PrototypeSettings,
+  type PrototypeTransition,
   type PrototypeStateModel,
   type SceneNode
 } from '@open-pencil/scene-graph'
 
+import type { PrototypeConnectionsOverlay } from '#core/canvas/overlays/prototype-connections'
 import { reapplyInstanceComponentProperties } from '#core/editor/components/properties'
 import type { EditorContext } from '#core/editor/types'
 import {
@@ -470,6 +474,56 @@ export function createPrototypeActions(
       const next: PrototypeDocument = { ...doc, flows }
       if (doc.activeFlowId === flowId) delete next.activeFlowId
       return writePluginKey(ctx.graph.rootId, PROTOTYPE_DOC_PLUGIN_KEY, next, 'Delete flow')
+    },
+
+    setPrototypeConnectionsOverlay(overlay: PrototypeConnectionsOverlay | null): void {
+      ctx.state.prototypeConnections = overlay
+      ctx.requestRender()
+    },
+
+    setPrototypeSettings(settings: PrototypeSettings): boolean {
+      const root = ctx.graph.getNode(ctx.graph.rootId)
+      const doc = root ? readPrototypeDocument(root) : null
+      const next: PrototypeDocument = {
+        version: doc?.version ?? PROTOTYPE_SCHEMA_VERSION,
+        flows: doc?.flows ?? [],
+        activeFlowId: doc?.activeFlowId,
+        settings
+      }
+      return writePluginKey(
+        ctx.graph.rootId,
+        PROTOTYPE_DOC_PLUGIN_KEY,
+        next,
+        'Update prototype settings'
+      )
+    },
+
+    getPrototypeSettings(): PrototypeSettings | null {
+      const root = ctx.graph.getNode(ctx.graph.rootId)
+      const doc = root ? readPrototypeDocument(root) : null
+      return doc?.settings ?? null
+    },
+
+    connectPrototypeNodes(
+      sourceId: string,
+      destId: string,
+      transition?: PrototypeTransition
+    ): boolean {
+      const source = ctx.graph.getNode(sourceId)
+      if (!source || !ctx.graph.getNode(destId)) return false
+      const interactions = readNodeInteractions(source)
+      const newInteraction: PrototypeInteraction = {
+        id: `interaction-${crypto.randomUUID()}`,
+        trigger: 'click',
+        action: { type: 'navigate', destinationId: destId },
+        transition: transition ?? { kind: 'smartAnimate', durationMs: 300 }
+      }
+      return writePluginKey(
+        sourceId,
+        INTERACTIONS_PLUGIN_KEY,
+        [...interactions, newInteraction],
+        'Connect prototype nodes'
+      )
     }
   }
 }

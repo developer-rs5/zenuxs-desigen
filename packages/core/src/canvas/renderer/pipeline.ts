@@ -78,7 +78,8 @@ export function renderFromEditorState(
       nodeEditState: state.nodeEditState ?? null,
       remoteCursors: state.remoteCursors,
       autoLayoutHover: state.autoLayoutHover,
-      prototype: state.prototypePreview
+      prototype: state.prototypePreview,
+      prototypeConnections: state.prototypeConnections
     },
     state.sceneVersion,
     layer
