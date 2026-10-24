@@ -27,7 +27,7 @@ describe('svg export', () => {
     const svg = renderNodesToSVG(doc, [rectId])
     expect(svg).toContain('<svg')
     expect(svg).toContain('data-node-id')
-    expect(svg).toContain('fill="rgb(255,0,0)"')
+    expect(svg).toContain('fill="#FF0000"')
     expect(svg).toContain('d="M')
   })
 
