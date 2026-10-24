@@ -11,10 +11,10 @@ import { ok, spec, type CommandSpec, type Session } from '../lib'
 // ------------------------------ create.rs ------------------------------
 
 /** Insert a shape of `kind` built by `make` into the current page. */
-function createNode(session: Session, name: string, w: number, h: number, kind: Node['kind']): NodeId {
+function createNode(session: Session, name: string, w: number, h: number, kind: Node['kind'], params?: Record<string, unknown>): NodeId {
   const ds = session.ds()
   const id = ds.doc.alloc_id()
-  const node = Node.new(id, kind, name, w, h)
+  const node = Node.new(id, kind, typeof params?.name === 'string' && params.name.length > 0 ? params.name : name, w, h)
   node.parent = ds.page
   ds.doc.insert(node)
   const page = ds.doc.node_mut(ds.page)
@@ -37,7 +37,7 @@ export const CREATE_SPECS: CommandSpec[] = [
   spec('shape.rectangle', 'Rectangle', '{x?, y?, width?, height?, cornerRadius?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
-    const id = createNode(s, 'Rectangle', w, h, { type: 'rectangle' })
+    const id = createNode(s, 'Rectangle', w, h, { type: 'rectangle' }, p)
     const n = s.ds().doc.node_mut(id)!
     n.fills = [{ kind: { type: 'solid', color: { r: 0.851, g: 0.851, b: 0.851, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
     n.corners = { radii: radiiFrom(p), smoothing: 0 }
@@ -47,7 +47,7 @@ export const CREATE_SPECS: CommandSpec[] = [
   spec('shape.ellipse', 'Ellipse', '{x?, y?, width?, height?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
-    const id = createNode(s, 'Ellipse', w, h, { type: 'ellipse', start: 0, sweep: Math.PI * 2, inner: 0 })
+    const id = createNode(s, 'Ellipse', w, h, { type: 'ellipse', start: 0, sweep: Math.PI * 2, inner: 0 }, p)
     const n = s.ds().doc.node_mut(id)!
     n.fills = [{ kind: { type: 'solid', color: { r: 0.851, g: 0.851, b: 0.851, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
     moveNode(n, p)
@@ -57,7 +57,7 @@ export const CREATE_SPECS: CommandSpec[] = [
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
     const count = Math.min(120, Math.max(3, numParam(p, 'count', 3)))
-    const id = createNode(s, 'Polygon', w, h, { type: 'polygon', count })
+    const id = createNode(s, 'Polygon', w, h, { type: 'polygon', count }, p)
     const n = s.ds().doc.node_mut(id)!
     n.corners = { radii: radiiFrom(p), smoothing: 0 }
     moveNode(n, p)
@@ -70,13 +70,13 @@ export const CREATE_SPECS: CommandSpec[] = [
       type: 'star',
       count: Math.min(120, Math.max(3, numParam(p, 'count', 5))),
       inner_ratio: numParam(p, 'innerRatio', 0.38)
-    })
+    }, p)
     moveNode(s.ds().doc.node_mut(id)!, p)
     return { ok: true, id }
   }),
   spec('shape.line', 'Line', '{x?, y?, width?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
-    const id = createNode(s, 'Line', w, 0, { type: 'line' })
+    const id = createNode(s, 'Line', w, 0, { type: 'line' }, p)
     moveNode(s.ds().doc.node_mut(id)!, p)
     return { ok: true, id }
   }),
