@@ -23,7 +23,8 @@
     "tools/visual-oracles",
     "packages/geom",
     "packages/color",
-    "packages/doc"
+    "packages/doc",
+    "packages/layout"
   ],
   "type": "module",
   "scripts": {

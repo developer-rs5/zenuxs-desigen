@@ -322,6 +322,15 @@
         "typescript": "~5.8.3",
       },
     },
+    "packages/layout": {
+      "name": "@zenuxs/layout",
+      "version": "0.1.0",
+      "dependencies": {
+        "@zenuxs/color": "workspace:*",
+        "@zenuxs/doc": "workspace:*",
+        "@zenuxs/geom": "workspace:*",
+      },
+    },
     "packages/mcp": {
       "name": "@open-pencil/mcp",
       "version": "0.14.0",
@@ -2064,6 +2073,8 @@
     "@zenuxs/doc": ["@zenuxs/doc@workspace:packages/doc"],
 
     "@zenuxs/geom": ["@zenuxs/geom@workspace:packages/geom"],
+
+    "@zenuxs/layout": ["@zenuxs/layout@workspace:packages/layout"],
 
     "@zip.js/zip.js": ["@zip.js/zip.js@2.8.53", "", {}, "sha512-Vr55wt21XKD0kZFCQEZOtbViUMUK/U0MH2MDsHxu6FSyYk3Wu+afh+f9xD01x0kerDNfHmUVrNpcgYAgtnRtjA=="],
 
