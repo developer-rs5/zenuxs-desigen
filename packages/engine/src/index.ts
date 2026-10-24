@@ -1,6 +1,7 @@
 export * from './lib'
 export * from './cmd/core'
-import { registerRegistry, allCoreSpecs, registryReady } from './lib'
+import { registerRegistry, registryReady } from './lib'
+import { allCoreSpecs } from './cmd/core'
 
 // Initialise the command registry on first import (mirrors FigCraft's OnceLock).
 if (!registryReady()) {

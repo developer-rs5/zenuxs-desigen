@@ -39,7 +39,9 @@ describe('engine session', () => {
     expect(s.doc().node(id)?.width).toBe(100)
     expect(s.redo()).toBe(true)
     expect(s.doc().node(id)?.width).toBe(80)
-    // A second undo removes the rectangle itself.
+    // Two more undos: undo the set again, then the rectangle creation.
+    expect(s.undo()).toBe(true)
+    expect(s.doc().node(id)?.width).toBe(100)
     expect(s.undo()).toBe(true)
     expect(s.doc().node(id)).toBeNull()
   })
