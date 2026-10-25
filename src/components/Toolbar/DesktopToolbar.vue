@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { ToolbarRoot } from 'reka-ui'
 
 import type { EditorToolDef } from '@open-pencil/core/editor'
@@ -6,10 +7,12 @@ import {
   getToolbarToolSelection,
   isToolbarToolActive,
   toolbarToolTestId,
-  ToolbarItem
+  ToolbarItem,
+  useEditorCommands
 } from '@open-pencil/vue'
 import type { Tool } from '@open-pencil/vue'
 
+import { useEditorStore } from '@/app/editor/active-store'
 import ToolButton from '@/components/Toolbar/ToolButton.vue'
 import ToolFlyout from '@/components/Toolbar/ToolFlyout.vue'
 import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/Toolbar/types'
@@ -29,14 +32,25 @@ const { tools, activeTool, flyoutSelections, toolIcons, toolLabels, toolShortcut
 const emit = defineEmits<{
   setTool: [tool: Tool]
 }>()
+
+const store = useEditorStore()
+const { getCommand } = useEditorCommands()
+
+const createComponentCmd = getCommand('selection.createComponent')
+const toggleMaskCmd = getCommand('selection.toggleMask')
+const booleanUnionCmd = getCommand('selection.booleanUnion')
+
+const hasSelection = computed(() => store.state.selectedIds.size > 0)
+const hasMultiSelection = computed(() => store.state.selectedIds.size > 1)
 </script>
 
 <template>
   <div class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center">
     <ToolbarRoot
       data-test-id="toolbar"
-      class="flex gap-0.5 rounded-xl bg-panel p-1 shadow-[0_8px_30px_rgb(0_0_0/0.4)]"
+      class="flex items-center gap-0.5 rounded-2xl border border-[#444444] bg-[#2C2C2C] px-2 py-1 shadow-[0_8px_32px_rgba(0,0,0,0.6)]"
     >
+      <!-- Main Tools matching FigCraft toolbar.rs -->
       <template v-for="tool in tools" :key="tool.key">
         <Tip
           v-if="tool.flyout && tool.flyout.length > 1"
@@ -67,6 +81,69 @@ const emit = defineEmits<{
           </Tip>
         </ToolbarItem>
       </template>
+
+      <!-- Divider -->
+      <div class="mx-1 h-5 w-px bg-[#444444]" />
+
+      <!-- Action Tools (FigCraft toolbar actions: Boolean, Component, Mask, Inspect) -->
+      <!-- Boolean Operation (Active when 2+ items selected) -->
+      <Tip label="Union selection (Boolean)">
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center rounded-lg text-[#B3B3B3] transition-colors hover:bg-[#383838] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          :disabled="!hasMultiSelection"
+          @click="booleanUnionCmd.run()"
+        >
+          <icon-lucide-shapes class="size-4" />
+        </button>
+      </Tip>
+
+      <!-- Create Component (Ctrl+Alt+K) -->
+      <Tip label="Create component (Ctrl+Alt+K)">
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center rounded-lg text-[#B3B3B3] transition-colors hover:bg-[#383838] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          :disabled="!hasSelection"
+          @click="createComponentCmd.run()"
+        >
+          <icon-lucide-component class="size-4" />
+        </button>
+      </Tip>
+
+      <!-- Mask (Ctrl+Alt+M) -->
+      <Tip label="Use as mask">
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center rounded-lg text-[#B3B3B3] transition-colors hover:bg-[#383838] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          :disabled="!hasSelection"
+          @click="toggleMaskCmd.run()"
+        >
+          <icon-lucide-layers-2 class="size-4" />
+        </button>
+      </Tip>
+
+      <!-- Dev Mode Inspect Toggle -->
+      <Tip label="Toggle Dev Inspect">
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center rounded-lg text-[#B3B3B3] transition-colors hover:bg-[#383838] hover:text-white"
+        >
+          <icon-lucide-code class="size-4" />
+        </button>
+      </Tip>
+
+      <!-- Divider -->
+      <div class="mx-1 h-5 w-px bg-[#444444]" />
+
+      <!-- Help Button '?' -->
+      <Tip label="Keyboard shortcuts & Help (?)">
+        <button
+          type="button"
+          class="flex size-8 items-center justify-center rounded-lg text-[#888888] transition-colors hover:bg-[#383838] hover:text-white"
+        >
+          <icon-lucide-help-circle class="size-4" />
+        </button>
+      </Tip>
     </ToolbarRoot>
   </div>
 </template>

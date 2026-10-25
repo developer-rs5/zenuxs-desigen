@@ -7,6 +7,7 @@ import { useRoute } from 'vue-router'
 import { startMCPRuntime, stopMCPRuntime } from '@/app/automation/mcp/runtime'
 import { exposeCollaborationActions } from '@/app/browser-bridge'
 import { COLLAB_KEY, useCollab } from '@/app/collab/use'
+import { provideCollabPanel } from '@/components/CollabPanel/context'
 import { createDemoShapes } from '@/app/demo/document'
 import { appRuntimeConfig } from '@/app/runtime/config'
 import { useKeyboard } from '@/app/shell/keyboard/use'
@@ -28,7 +29,6 @@ import PrototypePlayer from '@/components/prototype/PrototypePlayer.vue'
 import SafariBanner from '@/components/SafariBanner.vue'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog.vue'
 import TabBar from '@/components/TabBar.vue'
-import TopBar from '@/components/TopBar.vue'
 
 const route = useRoute()
 const createdInitialTab = tabCount() === 0
@@ -50,6 +50,7 @@ useEditorMenu()
 
 const collab = useCollab(getActiveStore)
 provide(COLLAB_KEY, collab)
+provideCollabPanel()
 exposeCollaborationActions(collab)
 exposeZenuxsEngine()
 
@@ -112,7 +113,6 @@ onUnmounted(() => {
     <TabBar />
     <HomeWorkspace v-show="activeTab?.kind === 'home'" @new-document="createDocumentInCurrentTab" />
     <template v-if="activeTab?.kind !== 'home'">
-      <TopBar />
       <EditorWorkspace />
       <PrototypePlayer
         v-if="activeTab?.store"
