@@ -1,1 +1,0 @@
-ZenuxsDesign reads and writes native .fig files, builds designs with 90+ AI tools, and presents interactive prototypes — all open source, all ~7 MB. Your data never leaves your machine.
