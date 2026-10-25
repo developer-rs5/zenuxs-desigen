@@ -1,8 +1,7 @@
 /** HSB (HSV) and HSL, the models the colour picker offers besides RGB and hex.
  * (Converted 1:1 from FigCraft `crates/color/src/hsx.rs`.) */
 
-import type { Color } from './lib'
-import { Color } from './lib'
+import { Color, type Color as ColorT } from './lib'
 
 /** Hue 0..360, saturation and brightness 0..1. */
 export interface Hsb {
@@ -41,7 +40,7 @@ export const Hsb = {
     return { h, s, b: max }
   },
 
-  toColor(hsb: Hsb): Color {
+  toColor(hsb: Hsb): ColorT {
     const h = wrapHue(hsb.h)
     const s = c01(hsb.s)
     const v = c01(hsb.b)
@@ -65,7 +64,7 @@ export const Hsl = {
     return { h, s: c01(s), l }
   },
 
-  toColor(hsl: Hsl, alpha: number = 1): Color {
+  toColor(hsl: Hsl, alpha: number = 1): ColorT {
     const h = wrapHue(hsl.h)
     const s = c01(hsl.s)
     const l = c01(hsl.l)

@@ -8,6 +8,8 @@
 import type { Color } from '@zenuxs/color'
 import type { Affine } from '@zenuxs/geom'
 import { Node, type NodeKind, type Node as NodeT } from './node'
+import type { Comment } from './comments'
+import type { Variables, Style } from './styles'
 import { parseNodeId, type NodeId } from './ids'
 
 /** Document errors (Rust `DocError` variants). */
@@ -73,30 +75,10 @@ export interface ImageData {
   height: number
 }
 
-/** A shared style. */
-export interface Style {
-  id: string
-  name: string
-  folder?: string
-  kind: { type: 'color'; paints: unknown[] } | { type: 'text'; style: unknown } | { type: 'effect'; effects: unknown[] } | { type: 'grid'; grids: unknown[] }
-}
-
-/** Variables: collections and variables (full model in `styles.ts`). */
-export interface Variables {
-  collections: Array<{ id: string; name: string; modes: Array<{ id: string; name: string }>; default_mode?: string; hidden_from_publishing?: boolean }>
-  variables: Array<{ id: string; name: string; collection: string; values: Record<string, unknown>; scopes: string[]; code_syntax?: string }>
-}
+/** Shared styles and variables (full model in `styles.ts`). */
+export type { Style, Variables } from './styles'
 
 /** A comment thread. */
-export interface Comment {
-  id: string
-  page: NodeId
-  target?: NodeId | null
-  x: number
-  y: number
-  messages: Array<{ id: string; user: string; text: string; time: string; reactions: Array<{ user: string; emoji: string }>; resolved?: boolean }>
-  resolved: boolean
-}
 
 /** The document. */
 export class Document {

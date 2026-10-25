@@ -7,7 +7,12 @@
 
 import type { Color, Paint, BlendMode } from '@zenuxs/color'
 import type { Affine } from '@zenuxs/geom'
+import { ChildLayout, type StrokeProps, type Corners, type Constraints, type AutoLayout, type LayoutGrid, type ExportSetting } from './props'
+import type { Interaction, Overflow, ScrollPosition } from './proto'
+
+export type { Overflow, ScrollPosition }
 import type { NodeId } from './ids'
+export type { NodeId }
 
 /** Boolean operation of a boolean group. */
 export type BoolOp = 'union' | 'subtract' | 'intersect' | 'exclude'
@@ -99,89 +104,7 @@ export interface Guide {
   offset: number
 }
 
-/** Stroke alignment. */
-export type StrokeAlign = 'inside' | 'center' | 'outside'
-
-/** Stroke caps (the list Figma offers, including arrows). */
-export type StrokeCap = 'none' | 'round' | 'square' | 'arrowLines' | 'arrowTriangle' | 'arrowStick' | 'lineArrow' | 'ring'
-
-export type StrokeJoin = 'miter' | 'bevel' | 'round'
-
-/** Stroke properties (weight, caps, dashes…). */
-export interface StrokeProps {
-  weight: number
-  align: StrokeAlign
-  cap_start: StrokeCap
-  cap_end: StrokeCap
-  join: StrokeJoin
-  miter_limit: number
-  dashes: number[]
-}
-
-/** One corner-radius set with smoothing. */
-export interface Corners {
-  radii: [number, number, number, number]
-  smoothing: number
-}
-
-/** Figma constraints. */
-export interface Constraints {
-  horizontal: 'left' | 'right' | 'center' | 'leftRight' | 'scale'
-  vertical: 'top' | 'bottom' | 'center' | 'topBottom' | 'scale'
-}
-
-/** Auto layout sizing. */
-export type Sizing = 'fixed' | 'hug' | 'fill'
-
-/** Auto layout mode. */
-export type LayoutMode = 'none' | 'horizontal' | 'vertical' | 'wrap'
-
-export type MainAlign = 'min' | 'center' | 'max' | 'spaceBetween'
-export type CrossAlign = 'min' | 'center' | 'max' | 'stretch' | 'baseline'
-
-/** Auto layout on a frame-like node. */
-export interface AutoLayout {
-  direction: 'row' | 'column'
-  spacing: number
-  padding: [number, number, number, number]
-  sizing: [Sizing, Sizing]
-  child_sizing: [Sizing, Sizing]
-  wraps: boolean
-  align: MainAlign
-  cross: CrossAlign
-  reverse_z: boolean
-}
-
-/** Grid cell placement of a child. */
-export interface ChildLayout {
-  grow: number
-  column_span: number
-  row_span: number
-}
-
-/** A layout grid on a frame. */
-export interface LayoutGrid {
-  pattern: 'columns' | 'rows' | 'grid'
-  count: number
-  gutter: number
-  margin: number
-  section_size: number
-  color: Color
-  visible: boolean
-}
-
-/** Export formats. */
-export type ExportFormat = 'png' | 'jpg' | 'svg' | 'pdf' | 'webp'
-
-export interface ExportSetting {
-  format: ExportFormat
-  suffix: string
-  scale: number
-}
-
 /** Prototype overflow and scroll behaviour (re-exported types from proto). */
-export type Overflow = 'none' | 'horizontal' | 'vertical' | 'both'
-export type ScrollPosition = 'scrolls' | 'fixed' | 'sticky'
 
 /** One node of the scene graph. Fields at their default value are omitted from JSON. */
 export interface Node {
@@ -215,7 +138,7 @@ export interface Node {
   grids: LayoutGrid[]
   guides: Guide[]
   exports: ExportSetting[]
-  interactions: unknown[]
+  interactions: Interaction[]
   overflow: Overflow
   scroll_position: ScrollPosition
   styles: Record<string, string>
@@ -278,7 +201,7 @@ export const Node = {
       corners: { radii: [0, 0, 0, 0], smoothing: 0 },
       constraints: { horizontal: 'left', vertical: 'top' },
       layout: null,
-      child_layout: { grow: 0, column_span: 1, row_span: 1 },
+      child_layout: { sizing_h: 'fixed', sizing_v: 'fixed', absolute: false, min_w: null, max_w: null, min_h: null, max_h: null, grid_column: null, grid_row: null, grid_column_span: 0, grid_row_span: 0, grid_align_h: null, grid_align_v: null },
       clip: false,
       is_mask: false,
       mask_type: 'alpha',
@@ -377,7 +300,7 @@ export function omitNodeDefaults(n: Node): Record<string, unknown> {
   if (n.corners.radii.some((r) => r !== 0) || n.corners.smoothing !== 0) out.corners = n.corners
   if (n.constraints.horizontal !== 'left' || n.constraints.vertical !== 'top') out.constraints = n.constraints
   if (n.layout !== null) out.layout = n.layout
-  if (n.child_layout.grow !== 0 || n.child_layout.column_span !== 1 || n.child_layout.row_span !== 1) out.child_layout = n.child_layout
+  if (!ChildLayout.isDefault(n.child_layout)) out.child_layout = n.child_layout
   if (n.clip) out.clip = n.clip
   if (n.is_mask) out.is_mask = n.is_mask
   if (n.mask_type !== 'alpha') out.mask_type = n.mask_type

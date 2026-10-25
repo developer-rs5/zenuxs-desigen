@@ -5,9 +5,11 @@
  * profile. (Converted 1:1 from FigCraft `crates/color/src/icc.rs`.)
  */
 
-import { apply, inverse, mul, xyToXyz, type Mat3Public } from './profile'
+import { apply, inverse, mul, xyToXyz } from './profile'
 
-type Mat3 = Mat3Public
+/** A 3×3 matrix, row-major. */
+export type Mat3 = [[number, number, number], [number, number, number], [number, number, number]]
+
 
 /** The ICC profile connection space illuminant (D50). */
 const PCS_D50: [number, number, number] = [0.9642, 1.0, 0.8249]

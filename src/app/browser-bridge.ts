@@ -26,6 +26,9 @@ export interface OpenPencilWindowAPI {
   setChatTransport?: (factory: () => ChatTransport<UIMessage>) => void
   openFile?: (path: string) => Promise<void>
   test?: OpenPencilTestHooks
+  /** The headless Zenuxs engine session (wire-in step 1). */
+  getZenuxsEngine?: () => unknown
+  resetZenuxsEngine?: () => void
 }
 
 let activeStore: EditorStore | null = null

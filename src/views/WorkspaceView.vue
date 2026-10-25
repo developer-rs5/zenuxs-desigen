@@ -19,6 +19,7 @@ import {
   tabCount
 } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
+import { exposeZenuxsEngine } from '@/app/zenuxs-engine'
 import CommandPalette from '@/components/commands/CommandPalette.vue'
 import EditorWorkspace from '@/components/editor/EditorWorkspace.vue'
 import FontStatusBanner from '@/components/font-status/FontStatusBanner.vue'
@@ -50,6 +51,7 @@ useEditorMenu()
 const collab = useCollab(getActiveStore)
 provide(COLLAB_KEY, collab)
 exposeCollaborationActions(collab)
+exposeZenuxsEngine()
 
 useEventListener(
   document,

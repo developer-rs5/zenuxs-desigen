@@ -1,0 +1,444 @@
+{
+  "version": 1,
+  "historyId": "81d5d5e7-22a8-4e29-902d-8cc1d6b07552",
+  "currentRevision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+  "pendingChanges": false,
+  "files": {
+    "assets/music/audio-data.json": {
+      "hash": "a29031e679d00d28c246e87278966753e7d2d71ab809c4923faf5e40b00547a8",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/a2/a29031e679d00d28c246e87278966753e7d2d71ab809c4923faf5e40b00547a8"
+    },
+    "assets/music/bass.js": {
+      "hash": "5102f1131fbd52aa7b82fbf3bcb645ffbb657cfa0197e46cf5a12ff7cf85c68a",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/51/5102f1131fbd52aa7b82fbf3bcb645ffbb657cfa0197e46cf5a12ff7cf85c68a"
+    },
+    "assets/music/cues/happy-beats-business-moves-vol-12-by-ende-dot-app.music-cues.json": {
+      "hash": "b5d9d3fab3d73565fd7931b3f5ea22bf18b04ebcea56815df659c64639381c4f",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/b5/b5d9d3fab3d73565fd7931b3f5ea22bf18b04ebcea56815df659c64639381c4f"
+    },
+    "assets/sfx/casino/card-place-1.ogg": {
+      "hash": "d8f26c33a665dcbdcc6f632f6050bc9dd548feb0d4942d4547615926d3926810",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/d8/d8f26c33a665dcbdcc6f632f6050bc9dd548feb0d4942d4547615926d3926810"
+    },
+    "assets/sfx/casino/card-place-4.ogg": {
+      "hash": "18e3ba713b7259605fd27cdc048085ed56cf86b32403f070b6cb125019f77183",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/18/18e3ba713b7259605fd27cdc048085ed56cf86b32403f070b6cb125019f77183"
+    },
+    "assets/sfx/interface/bong_001.ogg": {
+      "hash": "d21d0f0b782445db579d11e2506b24cd1ac9d664ee33aeaf807761aa7b6fd710",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/d2/d21d0f0b782445db579d11e2506b24cd1ac9d664ee33aeaf807761aa7b6fd710"
+    },
+    "assets/sfx/interface/drop_001.ogg": {
+      "hash": "692ee3a6f1821402ca649ff735bee9591dc4846c8098fc7d6a90fd15fa57c1af",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/69/692ee3a6f1821402ca649ff735bee9591dc4846c8098fc7d6a90fd15fa57c1af"
+    },
+    "assets/sfx/interface/drop_002.ogg": {
+      "hash": "4ac4d1cef7e936965cbf795852ca2020300b9e2ba7daa59f2bf4f1f7bf416218",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/4a/4ac4d1cef7e936965cbf795852ca2020300b9e2ba7daa59f2bf4f1f7bf416218"
+    },
+    "assets/sfx/keyboard/keypress-001.wav": {
+      "hash": "7b873548c399b9aa0efbe63052fe1344c5317a9b23455b8be3523f47d434daf1",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/7b/7b873548c399b9aa0efbe63052fe1344c5317a9b23455b8be3523f47d434daf1"
+    },
+    "assets/sfx/keyboard/keypress-002.wav": {
+      "hash": "f58f93430c1ad434feb341a89b89740ccad75e7a775d778d91b7f206e0acbe8e",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/f5/f58f93430c1ad434feb341a89b89740ccad75e7a775d778d91b7f206e0acbe8e"
+    },
+    "assets/sfx/keyboard/keypress-003.wav": {
+      "hash": "d67cf9547d99fc65c815c4c68fa9181e0af71419761cbb1d1f0a10eb8491a8d2",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/d6/d67cf9547d99fc65c815c4c68fa9181e0af71419761cbb1d1f0a10eb8491a8d2"
+    },
+    "assets/sfx/keyboard/keypress-004.wav": {
+      "hash": "29e1aea1fb841a0663ce75e9d83e675ddc7ae5cef00c623bdda65a72604fde7e",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/29/29e1aea1fb841a0663ce75e9d83e675ddc7ae5cef00c623bdda65a72604fde7e"
+    },
+    "assets/sfx/keyboard/keypress-005.wav": {
+      "hash": "619eb7e26571657b76fc9e1e3d99e85c3fc2259fa91c4c45f57384a85774ac24",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/61/619eb7e26571657b76fc9e1e3d99e85c3fc2259fa91c4c45f57384a85774ac24"
+    },
+    "assets/sfx/keyboard/keypress-006.wav": {
+      "hash": "419bde001e7ed1cae63b84f60c803fb024a0254e1afe65e59d8c6d8ad4196eb7",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/41/419bde001e7ed1cae63b84f60c803fb024a0254e1afe65e59d8c6d8ad4196eb7"
+    },
+    "assets/sfx/keyboard/keypress-007.wav": {
+      "hash": "522834f471e6c2935fd1e6a28042c0864925556efbec32c36d7c7a98026d4bfc",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/52/522834f471e6c2935fd1e6a28042c0864925556efbec32c36d7c7a98026d4bfc"
+    },
+    "assets/sfx/keyboard/keypress-008.wav": {
+      "hash": "c2ab8722a81a2f1cab66cd863a09a9ec00392e2ede61362b3707a7bcc0eee506",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/c2/c2ab8722a81a2f1cab66cd863a09a9ec00392e2ede61362b3707a7bcc0eee506"
+    },
+    "assets/sfx/keyboard/keypress-009.wav": {
+      "hash": "25595c1d1e0e18aada04dce3a651dc2c499f1fbc2647c1ab0b3c4e718275b16b",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/25/25595c1d1e0e18aada04dce3a651dc2c499f1fbc2647c1ab0b3c4e718275b16b"
+    },
+    "assets/sfx/keyboard/keypress-010.wav": {
+      "hash": "3a65bf93ec554b068b0a64d11d2bb521cd54e7a9e7ef3362a670efb1e410f0dc",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/3a/3a65bf93ec554b068b0a64d11d2bb521cd54e7a9e7ef3362a670efb1e410f0dc"
+    },
+    "assets/sfx/keyboard/keypress-011.wav": {
+      "hash": "72e79b249040bff166be863dd75f5c50d6e22bf904bd7e0adab1b30941e19968",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/72/72e79b249040bff166be863dd75f5c50d6e22bf904bd7e0adab1b30941e19968"
+    },
+    "assets/sfx/keyboard/keypress-012.wav": {
+      "hash": "79de7a9cc035ca4204600a52281129be9f258b1d903c88279b1e7128e57ba86c",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/79/79de7a9cc035ca4204600a52281129be9f258b1d903c88279b1e7128e57ba86c"
+    },
+    "assets/sfx/ui/click3.ogg": {
+      "hash": "e3e7fc7ccd9c5cfdf77bffa05aee10d4973812076c76dc889ba2b16ea434127f",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/e3/e3e7fc7ccd9c5cfdf77bffa05aee10d4973812076c76dc889ba2b16ea434127f"
+    },
+    "assets/sfx/ui/mouseclick1.ogg": {
+      "hash": "ece1210c62ccae6c9ea4f4c59466d9d453d6b357c7d4b1a6c31196e5e6fea1bf",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/ec/ece1210c62ccae6c9ea4f4c59466d9d453d6b357c7d4b1a6c31196e5e6fea1bf"
+    },
+    "index.html": {
+      "hash": "313c83166e8720785bbf2bf488acbe339280b4845685c817ded353fdebe60b47",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/31/313c83166e8720785bbf2bf488acbe339280b4845685c817ded353fdebe60b47"
+    },
+    "assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3": {
+      "hash": "5888d4bd2ba0119b87a94e502ae2cc401c08192945cc5e5c2f8e8a33aa47a0a1",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/58/5888d4bd2ba0119b87a94e502ae2cc401c08192945cc5e5c2f8e8a33aa47a0a1"
+    },
+    "assets/fonts/schibsted-grotesk.woff2": {
+      "hash": "4c8b93f431d462c696e12b9d6a033feb3394d36e66e781357c496b95d8a75e05",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/4c/4c8b93f431d462c696e12b9d6a033feb3394d36e66e781357c496b95d8a75e05"
+    },
+    "assets/fonts/sg.css": {
+      "hash": "fa3474ee2a099ab4eaf50350d707d431cd7c0f4ea198953d90f35f92dfb10edd",
+      "content": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/fa/fa3474ee2a099ab4eaf50350d707d431cd7c0f4ea198953d90f35f92dfb10edd"
+    }
+  },
+  "revisions": {
+    "eafef8b0-4e44-432a-a697-e76d174dcad2": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792868704233,
+      "endedAt": 1792868704239,
+      "files": {
+        "assets/fonts/schibsted-grotesk.woff2": {
+          "before": null,
+          "after": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/4c/4c8b93f431d462c696e12b9d6a033feb3394d36e66e781357c496b95d8a75e05"
+        },
+        "assets/fonts/sg.css": {
+          "before": null,
+          "after": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/fa/fa3474ee2a099ab4eaf50350d707d431cd7c0f4ea198953d90f35f92dfb10edd"
+        },
+        "index.html": {
+          "before": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/81/8189a424ac9878dd5221f336f45b5d2b890d5733a5985d81940ef8d1851e9cc2",
+          "after": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/eb/eb8883133dc396ef1213878e1aba27e11f83db97790ec9a02907c3e5ab63095f"
+        }
+      }
+    },
+    "8731f165-0385-4cc2-8575-6e53086ab560": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792868983793,
+      "endedAt": 1792868983794,
+      "files": {
+        "index.html": {
+          "before": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/eb/eb8883133dc396ef1213878e1aba27e11f83db97790ec9a02907c3e5ab63095f",
+          "after": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/b2/b29e70468e1012dd2ca0ea24ef205fd53b2d6307ce346f1342ed4735ea00a8d8"
+        }
+      }
+    },
+    "968e4af6-3b82-4fa1-90a4-82936478a690": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1792869102218,
+      "endedAt": 1792869102218,
+      "files": {
+        "index.html": {
+          "before": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/b2/b29e70468e1012dd2ca0ea24ef205fd53b2d6307ce346f1342ed4735ea00a8d8",
+          "after": "/home/azaz/.cache/hyperframes/history/81d5d5e7-22a8-4e29-902d-8cc1d6b07552/blobs/31/313c83166e8720785bbf2bf488acbe339280b4845685c817ded353fdebe60b47"
+        }
+      }
+    }
+  },
+  "checks": {
+    "latest": {
+      "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+      "id": "a103237b-1b43-4aa4-babc-72a1ec0c49bb"
+    },
+    "revisions": {
+      "eafef8b0-4e44-432a-a697-e76d174dcad2": [
+        {
+          "id": "1eb200e0-e160-4744-b8a6-fd3577df578a",
+          "scope": "project",
+          "metadata": {
+            "ok": false,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 3000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1792868714193,
+          "contentHash": "7bc4c387931ea0d94d36f7d9fb7c9f7c84ef79f9911663b59a96ac0bcc9e8bd4",
+          "revision": "eafef8b0-4e44-432a-a697-e76d174dcad2",
+          "inputFingerprint": "52dcb46c896e3738f6efdddb7dd247b6029ac836f4890c2b6c20f257f10e50be",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "e6631b05-bd79-4d97-af92-6ea5e3aabca7"
+        }
+      ],
+      "8731f165-0385-4cc2-8575-6e53086ab560": [
+        {
+          "id": "e89d8c10-838e-4858-b814-27c777dfbc9c",
+          "scope": "project",
+          "metadata": {
+            "ok": false,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 3000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1792868991437,
+          "contentHash": "93b0ab18bb7f38f9d35c073e1f8845177275fa3fdf4da60abca835058b388d55",
+          "revision": "8731f165-0385-4cc2-8575-6e53086ab560",
+          "inputFingerprint": "5a304956eaf852a52edc8892cee12d4c3ffb9631624671b43e6ca7ef219b7460",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision",
+          "status": "cleaned",
+          "cleanedAfterRender": "e6631b05-bd79-4d97-af92-6ea5e3aabca7"
+        }
+      ],
+      "968e4af6-3b82-4fa1-90a4-82936478a690": [
+        {
+          "id": "a103237b-1b43-4aa4-babc-72a1ec0c49bb",
+          "scope": "project",
+          "report": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/checks/a103237b-1b43-4aa4-babc-72a1ec0c49bb.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 3000,
+              "contrast": true,
+              "strict": false,
+              "snapshots": false,
+              "browserGpuMode": "auto"
+            }
+          },
+          "createdAt": 1792869109424,
+          "contentHash": "47cdf130d34e5a426643489244c025c740b250f07848b580b8720ced5156ae85",
+          "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+          "inputFingerprint": "0f76d6d48e3aed92ce59c911d84e4e6c5ad3c5ffdfb6d7fa2c56ccde6538cf2b",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": [
+      {
+        "id": "411e8392-35cd-4fc4-8c96-f244c0614c92",
+        "scope": "project",
+        "report": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/checks/411e8392-35cd-4fc4-8c96-f244c0614c92.json",
+        "metadata": {
+          "ok": false,
+          "browserSkipped": true,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 3000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1792868597206,
+        "contentHash": "d6891cfe8e8f7254f2a73b37db40807da5e3b8ba96ba5b8181e645abdf2ecbe5",
+        "revision": null,
+        "inputFingerprint": "6e41b0aa1781ec5759f1b0935b5f2567ef65be3d154770459ecdc01ae5a941cf",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "id": "575a24ba-2e72-4a37-bdd0-9e3cb633908c",
+        "scope": "project",
+        "report": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/checks/575a24ba-2e72-4a37-bdd0-9e3cb633908c.json",
+        "metadata": {
+          "ok": false,
+          "browserSkipped": true,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 3000,
+            "contrast": true,
+            "strict": false,
+            "snapshots": false,
+            "browserGpuMode": "auto"
+          }
+        },
+        "createdAt": 1792868608653,
+        "contentHash": "d6891cfe8e8f7254f2a73b37db40807da5e3b8ba96ba5b8181e645abdf2ecbe5",
+        "revision": null,
+        "inputFingerprint": "6e41b0aa1781ec5759f1b0935b5f2567ef65be3d154770459ecdc01ae5a941cf",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": {
+      "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+      "id": "219a2883-55fc-4bce-932b-ac835ea418f3-4"
+    },
+    "revisions": {
+      "968e4af6-3b82-4fa1-90a4-82936478a690": [
+        {
+          "scope": "full",
+          "id": "219a2883-55fc-4bce-932b-ac835ea418f3-0",
+          "image": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/snapshots/fb0a3adf-3c43-4616-91e0-2503680c4f8a/frame-00-at-2.9s.png",
+          "time": 2.9,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1792869151206,
+          "contentHash": "15cf1b8f1fc028aed035375f354aa56335a7d4120c73c1ab434f615174dbc95e",
+          "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+          "inputFingerprint": "0f76d6d48e3aed92ce59c911d84e4e6c5ad3c5ffdfb6d7fa2c56ccde6538cf2b",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "219a2883-55fc-4bce-932b-ac835ea418f3-1",
+          "image": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/snapshots/fb0a3adf-3c43-4616-91e0-2503680c4f8a/frame-01-at-7.6s.png",
+          "time": 7.6,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1792869151207,
+          "contentHash": "f2887fa45d36e11f2a3ef3e19f76d96ecdcf7ddde1515a5b04eb0785bbe36fa4",
+          "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+          "inputFingerprint": "0f76d6d48e3aed92ce59c911d84e4e6c5ad3c5ffdfb6d7fa2c56ccde6538cf2b",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "219a2883-55fc-4bce-932b-ac835ea418f3-2",
+          "image": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/snapshots/fb0a3adf-3c43-4616-91e0-2503680c4f8a/frame-02-at-13s.png",
+          "time": 13,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1792869151207,
+          "contentHash": "6e8636d9c4b22fc8bbea9e98e7e100acacbf47e45c4c81f58bf94fde77be2331",
+          "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+          "inputFingerprint": "0f76d6d48e3aed92ce59c911d84e4e6c5ad3c5ffdfb6d7fa2c56ccde6538cf2b",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "219a2883-55fc-4bce-932b-ac835ea418f3-3",
+          "image": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/snapshots/fb0a3adf-3c43-4616-91e0-2503680c4f8a/frame-03-at-18s.png",
+          "time": 18,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1792869151207,
+          "contentHash": "196222108b8a70f3eed9a4d0cee52d86466d3854f098d226573001aea4465d29",
+          "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+          "inputFingerprint": "0f76d6d48e3aed92ce59c911d84e4e6c5ad3c5ffdfb6d7fa2c56ccde6538cf2b",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "219a2883-55fc-4bce-932b-ac835ea418f3-4",
+          "image": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/.hyperframes/artifacts/snapshots/fb0a3adf-3c43-4616-91e0-2503680c4f8a/frame-04-at-21.6s.png",
+          "time": 21.6,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1792869151207,
+          "contentHash": "0347e4636f0bc60b51f8665fbb9d6c9ac810d247172b1c2ad4d453259b626ceb",
+          "revision": "968e4af6-3b82-4fa1-90a4-82936478a690",
+          "inputFingerprint": "0f76d6d48e3aed92ce59c911d84e4e6c5ad3c5ffdfb6d7fa2c56ccde6538cf2b",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": []
+  },
+  "renders": {
+    "latest": {
+      "id": "e6631b05-bd79-4d97-af92-6ea5e3aabca7",
+      "completedAt": 1792869228244,
+      "output": "/home/azaz/Projects/zenuxs-desigen/brag-output/brag.mp4",
+      "status": "completed",
+      "revision": "968e4af6-3b82-4fa1-90a4-82936478a690"
+    },
+    "retainedRevisions": [
+      "968e4af6-3b82-4fa1-90a4-82936478a690"
+    ]
+  },
+  "pendingArtifactCleanup": []
+}

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
@@ -14,16 +18,93 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "paths": {
-      "#vue/*": ["./src/*", "./src/*.vue"],
-      "#core/*": ["../core/src/*"],
-      "@open-pencil/vue": ["./src/index.ts"],
-      "@open-pencil/core": ["../core/src/index.ts"],
-      "@open-pencil/core/*": ["../core/src/*"],
-      "@open-pencil/core/editor": ["../core/src/editor/index.ts"],
-      "@open-pencil/core/render": ["../core/src/render/index.ts"],
-      "@open-pencil/core/color": ["../core/src/color.ts"]
+      "#vue/*": [
+        "./src/*",
+        "./src/*.vue"
+      ],
+      "#core/*": [
+        "../core/src/*"
+      ],
+      "@open-pencil/vue": [
+        "./src/index.ts"
+      ],
+      "@open-pencil/core": [
+        "../core/src/index.ts"
+      ],
+      "@open-pencil/core/*": [
+        "../core/src/*"
+      ],
+      "@open-pencil/core/editor": [
+        "../core/src/editor/index.ts"
+      ],
+      "@open-pencil/core/render": [
+        "../core/src/render/index.ts"
+      ],
+      "@open-pencil/core/color": [
+        "../core/src/color.ts"
+      ],
+      "@zenuxs/engine": [
+        "../engine/src/index.ts"
+      ],
+      "@zenuxs/engine/*": [
+        "../engine/src/*"
+      ],
+      "@zenuxs/doc": [
+        "../doc/src/index.ts"
+      ],
+      "@zenuxs/doc/*": [
+        "../doc/src/*"
+      ],
+      "@zenuxs/format": [
+        "../format/src/index.ts"
+      ],
+      "@zenuxs/format/*": [
+        "../format/src/*"
+      ],
+      "@zenuxs/render": [
+        "../render/src/index.ts"
+      ],
+      "@zenuxs/render/*": [
+        "../render/src/*"
+      ],
+      "@zenuxs/engine/cmd": [
+        "../engine/src/cmd/core.ts"
+      ],
+      "@zenuxs/color": [
+        "../color/src/index.ts"
+      ],
+      "@zenuxs/color/*": [
+        "../color/src/*"
+      ],
+      "@zenuxs/geom": [
+        "../geom/src/index.ts"
+      ],
+      "@zenuxs/geom/*": [
+        "../geom/src/*"
+      ],
+      "@zenuxs/layout": [
+        "../layout/src/index.ts"
+      ],
+      "@zenuxs/layout/*": [
+        "../layout/src/*"
+      ],
+      "@zenuxs/collab": [
+        "../collab/src/index.ts"
+      ],
+      "@zenuxs/collab/*": [
+        "../collab/src/*"
+      ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "src/**/*.d.ts", "../core/src/global.d.ts"],
-  "exclude": ["node_modules", "dist", "example"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    "../core/src/global.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "example"
+  ]
 }

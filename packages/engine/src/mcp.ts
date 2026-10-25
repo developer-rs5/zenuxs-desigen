@@ -6,7 +6,7 @@
  * `@zenuxs/mcp`, replacing the OpenPencil-era package.)
  */
 
-import type { Session } from '../lib'
+import type { Session } from './lib'
 
 export const PROTOCOL_VERSION = '2025-06-18'
 export const SUPPORTED_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05']
@@ -57,7 +57,7 @@ export function callTool(session: Session, name: string, args: Record<string, un
     switch (name) {
       case 'list_commands':
         return ToolResult.json({
-          commands: session.all_commands().map((c) => ({ id: c.id, label: c.label, params: c.params }))
+          commands: session.all_commands().map((c: { id: string; label: string; params: string }) => ({ id: c.id, label: c.label, params: c.params }))
         })
       case 'run_command': {
         const id = String(args.command ?? args.id ?? '')
@@ -109,10 +109,10 @@ export function inspectDocument(session: Session): Record<string, unknown> {
   return {
     name: ds.doc.name,
     page: ds.page,
-    pages: ds.doc.pages.map((id) => ({ id, name: ds.doc.node(id)?.name ?? '' })),
+    pages: ds.doc.pages.map((id: number) => ({ id, name: ds.doc.node(id)?.name ?? '' })),
     selection: ds.selection,
     nodeCount: ds.doc.nodesCount(),
-    children: (ds.doc.node(ds.page)?.children ?? []).map((id) => {
+    children: (ds.doc.node(ds.page)?.children ?? []).map((id: number) => {
       const n = ds.doc.node(id)
       return n ? { id: n.id, name: n.name, type: n.kind.type, width: n.width, height: n.height } : null
     })

@@ -1,0 +1,4917 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 1,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "composition_file_too_large",
+        "severity": "warning",
+        "message": "This HTML composition file has 373 lines. Smaller sub-compositions are easier to read, iterate on, and diff.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "/home/azaz/Projects/zenuxs-desigen/brag-output/composition/index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0,
+        "fixHint": "Split coherent scenes or layers into separate .html files under compositions/, then mount them from the parent with data-composition-src so each file stays small enough to inspect, revise, and validate independently."
+      }
+    ],
+    "filesScanned": 1
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 80,
+    "findings": [
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 6.444,
+        "selector": "#s1-line1",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1760,
+          "top": 295,
+          "right": -998.08,
+          "bottom": 474.11,
+          "width": 761.92,
+          "height": 179.11
+        },
+        "containerSelector": "#root",
+        "text": "Figma actively fights programmatic access.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1760
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1760,
+          "y": 295,
+          "width": 761.92,
+          "height": 179.11
+        },
+        "firstSeen": 6.444,
+        "lastSeen": 21.911,
+        "occurrences": 7,
+        "heldMs": 0,
+        "times": [
+          6.444,
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 6.444,
+        "selector": "#s1-line2",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1760,
+          "top": 523.22,
+          "right": -1112.14,
+          "bottom": 656.22,
+          "width": 647.86,
+          "height": 133
+        },
+        "containerSelector": "#root",
+        "text": "This doesn't.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1760
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1760,
+          "y": 523.22,
+          "width": 647.86,
+          "height": 133
+        },
+        "firstSeen": 6.444,
+        "lastSeen": 21.911,
+        "occurrences": 7,
+        "heldMs": 0,
+        "times": [
+          6.444,
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-win > div:nth-of-type(1) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -959.63,
+          "top": 61,
+          "right": -880.27,
+          "bottom": 80,
+          "width": 79.36,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Landing.fig",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 959.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -959.63,
+          "y": 61,
+          "width": 79.36,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-win > div:nth-of-type(1) > div:nth-of-type(3)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -196.74,
+          "top": 61,
+          "right": -92.52,
+          "bottom": 80,
+          "width": 104.22,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "ZenuxsDesign",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 196.74
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -196.74,
+          "y": 61,
+          "width": 104.22,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(1) > div:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -992.8,
+          "top": 122,
+          "right": -968.96,
+          "bottom": 139,
+          "width": 23.84,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "File",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 992.8
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -992.8,
+          "y": 122,
+          "width": 23.84,
+          "height": 17
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(1) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -882.52,
+          "top": 122,
+          "right": -836.25,
+          "bottom": 139,
+          "width": 46.27,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "Assets",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 882.52
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -882.52,
+          "y": 122,
+          "width": 46.27,
+          "height": 17
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1037.63,
+          "top": 166,
+          "right": -989.1,
+          "bottom": 182,
+          "width": 48.53,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "PAGES",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1037.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1037.63,
+          "y": 166,
+          "width": 48.53,
+          "height": 16
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(3)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1011.63,
+          "top": 197,
+          "right": -969.44,
+          "bottom": 216,
+          "width": 42.19,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Cover",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1011.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1011.63,
+          "y": 197,
+          "width": 42.19,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(4)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1011.63,
+          "top": 230,
+          "right": -921.21,
+          "bottom": 249,
+          "width": 90.42,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Components",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1011.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1011.63,
+          "y": 230,
+          "width": 90.42,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(5)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1011.63,
+          "top": 263,
+          "right": -926.74,
+          "bottom": 282,
+          "width": 84.89,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Typography",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1011.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1011.63,
+          "y": 263,
+          "width": 84.89,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(6)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1011.63,
+          "top": 296,
+          "right": -965.47,
+          "bottom": 315,
+          "width": 46.16,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Colors",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1011.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1011.63,
+          "y": 296,
+          "width": 46.16,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(7)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1037.63,
+          "top": 338,
+          "right": -980.11,
+          "bottom": 354,
+          "width": 57.52,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "LAYERS",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1037.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1037.63,
+          "y": 338,
+          "width": 57.52,
+          "height": 16
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(8)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1011.63,
+          "top": 369,
+          "right": -969.44,
+          "bottom": 388,
+          "width": 42.19,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Cover",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1011.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1011.63,
+          "y": 369,
+          "width": 42.19,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(9)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -991.63,
+          "top": 402,
+          "right": -934.55,
+          "bottom": 421,
+          "width": 57.08,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Frame 7",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 991.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -991.63,
+          "y": 402,
+          "width": 57.08,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(10)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -971.63,
+          "top": 435,
+          "right": -916.92,
+          "bottom": 454,
+          "width": 54.71,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Frame 1",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 971.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -971.63,
+          "y": 435,
+          "width": 54.71,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(11)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -971.63,
+          "top": 468,
+          "right": -889.88,
+          "bottom": 487,
+          "width": 81.75,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "radio group",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 971.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -971.63,
+          "y": 468,
+          "width": 81.75,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(12)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -991.63,
+          "top": 501,
+          "right": -931.56,
+          "bottom": 520,
+          "width": 60.07,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "popover",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 991.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -991.63,
+          "y": 501,
+          "width": 60.07,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(13)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -971.63,
+          "top": 534,
+          "right": -941.11,
+          "bottom": 553,
+          "width": 30.52,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "tabs",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 971.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -971.63,
+          "y": 534,
+          "width": 30.52,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-left > div:nth-of-type(14)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -991.63,
+          "top": 567,
+          "right": -949.36,
+          "bottom": 586,
+          "width": 42.27,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "footer",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 991.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -991.63,
+          "y": 567,
+          "width": 42.27,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > h3:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -672.63,
+          "top": 224,
+          "right": -557.6,
+          "bottom": 248,
+          "width": 115.03,
+          "height": 24
+        },
+        "containerSelector": "#root",
+        "text": "Dimensions",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672.63,
+          "y": 224,
+          "width": 115.03,
+          "height": 24
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "div.cap",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -672.63,
+          "top": 254,
+          "right": -444.81,
+          "bottom": 273,
+          "width": 227.82,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Set the dimensions for the layer.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672.63,
+          "y": 254,
+          "width": 227.82,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(3) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -672.63,
+          "top": 322,
+          "right": -626.42,
+          "bottom": 342,
+          "width": 46.21,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Width",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672.63,
+          "y": 322,
+          "width": 46.21,
+          "height": 20
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(3) > span:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -512.63,
+          "top": 322.5,
+          "right": -472.86,
+          "bottom": 341.5,
+          "width": 39.77,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "100%",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 512.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -512.63,
+          "y": 322.5,
+          "width": 39.77,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(4) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -672.63,
+          "top": 364,
+          "right": -587.46,
+          "bottom": 384,
+          "width": 85.17,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Max. width",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672.63,
+          "y": 364,
+          "width": 85.17,
+          "height": 20
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(4) > span:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -512.63,
+          "top": 364.5,
+          "right": -467.39,
+          "bottom": 383.5,
+          "width": 45.24,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "300px",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 512.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -512.63,
+          "y": 364.5,
+          "width": 45.24,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(5) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -672.63,
+          "top": 406,
+          "right": -621.6,
+          "bottom": 426,
+          "width": 51.03,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Height",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672.63,
+          "y": 406,
+          "width": 51.03,
+          "height": 20
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(5) > span:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -512.63,
+          "top": 406.5,
+          "right": -477.53,
+          "bottom": 425.5,
+          "width": 35.1,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "25px",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 512.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -512.63,
+          "y": 406.5,
+          "width": 35.1,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(6) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -672.63,
+          "top": 448,
+          "right": -581.86,
+          "bottom": 468,
+          "width": 90.77,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Max. height",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 672.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -672.63,
+          "y": 448,
+          "width": 90.77,
+          "height": 20
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-card > div:nth-of-type(6) > span:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -512.63,
+          "top": 448.5,
+          "right": -477.16,
+          "bottom": 467.5,
+          "width": 35.47,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "none",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 512.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -512.63,
+          "y": 448.5,
+          "width": 35.47,
+          "height": 19
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "div.tlabel",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -231.63,
+          "top": 336.5,
+          "right": -111.96,
+          "bottom": 356.5,
+          "width": 119.67,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Airplane mode",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 231.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -231.63,
+          "y": 336.5,
+          "width": 119.67,
+          "height": 20
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-btn",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -261.63,
+          "top": 431,
+          "right": -191.42,
+          "bottom": 451,
+          "width": 70.21,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Continue",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 261.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -261.63,
+          "y": 431,
+          "width": 70.21,
+          "height": 20
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-badge",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -570.63,
+          "top": 544,
+          "right": -500.63,
+          "bottom": 561,
+          "width": 70,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "320 × 288",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 570.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -570.63,
+          "y": 544,
+          "width": 70,
+          "height": 17
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-copy1",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -695.63,
+          "top": 788,
+          "right": -68.13,
+          "bottom": 839,
+          "width": 627.5,
+          "height": 51
+        },
+        "containerSelector": "#root",
+        "text": "The open-source design editor.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 695.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -695.63,
+          "y": 788,
+          "width": 627.5,
+          "height": 51
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-terminal",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -645.22,
+          "top": 892,
+          "right": -285.22,
+          "bottom": 923,
+          "width": 360,
+          "height": 31
+        },
+        "containerSelector": "#root",
+        "text": "opens .fig files natively",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 645.22
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -645.22,
+          "y": 892,
+          "width": 360,
+          "height": 31
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "span.p",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -671.63,
+          "top": 892,
+          "right": -657.22,
+          "bottom": 923,
+          "width": 14.41,
+          "height": 31
+        },
+        "containerSelector": "#root",
+        "text": ">",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 671.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -671.63,
+          "y": 892,
+          "width": 14.41,
+          "height": 31
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 6,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s3-win > div:nth-of-type(1) > div:nth-of-type(4)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": 2604.79,
+          "top": 68.87,
+          "right": 2643.56,
+          "bottom": 85.66,
+          "width": 38.77,
+          "height": 16.79
+        },
+        "containerSelector": "#root",
+        "text": "Share",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "right": 723.56
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 2604.79,
+          "y": 68.87,
+          "width": 38.77,
+          "height": 16.79
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 21.911,
+        "occurrences": 4,
+        "heldMs": 0,
+        "times": [
+          9.022,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "panel_out_of_canvas",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-win",
+        "message": "Painted panel extends outside the composition canvas.",
+        "rect": {
+          "left": -1056.63,
+          "top": 44,
+          "right": 767.37,
+          "bottom": 1036,
+          "width": 1824,
+          "height": 992
+        },
+        "containerSelector": "#root",
+        "text": "Landing.fig ZenuxsDesign Share File Assets PAGES",
+        "fixHint": "Move the panel inward, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1056.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1056.63,
+          "y": 44,
+          "width": 1824,
+          "height": 992
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 9.022,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          9.022
+        ]
+      },
+      {
+        "code": "panel_out_of_canvas",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s2-win > div:nth-of-type(2) > div:nth-of-type(2)",
+        "message": "Painted panel extends outside the composition canvas.",
+        "rect": {
+          "left": -783.63,
+          "top": 97,
+          "right": 462.37,
+          "bottom": 1035,
+          "width": 1246,
+          "height": 938
+        },
+        "containerSelector": "#root",
+        "text": "Dimensions Set the dimensions for the layer. Wid",
+        "fixHint": "Move the panel inward, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 783.63
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -783.63,
+          "y": 97,
+          "width": 1246,
+          "height": 938
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 9.022,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          9.022
+        ]
+      },
+      {
+        "code": "panel_out_of_canvas",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s3-win",
+        "message": "Painted panel extends outside the composition canvas.",
+        "rect": {
+          "left": 874.59,
+          "top": 50.1,
+          "right": 2676.16,
+          "bottom": 1029.9,
+          "width": 1801.56,
+          "height": 979.8
+        },
+        "containerSelector": "#root",
+        "text": "Landing.fig ZenuxsDesign Share File Assets PAGES",
+        "fixHint": "Move the panel inward, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "right": 756.16
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 874.59,
+          "y": 50.1,
+          "width": 1801.56,
+          "height": 979.8
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 9.022,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          9.022
+        ]
+      },
+      {
+        "code": "panel_out_of_canvas",
+        "severity": "info",
+        "time": 9.022,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(2)",
+        "message": "Painted panel extends outside the composition canvas.",
+        "rect": {
+          "left": 1144.23,
+          "top": 102.45,
+          "right": 2374.91,
+          "bottom": 1028.91,
+          "width": 1230.67,
+          "height": 926.46
+        },
+        "containerSelector": "#root",
+        "text": "AI builds designs. 90+ tools behind the chat. Pr",
+        "fixHint": "Move the panel inward, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "right": 454.91
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 1144.23,
+          "y": 102.45,
+          "width": 1230.67,
+          "height": 926.46
+        },
+        "firstSeen": 9.022,
+        "lastSeen": 9.022,
+        "occurrences": 1,
+        "heldMs": 0,
+        "times": [
+          9.022
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-win > div:nth-of-type(1) > div:nth-of-type(4)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -120.25,
+          "top": 63,
+          "right": -81,
+          "bottom": 80,
+          "width": 39.25,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "Share",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 120.25
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -120.25,
+          "y": 63,
+          "width": 39.25,
+          "height": 17
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "div.tabs > div:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -322,
+          "top": 121,
+          "right": -271.56,
+          "bottom": 140,
+          "width": 50.44,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Design",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 322
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -322,
+          "y": 121,
+          "width": 50.44,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "div.tabs > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -237.56,
+          "top": 121,
+          "right": -199.14,
+          "bottom": 140,
+          "width": 38.42,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Code",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 237.56
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -237.56,
+          "y": 121,
+          "width": 38.42,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "div.ai",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -165.14,
+          "top": 121,
+          "right": -150.06,
+          "bottom": 140,
+          "width": 15.08,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "AI",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 165.14
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -165.14,
+          "y": 121,
+          "width": 15.08,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -334,
+          "top": 164,
+          "right": -258,
+          "bottom": 180,
+          "width": 76,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "INSTANCE",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 334
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -334,
+          "y": 164,
+          "width": 76,
+          "height": 16
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "div.irow",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -311,
+          "top": 194,
+          "right": -246.92,
+          "bottom": 214,
+          "width": 64.08,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "popover",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 311
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -311,
+          "y": 194,
+          "width": 64.08,
+          "height": 20
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "div.gbtn",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -283.62,
+          "top": 237,
+          "right": -117.37,
+          "bottom": 256,
+          "width": 166.25,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Go to Main Component",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 283.62
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -283.62,
+          "y": 237,
+          "width": 166.25,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "div.dbtn",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -334,
+          "top": 277,
+          "right": -219.37,
+          "bottom": 296,
+          "width": 114.63,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Detach instance",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 334
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -334,
+          "y": 277,
+          "width": 114.63,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(6)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -334,
+          "top": 318,
+          "right": -261.78,
+          "bottom": 334,
+          "width": 72.22,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "POSITION",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 334
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -334,
+          "y": 318,
+          "width": 72.22,
+          "height": 16
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -305.77,
+          "top": 351,
+          "right": -296.3,
+          "bottom": 370,
+          "width": 9.47,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "0",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 305.77
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -305.77,
+          "y": 351,
+          "width": 9.47,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(1) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -324,
+          "top": 351,
+          "right": -313.77,
+          "bottom": 370,
+          "width": 10.23,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "X",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 324
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -324,
+          "y": 351,
+          "width": 10.23,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -166.31,
+          "top": 351,
+          "right": -141.47,
+          "bottom": 370,
+          "width": 24.84,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "108",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 166.31
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -166.31,
+          "y": 351,
+          "width": 24.84,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(2) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -184.5,
+          "top": 351,
+          "right": -174.31,
+          "bottom": 370,
+          "width": 10.19,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Y",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 184.5
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -184.5,
+          "y": 351,
+          "width": 10.19,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(8)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -334,
+          "top": 393,
+          "right": -273.78,
+          "bottom": 409,
+          "width": 60.22,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "LAYOUT",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 334
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -334,
+          "y": 393,
+          "width": 60.22,
+          "height": 16
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -301.22,
+          "top": 426,
+          "right": -273.33,
+          "bottom": 445,
+          "width": 27.89,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "320",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 301.22
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -301.22,
+          "y": 426,
+          "width": 27.89,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(1) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -324,
+          "top": 426,
+          "right": -309.22,
+          "bottom": 445,
+          "width": 14.78,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "W",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 324
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -324,
+          "y": 426,
+          "width": 14.78,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -165.34,
+          "top": 426,
+          "right": -137.62,
+          "bottom": 445,
+          "width": 27.72,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "288",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 165.34
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -165.34,
+          "y": 426,
+          "width": 27.72,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(2) > span:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -184.5,
+          "top": 426,
+          "right": -173.34,
+          "bottom": 445,
+          "width": 11.16,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "H",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 184.5
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -184.5,
+          "y": 426,
+          "width": 11.16,
+          "height": 19
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 11.6,
+        "selector": "#s2-right > div:nth-of-type(10)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -334,
+          "top": 468,
+          "right": -244.5,
+          "bottom": 484,
+          "width": 89.5,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "ALIGNMENT",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 334
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -334,
+          "y": 468,
+          "width": 89.5,
+          "height": 16
+        },
+        "firstSeen": 11.6,
+        "lastSeen": 21.911,
+        "occurrences": 5,
+        "heldMs": 0,
+        "times": [
+          11.6,
+          14.178,
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(1) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1775,
+          "top": 61,
+          "right": -1695.64,
+          "bottom": 80,
+          "width": 79.36,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Landing.fig",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1775
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1775,
+          "y": 61,
+          "width": 79.36,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(1) > div:nth-of-type(3)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1012.11,
+          "top": 61,
+          "right": -907.89,
+          "bottom": 80,
+          "width": 104.22,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "ZenuxsDesign",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1012.11
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1012.11,
+          "y": 61,
+          "width": 104.22,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1808.17,
+          "top": 122,
+          "right": -1784.33,
+          "bottom": 139,
+          "width": 23.84,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "File",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1808.17
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1808.17,
+          "y": 122,
+          "width": 23.84,
+          "height": 17
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1697.89,
+          "top": 122,
+          "right": -1651.62,
+          "bottom": 139,
+          "width": 46.27,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "Assets",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1697.89
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1697.89,
+          "y": 122,
+          "width": 46.27,
+          "height": 17
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1853,
+          "top": 166,
+          "right": -1804.47,
+          "bottom": 182,
+          "width": 48.53,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "PAGES",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1853
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1853,
+          "y": 166,
+          "width": 48.53,
+          "height": 16
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1827,
+          "top": 197,
+          "right": -1784.81,
+          "bottom": 216,
+          "width": 42.19,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Cover",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1827
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1827,
+          "y": 197,
+          "width": 42.19,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(4)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1827,
+          "top": 230,
+          "right": -1736.58,
+          "bottom": 249,
+          "width": 90.42,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Components",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1827
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1827,
+          "y": 230,
+          "width": 90.42,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(5)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1827,
+          "top": 263,
+          "right": -1742.11,
+          "bottom": 282,
+          "width": 84.89,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Typography",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1827
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1827,
+          "y": 263,
+          "width": 84.89,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(6)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1827,
+          "top": 296,
+          "right": -1780.84,
+          "bottom": 315,
+          "width": 46.16,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Colors",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1827
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1827,
+          "y": 296,
+          "width": 46.16,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1853,
+          "top": 338,
+          "right": -1795.48,
+          "bottom": 354,
+          "width": 57.52,
+          "height": 16
+        },
+        "containerSelector": "#root",
+        "text": "LAYERS",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1853
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1853,
+          "y": 338,
+          "width": 57.52,
+          "height": 16
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(8)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1827,
+          "top": 369,
+          "right": -1777.72,
+          "bottom": 388,
+          "width": 49.28,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Pricing",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1827
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1827,
+          "y": 369,
+          "width": 49.28,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1807,
+          "top": 402,
+          "right": -1772.7,
+          "bottom": 421,
+          "width": 34.3,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Hero",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1807
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1807,
+          "y": 402,
+          "width": 34.3,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(10)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1807,
+          "top": 435,
+          "right": -1758.94,
+          "bottom": 454,
+          "width": 48.06,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Starter",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1807
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1807,
+          "y": 435,
+          "width": 48.06,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(11)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1807,
+          "top": 468,
+          "right": -1754.12,
+          "bottom": 487,
+          "width": 52.88,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Growth",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1807
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1807,
+          "y": 468,
+          "width": 52.88,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(12)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1807,
+          "top": 501,
+          "right": -1767.86,
+          "bottom": 520,
+          "width": 39.14,
+          "height": 19
+        },
+        "containerSelector": "#root",
+        "text": "Scale",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1807
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1807,
+          "y": 501,
+          "width": 39.14,
+          "height": 19
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-copy1",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1511,
+          "top": 171,
+          "right": -1121.02,
+          "bottom": 227,
+          "width": 389.98,
+          "height": 56
+        },
+        "containerSelector": "#root",
+        "text": "AI builds designs.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1511
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1511,
+          "y": 171,
+          "width": 389.98,
+          "height": 56
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-sub",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1489,
+          "top": 257,
+          "right": -1114.59,
+          "bottom": 288,
+          "width": 374.41,
+          "height": 31
+        },
+        "containerSelector": "#root",
+        "text": "90+ tools behind the chat.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1489
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1489,
+          "y": 257,
+          "width": 374.41,
+          "height": 31
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-artlabel",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1511,
+          "top": 343,
+          "right": -1463.52,
+          "bottom": 360,
+          "width": 47.48,
+          "height": 17
+        },
+        "containerSelector": "#root",
+        "text": "Pricing",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1511
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1511,
+          "y": 343,
+          "width": 47.48,
+          "height": 17
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-board > h3:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1462,
+          "top": 416,
+          "right": -1229.87,
+          "bottom": 457,
+          "width": 232.13,
+          "height": 41
+        },
+        "containerSelector": "#root",
+        "text": "Simple pricing",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1462
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1462,
+          "y": 416,
+          "width": 232.13,
+          "height": 41
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "div.bsub",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1462,
+          "top": 465,
+          "right": -1250.16,
+          "bottom": 485,
+          "width": 211.84,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Three plans. No surprises.",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1462
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1462,
+          "y": 465,
+          "width": 211.84,
+          "height": 20
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      },
+      {
+        "code": "canvas_overflow",
+        "severity": "info",
+        "time": 16.756,
+        "selector": "#s3-card1 > div:nth-of-type(1)",
+        "message": "Text extends outside the composition canvas.",
+        "rect": {
+          "left": -1435,
+          "top": 552,
+          "right": -1380.72,
+          "bottom": 572,
+          "width": 54.28,
+          "height": 20
+        },
+        "containerSelector": "#root",
+        "text": "Starter",
+        "fixHint": "Move the text inward, reduce its size, or mark intentional off-canvas animation with data-layout-allow-overflow.",
+        "containerRect": {
+          "left": 0,
+          "top": 0,
+          "right": 1920,
+          "bottom": 1080,
+          "width": 1920,
+          "height": 1080
+        },
+        "overflow": {
+          "left": 1435
+        },
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": -1435,
+          "y": 552,
+          "width": 54.28,
+          "height": 20
+        },
+        "firstSeen": 16.756,
+        "lastSeen": 21.911,
+        "occurrences": 3,
+        "heldMs": 0,
+        "times": [
+          16.756,
+          19.333,
+          21.911
+        ]
+      }
+    ],
+    "duration": 23.2,
+    "samples": [
+      1.289,
+      3.867,
+      6.444,
+      9.022,
+      11.6,
+      14.178,
+      16.756,
+      19.333,
+      21.911
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 103,
+    "truncated": true
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      1.289,
+      6.444,
+      11.6,
+      16.756,
+      21.911
+    ],
+    "checked": 100,
+    "passed": 100
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 2,
+    "infoCount": 0,
+    "findings": [
+      {
+        "code": "first_frame_empty",
+        "severity": "warning",
+        "message": "Frame 0 shows only the background, and the first frame is the thumbnail on social players: have the title or key image already on screen at 0 s instead of entering from nothing; see references/review.md.",
+        "selector": "[data-composition-id]",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "time": 0
+      },
+      {
+        "code": "text_below_floor",
+        "severity": "warning",
+        "message": "Type floor is 28 px (2.6% of the 1080 px short side, what a phone can read) and 119 text elements stay under it for 0.5 s or more, the smallest \"PAGES\" at 13 px: set reading text to at least 28 px, or put data-layout-ignore on text that is texture rather than reading; see references/look.md.",
+        "text": "PAGES",
+        "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
+        "dataAttributes": {},
+        "sourceFile": "index.html",
+        "bbox": {
+          "x": 164.89,
+          "y": 167.46,
+          "width": 48.35,
+          "height": 15.94
+        },
+        "time": 9.105,
+        "times": [
+          4.74,
+          4.74,
+          4.74,
+          4.74,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.865,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          4.989,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.114,
+          5.488,
+          5.488,
+          6.112,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.105,
+          9.48,
+          9.604,
+          11.226,
+          11.226,
+          11.351,
+          11.351,
+          11.475,
+          11.475,
+          11.6,
+          11.6,
+          11.6,
+          11.725,
+          11.849,
+          11.849,
+          12.473,
+          12.723,
+          12.723,
+          12.723,
+          12.723,
+          12.723,
+          12.723,
+          13.222,
+          13.222,
+          13.222,
+          13.222,
+          13.222,
+          13.222,
+          13.222,
+          13.72,
+          13.72,
+          13.72,
+          13.72,
+          13.72,
+          13.72,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          14.968,
+          17.712,
+          17.712,
+          20.456,
+          20.581,
+          20.705
+        ],
+        "fontPx": 12.95,
+        "floorPx": 28,
+        "seconds": 5.364,
+        "elements": [
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2)",
+            "text": "PAGES",
+            "fontPx": 12.95,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7)",
+            "text": "LAYERS",
+            "fontPx": 12.95,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(2)",
+            "text": "PAGES",
+            "fontPx": 12.96,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(7)",
+            "text": "LAYERS",
+            "fontPx": 12.96,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(2)",
+            "text": "INSTANCE",
+            "fontPx": 13,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(6)",
+            "text": "POSITION",
+            "fontPx": 13,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(8)",
+            "text": "LAYOUT",
+            "fontPx": 13,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(10)",
+            "text": "ALIGNMENT",
+            "fontPx": 13,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "div.popbadge",
+            "text": "Popular",
+            "fontPx": 13.59,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "#s2-win > div:nth-of-type(1) > div:nth-of-type(4)",
+            "text": "Share",
+            "fontPx": 13.87,
+            "time": 4.74,
+            "seconds": 4.49
+          },
+          {
+            "selector": "#s4-screena > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "/mo",
+            "fontPx": 13.91,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s4-screena > div:nth-of-type(3) > div:nth-of-type(2)",
+            "text": "1 editor · Unlimited files",
+            "fontPx": 13.91,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "div.mchip",
+            "text": "Popular",
+            "fontPx": 13.91,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "div.mcard.feat > div:nth-of-type(2) > span:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "/mo",
+            "fontPx": 13.91,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "div.mcard.feat > div:nth-of-type(3)",
+            "text": "5 editors · Components · AI builds",
+            "fontPx": 13.91,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(1) > div:nth-of-type(4)",
+            "text": "Share",
+            "fontPx": 13.95,
+            "time": 9.105,
+            "seconds": 5.489
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+            "text": "File",
+            "fontPx": 13.95,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)",
+            "text": "Assets",
+            "fontPx": 13.95,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-artlabel",
+            "text": "Pricing",
+            "fontPx": 13.95,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(1) > div:nth-of-type(1)",
+            "text": "File",
+            "fontPx": 13.96,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(1) > div:nth-of-type(2)",
+            "text": "Assets",
+            "fontPx": 13.96,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-badge",
+            "text": "320 × 288",
+            "fontPx": 14,
+            "time": 5.488,
+            "seconds": 3.493
+          },
+          {
+            "selector": "#s3-bubble",
+            "text": "Build a pricing page",
+            "fontPx": 14.68,
+            "time": 12.473,
+            "seconds": 2.121
+          },
+          {
+            "selector": "#s2-win > div:nth-of-type(1) > div:nth-of-type(2)",
+            "text": "Landing.fig",
+            "fontPx": 14.86,
+            "time": 4.74,
+            "seconds": 4.241
+          },
+          {
+            "selector": "#s2-win > div:nth-of-type(1) > div:nth-of-type(3)",
+            "text": "ZenuxsDesign",
+            "fontPx": 14.86,
+            "time": 4.74,
+            "seconds": 4.366
+          },
+          {
+            "selector": "div.n",
+            "text": "Acme",
+            "fontPx": 14.9,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "div.msub",
+            "text": "Three plans. No surprises.",
+            "fontPx": 14.9,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s4-screena > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(1)",
+            "text": "Starter",
+            "fontPx": 14.9,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "div.mcard.feat > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Growth",
+            "fontPx": 14.9,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(1) > div:nth-of-type(2)",
+            "text": "Landing.fig",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(1) > div:nth-of-type(3)",
+            "text": "ZenuxsDesign",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3)",
+            "text": "Cover",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(4)",
+            "text": "Components",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(5)",
+            "text": "Typography",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(6)",
+            "text": "Colors",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(8)",
+            "text": "Pricing",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9)",
+            "text": "Hero",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(10)",
+            "text": "Starter",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(11)",
+            "text": "Growth",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s3-win > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(12)",
+            "text": "Scale",
+            "fontPx": 14.94,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(3)",
+            "text": "Cover",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(4)",
+            "text": "Components",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(5)",
+            "text": "Typography",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(6)",
+            "text": "Colors",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(8)",
+            "text": "Cover",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(9)",
+            "text": "Frame 7",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(10)",
+            "text": "Frame 1",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(11)",
+            "text": "radio group",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(12)",
+            "text": "popover",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(13)",
+            "text": "tabs",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "#s2-left > div:nth-of-type(14)",
+            "text": "footer",
+            "fontPx": 14.95,
+            "time": 4.865,
+            "seconds": 4.116
+          },
+          {
+            "selector": "div.cap",
+            "text": "Set the dimensions for the layer.",
+            "fontPx": 14.97,
+            "time": 5.114,
+            "seconds": 3.992
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(3) > span:nth-of-type(2)",
+            "text": "100%",
+            "fontPx": 14.97,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(4) > span:nth-of-type(2)",
+            "text": "300px",
+            "fontPx": 14.97,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(5) > span:nth-of-type(2)",
+            "text": "25px",
+            "fontPx": 14.97,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(6) > span:nth-of-type(2)",
+            "text": "none",
+            "fontPx": 14.97,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "div.tabs > div:nth-of-type(1)",
+            "text": "Design",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "div.tabs > div:nth-of-type(2)",
+            "text": "Code",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "div.ai",
+            "text": "AI",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "div.gbtn",
+            "text": "Go to Main Component",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "div.dbtn",
+            "text": "Detach instance",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(1)",
+            "text": "0",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(1) > span:nth-of-type(1)",
+            "text": "X",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(2)",
+            "text": "108",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(7) > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "Y",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(1)",
+            "text": "320",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(1) > span:nth-of-type(1)",
+            "text": "W",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(2)",
+            "text": "288",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s2-right > div:nth-of-type(9) > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "H",
+            "fontPx": 15,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "#s3-card3 > div:nth-of-type(1)",
+            "text": "Scale",
+            "fontPx": 15.2,
+            "time": 13.72,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-card3 > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "/mo",
+            "fontPx": 15.2,
+            "time": 13.72,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-card3 > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "Unlimited editors",
+            "fontPx": 15.2,
+            "time": 13.72,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-card3 > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "MCP server",
+            "fontPx": 15.2,
+            "time": 13.72,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-card3 > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "SSO",
+            "fontPx": 15.2,
+            "time": 13.72,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-card3 > div:nth-of-type(3)",
+            "text": "Choose Scale",
+            "fontPx": 15.2,
+            "time": 13.72,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-card2 > div:nth-of-type(2)",
+            "text": "Growth",
+            "fontPx": 15.53,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "#s3-card2 > div:nth-of-type(3) > span:nth-of-type(1)",
+            "text": "/mo",
+            "fontPx": 15.53,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "#s3-card2 > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "5 editors",
+            "fontPx": 15.53,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "#s3-card2 > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Components",
+            "fontPx": 15.53,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "#s3-card2 > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": "AI builds",
+            "fontPx": 15.53,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "div.pbtn.dark",
+            "text": "Choose Growth",
+            "fontPx": 15.53,
+            "time": 13.222,
+            "seconds": 1.247
+          },
+          {
+            "selector": "#s2-btn",
+            "text": "Continue",
+            "fontPx": 15.59,
+            "time": 6.112,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s3-card1 > div:nth-of-type(1)",
+            "text": "Starter",
+            "fontPx": 15.88,
+            "time": 12.723,
+            "seconds": 1.746
+          },
+          {
+            "selector": "#s3-card1 > div:nth-of-type(2) > span:nth-of-type(1)",
+            "text": "/mo",
+            "fontPx": 15.88,
+            "time": 12.723,
+            "seconds": 1.746
+          },
+          {
+            "selector": "#s3-card1 > ul:nth-of-type(1) > li:nth-of-type(1)",
+            "text": "1 editor",
+            "fontPx": 15.88,
+            "time": 12.723,
+            "seconds": 1.746
+          },
+          {
+            "selector": "#s3-card1 > ul:nth-of-type(1) > li:nth-of-type(2)",
+            "text": "Unlimited files",
+            "fontPx": 15.88,
+            "time": 12.723,
+            "seconds": 1.746
+          },
+          {
+            "selector": "#s3-card1 > ul:nth-of-type(1) > li:nth-of-type(3)",
+            "text": ".fig import",
+            "fontPx": 15.88,
+            "time": 12.723,
+            "seconds": 1.746
+          },
+          {
+            "selector": "#s3-card1 > div:nth-of-type(3)",
+            "text": "Choose Starter",
+            "fontPx": 15.88,
+            "time": 12.723,
+            "seconds": 1.746
+          },
+          {
+            "selector": "#s4-btn",
+            "text": "Continue",
+            "fontPx": 15.93,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(3) > span:nth-of-type(1)",
+            "text": "Width",
+            "fontPx": 15.96,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(4) > span:nth-of-type(1)",
+            "text": "Max. width",
+            "fontPx": 15.96,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(5) > span:nth-of-type(1)",
+            "text": "Height",
+            "fontPx": 15.96,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-card > div:nth-of-type(6) > span:nth-of-type(1)",
+            "text": "Max. height",
+            "fontPx": 15.96,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "div.irow",
+            "text": "popover",
+            "fontPx": 16,
+            "time": 4.989,
+            "seconds": 4.117
+          },
+          {
+            "selector": "div.t",
+            "text": "AI Assistant",
+            "fontPx": 16,
+            "time": 9.48,
+            "seconds": 5.114
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(1)",
+            "text": "B",
+            "fontPx": 16,
+            "time": 11.226,
+            "seconds": 1.123
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(2)",
+            "text": "u",
+            "fontPx": 16,
+            "time": 11.226,
+            "seconds": 1.123
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(3)",
+            "text": "i",
+            "fontPx": 16,
+            "time": 11.351,
+            "seconds": 0.998
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(4)",
+            "text": "l",
+            "fontPx": 16,
+            "time": 11.351,
+            "seconds": 0.998
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(5)",
+            "text": "d",
+            "fontPx": 16,
+            "time": 11.475,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(6)",
+            "text": "a",
+            "fontPx": 16,
+            "time": 11.475,
+            "seconds": 0.874
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(7)",
+            "text": "p",
+            "fontPx": 16,
+            "time": 11.6,
+            "seconds": 0.749
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(8)",
+            "text": "r",
+            "fontPx": 16,
+            "time": 11.6,
+            "seconds": 0.749
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(9)",
+            "text": "i",
+            "fontPx": 16,
+            "time": 11.6,
+            "seconds": 0.749
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(10)",
+            "text": "c",
+            "fontPx": 16,
+            "time": 11.725,
+            "seconds": 0.624
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(11)",
+            "text": "i",
+            "fontPx": 16,
+            "time": 11.849,
+            "seconds": 0.5
+          },
+          {
+            "selector": "#s3-typed > span:nth-of-type(12)",
+            "text": "n",
+            "fontPx": 16,
+            "time": 11.849,
+            "seconds": 0.5
+          },
+          {
+            "selector": "#s4-manage",
+            "text": "Manage plan",
+            "fontPx": 16,
+            "time": 17.712,
+            "seconds": 1.123
+          },
+          {
+            "selector": "div.tlabel",
+            "text": "Airplane mode",
+            "fontPx": 16.77,
+            "time": 5.488,
+            "seconds": 3.618
+          },
+          {
+            "selector": "div.bsub",
+            "text": "Three plans. No surprises.",
+            "fontPx": 17,
+            "time": 9.604,
+            "seconds": 4.865
+          },
+          {
+            "selector": "div.bs",
+            "text": "Growth · $29/mo",
+            "fontPx": 17,
+            "time": 17.712,
+            "seconds": 1.123
+          },
+          {
+            "selector": "#s2-card > h3:nth-of-type(1)",
+            "text": "Dimensions",
+            "fontPx": 19.95,
+            "time": 5.114,
+            "seconds": 3.867
+          },
+          {
+            "selector": "#s2-terminal",
+            "text": "opens .fig files natively",
+            "fontPx": 23.78,
+            "time": 4.74,
+            "seconds": 4.366
+          },
+          {
+            "selector": "#s4-screena > div:nth-of-type(3) > div:nth-of-type(1) > span:nth-of-type(2)",
+            "text": "$9",
+            "fontPx": 23.84,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "div.mcard.feat > div:nth-of-type(2) > span:nth-of-type(2)",
+            "text": "$29",
+            "fontPx": 23.84,
+            "time": 14.968,
+            "seconds": 2.994
+          },
+          {
+            "selector": "#s3-sub",
+            "text": "90+ tools behind the chat.",
+            "fontPx": 23.91,
+            "time": 9.105,
+            "seconds": 5.364
+          },
+          {
+            "selector": "#s5-chips > span:nth-of-type(1)",
+            "text": "Open source.",
+            "fontPx": 26,
+            "time": 20.456,
+            "seconds": 2.744
+          },
+          {
+            "selector": "#s5-chips > span:nth-of-type(2)",
+            "text": "MIT.",
+            "fontPx": 26,
+            "time": 20.581,
+            "seconds": 2.619
+          },
+          {
+            "selector": "#s5-chips > span:nth-of-type(3)",
+            "text": "~7 MB.",
+            "fontPx": 26,
+            "time": 20.705,
+            "seconds": 2.495
+          }
+        ]
+      }
+    ],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 186
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": false,
+    "files": [],
+    "times": [],
+    "findingFiles": []
+  }
+}

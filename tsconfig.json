@@ -84,6 +84,45 @@
       ],
       "@open-pencil/pen/*": [
         "./packages/pen/src/*"
+      ],
+      "@zenuxs/engine": [
+        "./packages/engine/src/index.ts"
+      ],
+      "@zenuxs/engine/*": [
+        "./packages/engine/src/*"
+      ],
+      "@zenuxs/doc": [
+        "./packages/doc/src/index.ts"
+      ],
+      "@zenuxs/doc/*": [
+        "./packages/doc/src/*"
+      ],
+      "@zenuxs/format": [
+        "./packages/format/src/index.ts"
+      ],
+      "@zenuxs/format/*": [
+        "./packages/format/src/*"
+      ],
+      "@zenuxs/render": [
+        "./packages/render/src/index.ts"
+      ],
+      "@zenuxs/render/*": [
+        "./packages/render/src/*"
+      ],
+      "@zenuxs/engine/cmd": [
+        "./packages/engine/src/cmd/core.ts"
+      ],
+      "@zenuxs/color": [
+        "./packages/color/src/index.ts"
+      ],
+      "@zenuxs/color/*": [
+        "./packages/color/src/*"
+      ],
+      "@zenuxs/geom": [
+        "./packages/geom/src/index.ts"
+      ],
+      "@zenuxs/geom/*": [
+        "./packages/geom/src/*"
       ]
     }
   },

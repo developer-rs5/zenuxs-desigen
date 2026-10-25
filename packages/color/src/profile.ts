@@ -11,14 +11,13 @@
  * can't hold are clipped per channel.
  */
 
-import type { Color } from './lib'
-import { Color } from './lib'
+import { Color, type Color as ColorT } from './lib'
 import { matrixTrcProfile, type Mat3 } from './icc'
+export type { Mat3 }
 
 export type ColorProfileId = 'srgb' | 'displayP3'
 
 /** A 3×3 matrix, row-major. */
-export type Mat3Public = Mat3
 
 const IDENTITY: Mat3 = [
   [1, 0, 0],
@@ -129,9 +128,9 @@ function makeProfileConversion(data: ProfileConversionData): ProfileConversion {
     },
 
     /** `c` in the target space (alpha unchanged; out-of-gamut channels clip). */
-    apply(c: Color): Color {
+    apply(c: ColorT): Color {
       if (!m) return c
-      const lin = [decode(c.r), decode(c.g), decode(c.b)]
+      const lin: [number, number, number] = [decode(c.r), decode(c.g), decode(c.b)]
       const [r, g, b] = apply(m, lin)
       return Color.new(encode(r), encode(g), encode(b), c.a)
     },
@@ -140,9 +139,9 @@ function makeProfileConversion(data: ProfileConversionData): ProfileConversion {
      * Whether `c` falls outside the target space: a channel clips by more than
      * two 8-bit steps (the colour picker's gamut warning).
      */
-    clips(c: Color): boolean {
+    clips(c: ColorT): boolean {
       if (!m) return false
-      return apply(m, [decode(c.r), decode(c.g), decode(c.b)]).some(outside)
+      return apply(m, [decode(c.r), decode(c.g), decode(c.b)] as [number, number, number]).some(outside)
     },
 
     /**
@@ -186,7 +185,7 @@ function makeProfileConversion(data: ProfileConversionData): ProfileConversion {
         const b = rgba[i * 4 + 2]
         const a = rgba[i * 4 + 3]
         if (a === 0) continue
-        const v = [lin(straight(r, a)), lin(straight(g, a)), lin(straight(b, a))]
+        const v: [number, number, number] = [lin(straight(r, a)), lin(straight(g, a)), lin(straight(b, a))]
         const out = [
           enc(m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2]),
           enc(m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2]),

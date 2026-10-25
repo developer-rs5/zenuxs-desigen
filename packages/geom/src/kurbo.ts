@@ -518,10 +518,11 @@ export class BezPath {
           }
           break
         case 'QuadTo': {
-          if (!current) break
+          const p0 = current
+          if (!p0) break
           area += glIntegrate((t) => {
-            const p = evalQuad(current, el.a, el.b, t)
-            const d = evalQuadDeriv(current, el.a, el.b, t)
+            const p = evalQuad(p0, el.a, el.b, t)
+            const d = evalQuadDeriv(p0, el.a, el.b, t)
             return p.x * d.y - p.y * d.x
           }, 3)
           current = el.b

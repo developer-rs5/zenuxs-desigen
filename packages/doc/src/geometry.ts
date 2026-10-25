@@ -5,7 +5,7 @@
  * layer; here the paths and the pure selection logic live.)
  */
 
-import { BezPath, Point, RectMath, type Point as P, type Rect } from '@zenuxs/geom'
+import { BezPath, RectMath, type Point as P, type Rect } from '@zenuxs/geom'
 import { ellipse, polygon_points, rounded_polygon, rounded_rect, star_points, transform_rect_bbox, type Affine } from '@zenuxs/geom'
 import type { Document } from './lib'
 import type { Node, NodeId } from './node'
@@ -39,7 +39,7 @@ export function shape_path(n: Node): BezPath | null {
       return p
     }
     case 'vector': {
-      const filled = VectorNetPaths.fillPath(k.network)
+      const filled = VectorNetPaths.fillPath(k.network as { vertices: unknown[]; segments: unknown[]; regions: unknown[] })
       return filled.elements.length > 0 ? filled : VectorNetPaths.strokePath(k.network)
     }
     case 'text':
@@ -51,14 +51,14 @@ export function shape_path(n: Node): BezPath | null {
 
 /** The open/closed path strokes follow (vector networks stroke every segment). */
 export function stroke_geometry(n: Node): BezPath | null {
-  if (n.kind.type === 'vector') return VectorNetPaths.strokePath(n.kind.network)
+  if (n.kind.type === 'vector') return VectorNetPaths.strokePath(n.kind.network as { vertices: Array<{ x: number; y: number }>; segments: unknown[]; regions: unknown[] })
   return shape_path(n)
 }
 
 /** Whether the shape's path is closed (fills apply). */
 export function is_closed(n: Node): boolean {
   if (n.kind.type === 'line') return false
-  if (n.kind.type === 'vector') return n.kind.network.regions.length > 0
+  if (n.kind.type === 'vector') return (n.kind.network as { regions: unknown[] }).regions.length > 0
   return true
 }
 
@@ -84,7 +84,7 @@ export const STROKE_REACH = 2.5
 export type BoolResult = ((id: NodeId, node: Node) => BezPath | null) | null
 
 /** Whether `pt` (page space) hits node `n`'s world-transformed shape. */
-function hits_node(doc: Document, n: Node, pt: P, tol: number, outline: boolean): boolean {
+function hits_node(n: Node, pt: P, tol: number, outline: boolean): boolean {
   const shape = shape_path(n)
   if (!shape) return false
   // Transform the point into the node's local space.
@@ -186,12 +186,12 @@ export function layers_at(doc: Document, page: NodeId, pt: P, tol: number, resul
     // Children first (top-most within the parent come first).
     const children = [...n.children].reverse()
     for (const c of children) walk(c, depth + 1)
-    const hit = hits_node(doc, n, pt, tol, also.all)
+    const hit = hits_node(n, pt, tol, also.all)
       ? true
       : also.maskOutlines && n.is_mask
-        ? hits_node(doc, n, pt, tol, false)
+        ? hits_node(n, pt, tol, false)
         : result !== null && result(id, n) !== null
-          ? hits_node(doc, n, pt, tol, false)
+          ? hits_node(n, pt, tol, false)
           : false
     if (hit) out.push([id, depth])
   }
@@ -200,10 +200,10 @@ export function layers_at(doc: Document, page: NodeId, pt: P, tol: number, resul
 }
 
 /** Select target: from a hit leaf, walk up to what a click selects. */
-export function select_target(doc: Document, leaf: NodeId, context: NodeId[], deep: boolean): NodeId {
+export function select_target(doc: Document, leaf: NodeId, _context: NodeId[], deep: boolean): NodeId {
   let current: NodeId | null = leaf
-  let target = leaf
-  while (current !== null && current !== undefined) {
+  let target: NodeId = leaf
+  while (current !== null) {
     const n = doc.node(current)
     if (!n) break
     const parent = n.parent !== null && n.parent !== undefined ? doc.node(n.parent) : null
@@ -213,9 +213,10 @@ export function select_target(doc: Document, leaf: NodeId, context: NodeId[], de
     // Inside a frame: clicking selects the top-level frame unless deep.
     if (deep) return current
     target = current
-    current = n.parent
+    const parentId = n.parent
+    current = typeof parentId === 'number' ? parentId : null
   }
-  return target
+  return target ?? leaf
 }
 
 /** Enter a container on double-click. */

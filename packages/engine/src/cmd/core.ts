@@ -643,10 +643,12 @@ export const PROTO_SPECS: CommandSpec[] = [
     const start = typeof p.start === 'number' ? p.start : (ds.selection[0] ?? ds.page)
     const n = ds.doc.node(start)
     if (!n) throw new Error('no start frame')
-    const name = typeof p.name === 'string' ? p.name : `Flow ${ds.doc.node(ds.page)?.flows.length + 1 ?? 1}`
+    const pageNow = ds.doc.node(ds.page)
+    const flowCount = pageNow && pageNow.kind.type === 'page' ? pageNow.kind.flows.length : 0
+    const name = typeof p.name === 'string' ? p.name : `Flow ${flowCount + 1}`
     const page = ds.doc.node_mut(ds.page)
     if (page && page.kind.type === 'page') {
-      page.flows.push({ name, start, description: '' })
+      page.kind.flows.push({ name, start, description: '' })
     }
     return ok()
   }),

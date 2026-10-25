@@ -4,7 +4,7 @@
  * FigCraft `crates/doc/src/vector.rs`.)
  */
 
-import { BezPath, Point } from '@zenuxs/geom'
+import { Point, BezPath } from '@zenuxs/geom'
 import type { StrokeCap, StrokeJoin } from './props'
 
 /** How a vertex's two bezier handles follow each other when one is dragged. */
