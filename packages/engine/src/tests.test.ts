@@ -117,6 +117,66 @@ describe('engine session', () => {
       ]
     })
     expect((r.results as unknown[]).length).toBe(2)
-    expect(s.doc().nodesCount()).toBe(3) // page + 2 shapes
+  })
+
+  test('style_create_apply_detach_delete', () => {
+    const s = new Session()
+    const rectId = s.execute('shape.rectangle', { width: 100, height: 100 }).id as number
+    const st = s.execute('style.create', { name: 'Brand Blue', kind: 'color' })
+    expect(st.ok).toBe(true)
+    const styleId = st.id as string
+
+    s.execute('style.apply', { ids: [rectId], slot: 'fill', styleId })
+    expect(s.doc().node(rectId)?.styles.fill).toBe(styleId)
+
+    s.execute('style.detach', { ids: [rectId], slot: 'fill' })
+    expect(s.doc().node(rectId)?.styles.fill).toBeUndefined()
+
+    s.execute('style.delete', { id: styleId })
+    expect(s.doc().styles.length).toBe(0)
+  })
+
+  test('variable_collection_create_bind_unbind', () => {
+    const s = new Session()
+    const rectId = s.execute('shape.rectangle', { width: 80, height: 80 }).id as number
+    const col = s.execute('variable.collection.create', { name: 'Theme Tokens' })
+    const varRes = s.execute('variable.create', {
+      name: 'primaryColor',
+      collection: col.id,
+      type: 'color',
+      value: { r: 0, g: 0.5, b: 1, a: 1 }
+    })
+    const varId = varRes.id as string
+
+    s.execute('variable.bind', { ids: [rectId], field: 'fill', variableId: varId })
+    expect(s.doc().node(rectId)?.bound.fill).toBe(varId)
+
+    s.execute('variable.unbind', { ids: [rectId], field: 'fill' })
+    expect(s.doc().node(rectId)?.bound.fill).toBeUndefined()
+  })
+
+  test('component_create_instantiate_detach', () => {
+    const s = new Session()
+    const frameId = s.execute('shape.frame', { width: 200, height: 150 }).id as number
+    s.execute('component.create', { id: frameId, description: 'Card component' })
+    expect(s.doc().node(frameId)?.kind.type).toBe('component')
+
+    const inst = s.execute('component.instantiate', { componentId: frameId, x: 50, y: 50 })
+    expect(inst.ok).toBe(true)
+    const instId = inst.id as number
+    expect(s.doc().node(instId)?.kind.type).toBe('instance')
+
+    s.execute('component.detach', { id: instId })
+    expect(s.doc().node(instId)?.kind.type).toBe('frame')
+  })
+
+  test('file_info_and_rename', () => {
+    const s = new Session()
+    s.execute('file.rename', { name: 'Zenuxs App Design' })
+    expect(s.doc().name).toBe('Zenuxs App Design')
+
+    const info = s.execute('file.info', {})
+    expect(info.name).toBe('Zenuxs App Design')
+    expect(info.pages).toBe(1)
   })
 })

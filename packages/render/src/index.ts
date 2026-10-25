@@ -55,6 +55,10 @@ export interface Canvas2DLike {
   shadowOffsetX: number
   shadowOffsetY: number
   filter: string
+  font?: string
+  fillRect?(x: number, y: number, w: number, h: number): void
+  fillText?(text: string, x: number, y: number, maxWidth?: number): void
+  transform?(a: number, b: number, c: number, d: number, e: number, f: number): void
 }
 
 export interface CanvasGradientLike {
@@ -250,7 +254,7 @@ export function renderNode(ctx: Canvas2DLike, doc: Document, id: number, options
     const lines = n.kind.characters.split('\n')
     const lh = style.line_height.unit === 'pixels' ? style.line_height.value : style.line_height.unit === 'percent' ? (style.font_size * style.line_height.value) / 100 : style.font_size * 1.4
     lines.forEach((line, i) => {
-      ctx.fillText(line, 0, lh * (i + 0.8))
+      ctx.fillText?.(line, 0, lh * (i + 0.8))
     })
   }
 
@@ -286,7 +290,7 @@ export function renderPage(ctx: Canvas2DLike, doc: Document, pageId: number, opt
         const b = transform_rect_bbox(c.transform.coeffs, { x0: 0, y0: 0, x1: c.width, y1: c.height })
         box = box ? { x0: Math.min(box.x0, b.x0), y0: Math.min(box.y0, b.y0), x1: Math.max(box.x1, b.x1), y1: Math.max(box.y1, b.y1) } : b
       }
-      if (box) ctx.fillRect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0)
+      if (box) ctx.fillRect?.(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0)
     }
   }
   const page = doc.node(pageId)

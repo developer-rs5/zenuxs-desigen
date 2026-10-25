@@ -23,6 +23,7 @@ import {
 } from '@open-pencil/scene-graph'
 
 import { useEditorStore } from '@/app/editor/active-store'
+import PrototypeNodeRenderer from '@/components/prototype/PrototypeNodeRenderer.vue'
 import Tip from '@/components/ui/overlay/Tip.vue'
 
 const props = defineProps<{
@@ -111,6 +112,28 @@ function initRuntime() {
 
   runtime.start(performance.now(), startId)
   syncState()
+  runAnimationLoop()
+}
+
+let animFrame: number | null = null
+
+function runAnimationLoop() {
+  if (animFrame) cancelAnimationFrame(animFrame)
+  function step() {
+    if (!runtime) {
+      animFrame = null
+      return
+    }
+    const now = performance.now()
+    runtime.tick(now)
+    syncState()
+    if (runtime.hasPendingWork(now)) {
+      animFrame = requestAnimationFrame(step)
+    } else {
+      animFrame = null
+    }
+  }
+  animFrame = requestAnimationFrame(step)
 }
 
 function syncState() {
@@ -120,8 +143,16 @@ function syncState() {
   currentScreenNode.value = sId ? (store.graph.getNode(sId) ?? null) : null
 }
 
+function onNodeClicked(nodeId: string, _event?: PointerEvent) {
+  if (!runtime) return
+  const now = performance.now()
+  runtime.click(nodeId, now)
+  runAnimationLoop()
+}
+
 function restartFlow() {
   if (flingAnimFrame) cancelAnimationFrame(flingAnimFrame)
+  if (animFrame) cancelAnimationFrame(animFrame)
   scrollX.value = 0
   scrollY.value = 0
   initRuntime()
@@ -129,6 +160,7 @@ function restartFlow() {
 
 function close() {
   if (flingAnimFrame) cancelAnimationFrame(flingAnimFrame)
+  if (animFrame) cancelAnimationFrame(animFrame)
   emit('update:open', false)
 }
 
@@ -213,7 +245,7 @@ function onScreenPointerUp(e: PointerEvent) {
   if (hit && runtime) {
     runtime.pointerUp(hit.id, performance.now())
     runtime.click(hit.id, performance.now())
-    syncState()
+    runAnimationLoop()
 
     // Non-interactive click feedback (hotspot ripple)
     const hasInteractions = readNodeInteractions(hit).length > 0
@@ -293,6 +325,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (flingAnimFrame) cancelAnimationFrame(flingAnimFrame)
+  if (animFrame) cancelAnimationFrame(animFrame)
 })
 </script>
 
@@ -407,26 +440,39 @@ onUnmounted(() => {
 
           <!-- Screen Content (Translated by physics scroll) -->
           <div
-            class="relative transition-transform duration-75 ease-out"
+            class="relative size-full transition-transform duration-75 ease-out"
             :style="{
               transform: `translate(${-scrollX}px, ${-scrollY}px)`
             }"
           >
-            <div v-if="currentScreenNode" class="text-left font-sans">
-              <!-- Render screen node content representation -->
-              <div
-                v-for="childId in currentScreenNode.childIds"
-                :key="childId"
-                class="absolute"
-                :style="{
-                  left: `${store.graph.getNode(childId)?.x ?? 0}px`,
-                  top: `${store.graph.getNode(childId)?.y ?? 0}px`,
-                  width: `${store.graph.getNode(childId)?.width ?? 0}px`,
-                  height: `${store.graph.getNode(childId)?.height ?? 0}px`
-                }"
+            <template v-if="renderState && renderState.drawIds.length > 0">
+              <PrototypeNodeRenderer
+                v-for="id in renderState.drawIds"
+                :key="id"
+                :node-id="id"
+                :graph="store.graph"
+                :visuals="renderState.nodeVisuals"
+                :show-hotspots="showHotspots"
+                @node-click="onNodeClicked"
               />
-            </div>
+            </template>
+            <template v-else-if="currentScreenNode">
+              <PrototypeNodeRenderer
+                :node-id="currentScreenNode.id"
+                :graph="store.graph"
+                :visuals="renderState?.nodeVisuals"
+                :show-hotspots="showHotspots"
+                @node-click="onNodeClicked"
+              />
+            </template>
           </div>
+
+          <!-- Overlay Backdrop Dimmer -->
+          <div
+            v-if="renderState && renderState.backdropOpacity > 0"
+            class="pointer-events-none absolute inset-0 bg-black transition-opacity"
+            :style="{ opacity: renderState.backdropOpacity }"
+          />
 
           <!-- Hotspot ripple hint -->
           <div
@@ -453,6 +499,42 @@ onUnmounted(() => {
         @pointerup="onScreenPointerUp"
         @wheel="onScreenWheel"
       >
+        <!-- Screen Content (Translated by physics scroll) -->
+        <div
+          class="relative size-full transition-transform duration-75 ease-out"
+          :style="{
+            transform: `translate(${-scrollX}px, ${-scrollY}px)`
+          }"
+        >
+          <template v-if="renderState && renderState.drawIds.length > 0">
+            <PrototypeNodeRenderer
+              v-for="id in renderState.drawIds"
+              :key="id"
+              :node-id="id"
+              :graph="store.graph"
+              :visuals="renderState.nodeVisuals"
+              :show-hotspots="showHotspots"
+              @node-click="onNodeClicked"
+            />
+          </template>
+          <template v-else-if="currentScreenNode">
+            <PrototypeNodeRenderer
+              :node-id="currentScreenNode.id"
+              :graph="store.graph"
+              :visuals="renderState?.nodeVisuals"
+              :show-hotspots="showHotspots"
+              @node-click="onNodeClicked"
+            />
+          </template>
+        </div>
+
+        <!-- Overlay Backdrop Dimmer -->
+        <div
+          v-if="renderState && renderState.backdropOpacity > 0"
+          class="pointer-events-none absolute inset-0 bg-black transition-opacity"
+          :style="{ opacity: renderState.backdropOpacity }"
+        />
+
         <!-- Hotspot ripple hint -->
         <div
           v-if="hotspotRipple"

@@ -5,6 +5,7 @@ import { BUILTIN_IO_FORMATS, IORegistry } from '@open-pencil/core/io'
 import { SceneGraph } from '@open-pencil/scene-graph'
 
 import { recordPreparationOutcome } from '@/app/diagnostics'
+import { zenuxsFormat } from '@/app/document/io/zenuxs'
 import {
   getActiveEditorStore,
   setActiveEditorStore,
@@ -67,7 +68,7 @@ export function createEditorStore(initialGraph?: SceneGraph) {
             height: IS_BROWSER ? window.innerHeight : 1080
           }
   })
-  const io = new IORegistry(BUILTIN_IO_FORMATS)
+  const io = new IORegistry([zenuxsFormat, ...BUILTIN_IO_FORMATS])
   bindClipboardNotifications(editor)
 
   if (initialGraph) {

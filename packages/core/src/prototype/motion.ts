@@ -156,16 +156,28 @@ export function springProgress(config: PrototypeSpring, p: number): number {
   const clamped = Math.min(1, Math.max(0, p))
   if (clamped === 0) return 0
   if (clamped === 1) return 1
-  const stiffness = Math.max(1e-3, config.stiffness ?? 100)
-  const damping = Math.max(0, config.damping ?? 10)
-  const mass = Math.max(1e-3, config.mass ?? 1)
-  const zeta = damping / (2 * Math.sqrt(stiffness * mass))
-  const omega = 2 * Math.PI * Math.max(0.5, Math.sqrt(stiffness / mass) / 12)
+
+  let zeta: number
+  let omega: number
+  if (config.mode === 'time') {
+    const bounce = Math.min(0.999, Math.max(0, config.bounce ?? 0.25))
+    zeta = 1 - bounce
+    omega = 2 * Math.PI * (0.5 + bounce * 1.6)
+  } else {
+    const stiffness = Math.max(1e-3, config.stiffness ?? 100)
+    const damping = Math.max(0, config.damping ?? 10)
+    const mass = Math.max(1e-3, config.mass ?? 1)
+    zeta = damping / (2 * Math.sqrt(stiffness * mass))
+    omega = 2 * Math.PI * Math.max(0.5, Math.sqrt(stiffness / mass) / 12)
+  }
+
   if (!Number.isFinite(zeta) || !Number.isFinite(omega)) return clamped
+
   if (zeta >= 1) {
     const decay = omega * zeta
     return 1 - Math.exp(-decay * clamped) * (1 + decay * clamped)
   }
+
   const damped = omega * Math.sqrt(1 - zeta * zeta)
   const envelope = Math.exp(-zeta * omega * clamped)
   return (
@@ -191,12 +203,7 @@ export function transitionProgress(transition: PrototypeTransition, elapsedMs: n
   const duration = transitionDurationMs(transition)
   if (duration <= 0) return 1
   const linear = Math.min(1, Math.max(0, elapsedMs / duration))
-  if (transition.kind === 'spring') {
-    const stiffness = Math.max(1e-3, transition.spring.stiffness ?? 100)
-    const damping = Math.max(0, transition.spring.damping ?? 15)
-    const mass = Math.max(1e-3, transition.spring.mass ?? 1)
-    return new PhysicalSpring(mass, stiffness, damping).at(linear)
-  }
+  if (transition.kind === 'spring') return springProgress(transition.spring, linear)
   if (transition.kind === 'instant') return 1
   const easing = 'easing' in transition && transition.easing ? transition.easing : 'easeOut'
   return easingProgress(easing, linear)

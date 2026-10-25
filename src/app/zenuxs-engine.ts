@@ -11,13 +11,15 @@ import {
   Session,
   registerRegistry,
   registryReady,
+  allCoreSpecs,
+  allAdvancedSpecs,
   type Session as ZenuxsSession
 } from '@zenuxs/engine'
-import { allCoreSpecs } from '@zenuxs/engine/cmd'
 
+import { zenuxsBridge, type ZenuxsBridge } from '@/app/zenuxs-bridge'
 import { IS_BROWSER } from '@/constants'
 
-if (!registryReady()) registerRegistry(allCoreSpecs())
+if (!registryReady()) registerRegistry([...allCoreSpecs(), ...allAdvancedSpecs()])
 
 let engine: ZenuxsSession | null = null
 
@@ -32,11 +34,17 @@ export function resetZenuxsEngine(): void {
   engine = new Session()
 }
 
+/** Get the bidirectional bridge instance. */
+export function getZenuxsBridge(): ZenuxsBridge {
+  return zenuxsBridge
+}
+
 /** Expose the engine on the window bridge (call once at app mount). */
 export function exposeZenuxsEngine(): void {
   if (IS_BROWSER) {
     window.openPencil ??= {}
     window.openPencil.getZenuxsEngine ??= getZenuxsEngine
     window.openPencil.resetZenuxsEngine ??= resetZenuxsEngine
+    window.openPencil.getZenuxsBridge ??= getZenuxsBridge
   }
 }

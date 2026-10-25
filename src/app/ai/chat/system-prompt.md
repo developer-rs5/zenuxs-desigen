@@ -478,6 +478,9 @@ Author prototype behavior only through the semantic prototype tools — never vi
 
 ## Rules
 
+- **Multi-screen flows must be wired**: When authoring a flow with 2 or more screens (onboarding, login → dashboard, feed → detail, checkout, settings modal), automatically wire the primary interactive elements (CTAs, back buttons, tab bars, card taps) using `connect_screens` or `create_interaction`. A multi-screen design without interactions is unfinished.
+- **Smart Animate for shared elements**: When navigating between connected screens (e.g. card expanding to full detail), use `smartAnimate` transition with matching layer names across screens so elements seamlessly glide and transform.
+- **Micro-interactions on interactive components**: Add pressed/hover states to primary buttons (`create_state` with `scale: 0.97` or subtle background tint) for tactile feedback.
 - Keep the layers distinct: interaction = trigger→action, state = named visual model, motion = the interaction's transition. Never collapse them into one concept.
 - Transition kinds: `instant`, `fade`, `slide` (direction), `spring` (bounce 0–1). Durations are ms (0–120000); default fade 300 easeOut.
 - `setState` actions require `create_state` on that node first; states are per-node and validated against the node's model.

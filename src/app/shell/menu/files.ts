@@ -4,6 +4,7 @@ import { BUILTIN_IO_FORMATS, IORegistry } from '@open-pencil/core/io'
 
 import { setOpenPencilOpenFileHandler } from '@/app/browser-bridge'
 import { resolveBrowserFileURL } from '@/app/document/io/browser'
+import { zenuxsFormat } from '@/app/document/io/zenuxs'
 import { notificationMessages } from '@/app/i18n/notifications'
 import { rememberRecentFile } from '@/app/recent-files'
 import { toast } from '@/app/shell/ui'
@@ -11,7 +12,7 @@ import { openFileInNewTab } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
 import { IS_BROWSER } from '@/constants'
 
-const io = new IORegistry(BUILTIN_IO_FORMATS)
+const io = new IORegistry([zenuxsFormat, ...BUILTIN_IO_FORMATS])
 const DOM_DOCUMENT_EXTENSIONS = ['html', 'htm', 'xhtml'] as const
 const READABLE_DOCUMENT_EXTENSIONS = [
   ...new Set([

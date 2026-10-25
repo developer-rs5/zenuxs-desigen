@@ -367,8 +367,8 @@ export function spec(
 }
 
 /** `{"ok": true}` — the standard command success value. */
-export function ok(): Record<string, unknown> {
-  return { ok: true }
+export function ok(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return { ok: true, ...extra }
 }
 
 interface Registry {

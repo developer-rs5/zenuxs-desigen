@@ -10,7 +10,7 @@
 import { zipSync, unzipSync, strFromU8, strToU8 } from 'fflate'
 
 import { Document } from '@zenuxs/doc'
-import { Node, omitNodeDefaults, type Node as NodeT } from '@zenuxs/doc'
+import { Node, omitNodeDefaults, type Guide, type Node as NodeT } from '@zenuxs/doc'
 
 export const FORMAT_VERSION = 1
 export const DOCUMENT_ENTRY = 'document.json'
@@ -107,7 +107,7 @@ function makeKind(type: string, json: Record<string, unknown>): NodeT['kind'] {
         background: (json.background as Node['kind'] extends never ? never : { r: number; g: number; b: number; a: number }) ?? { r: 0.9608, g: 0.9608, b: 0.9608, a: 1 },
         flows: (json.flows as unknown[]) ?? [],
         prototype: (json.prototype as Record<string, unknown>) ?? {},
-        guides: (json.guides as unknown[]) ?? []
+        guides: (json.guides as Guide[]) ?? []
       }
     case 'ellipse':
       return { type: 'ellipse', start: (json.start as number) ?? 0, sweep: (json.sweep as number) ?? Math.PI * 2, inner: (json.inner as number) ?? 0 }
@@ -181,7 +181,7 @@ export function saveZenuxs(
   doc: Document,
   options?: { images?: Map<string, Uint8Array>; thumbnail?: Uint8Array; versions?: Version[]; branches?: Branch[] }
 ): Uint8Array {
-  const files: Record<string, Uint8Array | [Uint8Array, { level: number }]> = {
+  const files: Record<string, Uint8Array> = {
     [DOCUMENT_ENTRY]: strToU8(JSON.stringify(documentToJson(doc)))
   }
   if (options?.images) {

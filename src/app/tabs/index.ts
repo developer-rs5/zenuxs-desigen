@@ -10,6 +10,7 @@ import type { SceneGraph } from '@open-pencil/scene-graph'
 import { SessionRequestError } from '@/app/auth/api'
 import { setOpenPencilStore } from '@/app/browser-bridge'
 import type { DocumentSourceIdentity } from '@/app/document/io/types'
+import { zenuxsFormat } from '@/app/document/io/zenuxs'
 import { getRecoveryStore, type RecoverySnapshotMeta } from '@/app/document/recovery'
 import { setActiveEditorStore } from '@/app/editor/active-store'
 import { createEditorStore } from '@/app/editor/session'
@@ -39,7 +40,7 @@ export interface Tab {
   kind: TabKind
 }
 
-const io = new IORegistry(BUILTIN_IO_FORMATS)
+const io = new IORegistry([zenuxsFormat, ...BUILTIN_IO_FORMATS])
 const fileOpenCoordinator = createFileOpenCoordinator()
 const RECENT_FILE_THUMBNAIL_SIZE = 512
 const coverThumbnailListeners = new WeakMap<EditorStore, () => void>()

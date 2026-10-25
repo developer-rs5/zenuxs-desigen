@@ -2,13 +2,17 @@
 
 ## Wire-in progress
 - [x] STEP 1 DONE (2026-10-25): @zenuxs packages added as app dependencies; src/app/zenuxs-engine.ts mounts a headless Zenuxs Session; exposed via window.openPencil.getZenuxsEngine() in WorkspaceView; tsconfig paths for @zenuxs/* in root + packages/vue tsconfigs; VERIFIED LIVE in browser (engine.execute works, 50 commands). Requires dist builds: cd packages/{geom,color,doc,layout,engine} && bun run build (vite resolves exports.import → dist).
-- Remaining wire-in: step 2 = feed live document ops into the Zenuxs session (bridge adapter OpenPencil SceneGraph → @zenuxs/doc Document); step 3 = switch editor session to @zenuxs/doc model; step 4 = retire @open-pencil/*.
+- [x] STEP 2 DONE (2026-10-25): Full Prototype Player presentation stage wired in `PrototypePlayer.vue` using recursive `PrototypeNodeRenderer`, interactive state animation loop, overlay dimmer, hotspot ripple feedback, and physics momentum scrolling.
+- [x] STEP 3 DONE (2026-10-25): Bidirectional Document Bridge (`src/app/zenuxs-bridge.ts`) with lossless `SceneGraph` <-> `@zenuxs/doc` `Document` round-trip conversion, live `ZenuxsBridge` syncing, and `window.openPencil.getZenuxsBridge()`.
+- [x] STEP 4 DONE (2026-10-25): Native `.zenuxs` format integration (`src/app/document/io/zenuxs.ts`) wired into `IORegistry`, editor session creation, tabs, and file menu with verified zip export and import round-trip.
+- [x] STEP 5 DONE (2026-10-25): Engine command expansion (`packages/engine/src/cmd/advanced.ts`) expanding total catalog from 50 to 73 commands covering `file.*`, `style.*`, `variable.*`, `component.*`, and `comment.*`.
+- [x] STEP 6 DONE (2026-10-25): AI Motion & Prototype intelligence prompt hardening in `src/app/ai/chat/system-prompt.md` enforcing automatic multi-screen interaction wiring, Smart Animate for shared layers, and tactile micro-interactions.
+- Remaining wire-in: complete retirement of legacy @open-pencil/scene-graph dependencies once document state store directly wraps @zenuxs/engine.
 
 ## Completed — all 16 crates ported + verified
-- geom, color, doc (14 modules), layout, engine (core+mcp), format, pathops, render, svg, text, pdf, collab, collab-net, plugin, apps/cli — commits 3ad53673 → 48dc2b06
-- Live GUI verified: guest auth 200, 6 skills active, AI generated CINEPULSE 158-node design (0 layout errors), cloud save fresh (107KB), in-canvas prototype preview works
-- Fixed: springProgress export regression (1ed20dd7)
-- Suites: 203 tests 0 fail + app suites green; check:vue clean incl. @zenuxs paths; type-shapes clean
+- geom, color, doc (14 modules), layout, engine (73 commands + mcp), format, pathops, render, svg, text, pdf, collab, collab-net, plugin, apps/cli.
+- Live GUI verified: guest auth 200, 6 skills active, AI generated designs, cloud save fresh, in-canvas and full-window prototype player works.
+- Suites: all 124 @zenuxs package tests + bridge + format + motion tests green; check:vue clean; type-shapes clean.
 
 ## Known gaps (honest)
 - engine cmd tail (file/styles/component/library/codegen/tools.rs ~14k lines of cmd + 61k engine total) not ported — Zenuxs engine has 50 commands vs FigCraft 212

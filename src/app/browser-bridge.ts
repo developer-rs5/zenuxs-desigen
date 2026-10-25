@@ -29,6 +29,8 @@ export interface OpenPencilWindowAPI {
   /** The headless Zenuxs engine session (wire-in step 1). */
   getZenuxsEngine?: () => unknown
   resetZenuxsEngine?: () => void
+  /** The bidirectional document bridge (wire-in step 2). */
+  getZenuxsBridge?: () => unknown
 }
 
 let activeStore: EditorStore | null = null

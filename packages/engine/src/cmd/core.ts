@@ -7,6 +7,7 @@
 import { AutoLayout, Node, type NodeId } from '@zenuxs/doc'
 import { Affine, RectMath, rounded_rect, ellipse, polygon_points, star_points, transform_rect_bbox, type Radii } from '@zenuxs/geom'
 import { ok, spec, type CommandSpec, type Session } from '../lib'
+import { allAdvancedSpecs } from './advanced'
 
 // ------------------------------ create.rs ------------------------------
 
@@ -34,6 +35,16 @@ function radiiFrom(params: Record<string, unknown>): Radii {
 }
 
 export const CREATE_SPECS: CommandSpec[] = [
+  spec('shape.frame', 'Frame', '{x?, y?, width?, height?, cornerRadius?}', true, (s, p) => {
+    const w = numParam(p, 'width', 100)
+    const h = numParam(p, 'height', 100)
+    const id = createNode(s, 'Frame', w, h, { type: 'frame' }, p)
+    const n = s.ds().doc.node_mut(id)!
+    n.fills = [{ kind: { type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
+    n.corners = { radii: radiiFrom(p), smoothing: 0 }
+    moveNode(n, p)
+    return { ok: true, id }
+  }),
   spec('shape.rectangle', 'Rectangle', '{x?, y?, width?, height?, cornerRadius?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
@@ -686,5 +697,14 @@ export function starPath(w: number, h: number, count: number, inner: number): Re
 
 /** All command specs registered by this module set. */
 export function allCoreSpecs(): CommandSpec[] {
-  return [...CREATE_SPECS, ...EDIT_SPECS, ...ARRANGE_SPECS, ...STRUCTURE_SPECS, ...PAGE_SPECS, ...VIEW_SPECS, ...PROTO_SPECS]
+  return [
+    ...CREATE_SPECS,
+    ...EDIT_SPECS,
+    ...ARRANGE_SPECS,
+    ...STRUCTURE_SPECS,
+    ...PAGE_SPECS,
+    ...VIEW_SPECS,
+    ...PROTO_SPECS,
+    ...allAdvancedSpecs()
+  ]
 }
