@@ -123,6 +123,12 @@
       ],
       "@zenuxs/geom/*": [
         "./packages/geom/src/*"
+      ],
+      "@zenuxs/layout": [
+        "./packages/layout/src/index.ts"
+      ],
+      "@zenuxs/layout/*": [
+        "./packages/layout/src/*"
       ]
     }
   },
