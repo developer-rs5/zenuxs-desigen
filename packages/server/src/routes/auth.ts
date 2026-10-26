@@ -89,10 +89,48 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
           { ownerSub: previousGuestSub },
           { $set: { ownerSub: identity.sub } }
         )
-        await UserSettings.updateMany(
-          { ownerSub: previousGuestSub },
-          { $set: { ownerSub: identity.sub } }
-        )
+        const guestSettings = await UserSettings.findOne({ ownerSub: previousGuestSub }).lean()
+        if (guestSettings) {
+          const existingUserSettings = await UserSettings.findOne({ ownerSub: identity.sub })
+          if (existingUserSettings) {
+            const mergedAi = {
+              ...(guestSettings.aiModelSettings ?? {}),
+              ...(existingUserSettings.aiModelSettings ?? {})
+            }
+            const mergedCredentials = {
+              ...(guestSettings.credentials ?? {}),
+              ...(existingUserSettings.credentials ?? {})
+            }
+            const mergedMcp = {
+              ...(guestSettings.mcpServers ?? {}),
+              ...(existingUserSettings.mcpServers ?? {})
+            }
+            const mergedSkills = {
+              ...(guestSettings.skills ?? {}),
+              ...(existingUserSettings.skills ?? {})
+            }
+            await UserSettings.updateOne(
+              { ownerSub: identity.sub },
+              {
+                $set: {
+                  aiModelSettings: mergedAi,
+                  credentials: mergedCredentials,
+                  mcpServers: mergedMcp,
+                  skills: mergedSkills
+                }
+              }
+            )
+            await UserSettings.deleteOne({ ownerSub: previousGuestSub })
+          } else {
+            await UserSettings.updateOne(
+              { ownerSub: previousGuestSub },
+              { $set: { ownerSub: identity.sub } }
+            )
+          }
+        }
+        await User.deleteOne({ sub: previousGuestSub })
+        const oldCookie = readSessionCookie(req, config)
+        if (oldCookie) await sessions.revokeSession(oldCookie)
       } catch (err) {
         console.warn('[auth] Failed migrating guest data to user:', err)
       }
@@ -130,6 +168,7 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
     if (existingReq.auth?.sub) {
       const existingUser = await User.findOne({ sub: existingReq.auth.sub })
       if (existingUser) {
+        await sessions.touchSession(existingReq.auth.sessionId)
         res.json({
           success: true,
           user: {
@@ -138,6 +177,7 @@ export function createAuthRouter(deps: AuthRouterDeps): Router {
             email: existingUser.email ?? null,
             picture: existingUser.picture ?? null
           },
+          expiresAt: new Date(Date.now() + config.sessionTtlMs).toISOString(),
           csrfHeaderName: config.csrfHeaderName
         })
         return

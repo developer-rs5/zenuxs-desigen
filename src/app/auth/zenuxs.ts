@@ -12,7 +12,7 @@
  * lived in JavaScript-readable storage.
  */
 
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import ZenuxOAuth, { type TokenResponse, type UserInfo } from 'zenuxs-oauth'
 
 import {
@@ -60,6 +60,10 @@ oauthClient.on('error', (error: unknown) => {
 
 export const currentUser = ref<UserInfo | null>(null)
 export const isAuthenticated = ref(false)
+/** True when the user is signed in with a verified, non-guest account. */
+export const isAuthorized = computed(
+  () => isAuthenticated.value && !currentUser.value?.sub.startsWith('guest_')
+)
 /** True once initAuth() has settled. Prevents premature redirects. */
 export const authReady = ref(false)
 

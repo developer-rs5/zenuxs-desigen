@@ -4,8 +4,8 @@ import { onMounted, ref } from 'vue'
 import { apiURL } from '@/app/auth/api'
 import {
   currentUser,
-  isAuthenticated,
   initAuth,
+  isAuthorized,
   loginWithZenuxs,
   logoutZenuxs
 } from '@/app/auth/zenuxs'
@@ -46,7 +46,7 @@ onMounted(() => {
             Sign in with Zenuxs OAuth to sync designs to your central server.
           </p>
         </div>
-        <div v-if="isAuthenticated && currentUser" class="flex items-center gap-3">
+        <div v-if="isAuthorized && currentUser" class="flex items-center gap-3">
           <img
             v-if="currentUser.picture"
             :src="currentUser.picture"

@@ -8,7 +8,10 @@
 
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
 
+import { DesignDocument } from '../src/db/models/Document.js'
 import { Session } from '../src/db/models/Session.js'
+import { User } from '../src/db/models/User.js'
+import { UserSettings } from '../src/db/models/UserSettings.js'
 import {
   clearDatabase,
   connectMemoryMongo,
@@ -314,5 +317,58 @@ describe('logout', () => {
     expect(restore.status).toBe(200)
     const restoredBody = (await restore.json()) as { user: { sub: string } }
     expect(restoredBody.user.sub).toBe(body.user.sub)
+  })
+
+  it('migrates guest documents and merges settings into an existing user without unique key collisions', async () => {
+    const guestRes = await harness.request('/api/auth/guest', { method: 'POST' })
+    const guestBody = (await guestRes.json()) as { user: { sub: string } }
+    const guestSub = guestBody.user.sub
+    const guestCookies = guestRes.headers
+      .getSetCookie()
+      .map((c) => c.split(';')[0])
+      .join('; ')
+    const guestCsrf =
+      guestRes.headers
+        .getSetCookie()
+        .find((c) => c.startsWith('zenuxs_csrf='))
+        ?.split(';')[0]
+        ?.slice('zenuxs_csrf='.length) ?? ''
+
+    await harness.request('/api/documents', {
+      method: 'POST',
+      cookies: guestCookies,
+      csrf: guestCsrf,
+      body: JSON.stringify({ documentId: 'guest-doc', title: 'Guest Work', payload: { a: 1 } })
+    })
+    await harness.request('/api/settings', {
+      method: 'POST',
+      cookies: guestCookies,
+      csrf: guestCsrf,
+      body: JSON.stringify({ aiModelSettings: { theme: 'cyberpunk' } })
+    })
+
+    const aliceSub = 'alice-registered'
+    await User.create({ sub: aliceSub, name: 'Alice', email: 'alice@example.com' })
+    await UserSettings.create({
+      ownerSub: aliceSub,
+      aiModelSettings: { existingPref: true }
+    })
+
+    const accessToken = harness.provider.issueAccessToken(aliceSub)
+    const signInRes = await harness.request('/api/auth/session', {
+      method: 'POST',
+      cookies: guestCookies,
+      body: JSON.stringify({ access_token: accessToken })
+    })
+    expect(signInRes.status).toBe(200)
+
+    const doc = await DesignDocument.findOne({ documentId: 'guest-doc' }).lean()
+    expect(doc?.ownerSub).toBe(aliceSub)
+
+    const aliceSettings = await UserSettings.findOne({ ownerSub: aliceSub }).lean()
+    expect(aliceSettings?.aiModelSettings).toEqual({ existingPref: true, theme: 'cyberpunk' })
+
+    expect(await UserSettings.countDocuments({ ownerSub: guestSub })).toBe(0)
+    expect(await User.countDocuments({ sub: guestSub })).toBe(0)
   })
 })

@@ -254,12 +254,8 @@ let sharedMemoryServer: MongoMemoryServer | null = null
 export async function connectMemoryMongo(): Promise<void> {
   if (mongoose.connection.readyState === 1) return
   if (!sharedMemoryServer) {
-    const { resolve } = await import('node:path')
     const { MongoMemoryServer } = await import('mongodb-memory-server')
-    const dbPath = resolve(process.cwd(), 'node_modules/.cache/mongodb-memory-server')
-    sharedMemoryServer = await MongoMemoryServer.create({
-      instance: { dbPath }
-    })
+    sharedMemoryServer = await MongoMemoryServer.create()
   }
   await mongoose.connect(sharedMemoryServer.getUri('zenuxs-test'))
   process.on('exit', () => {

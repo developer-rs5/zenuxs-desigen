@@ -172,7 +172,7 @@ export const documentSaveSchema = v.object({
       v.maxLength(2_000_000),
       // Only inline image data URLs are meaningful here; blocks `javascript:` URIs.
       v.regex(
-        /^data:image\/(png|jpeg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/,
+        /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/,
         'Preview must be a base64 image data URL'
       )
     )

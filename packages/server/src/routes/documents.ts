@@ -29,8 +29,10 @@ export function createDocumentsRouter(_deps: DocumentsRouterDeps): Router {
   /** GET /api/documents — lists only the caller's own documents. */
   router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     const sub = requireSubject(req)
+    const limit = Math.min(Math.max(1, Number(req.query.limit) || 100), 200)
     const documents = await DesignDocument.find({ ownerSub: sub })
       .sort({ updatedAt: -1 })
+      .limit(limit)
       .select('-payload')
       .lean()
     const formatted = documents.map((doc) => ({
@@ -94,16 +96,42 @@ export function createDocumentsRouter(_deps: DocumentsRouterDeps): Router {
     // original name so existing documents remain readable.
     if (previewDataURL !== undefined) fields.previewDataUrl = previewDataURL
 
-    const document = await DesignDocument.findOneAndUpdate(
-      { documentId, ownerSub: sub },
-      {
-        $set: fields,
-        $setOnInsert: { documentId, ownerSub: sub }
-      },
-      { upsert: true, new: true, runValidators: true }
-    ).lean()
+    try {
+      const document = await DesignDocument.findOneAndUpdate(
+        { documentId, ownerSub: sub },
+        {
+          $set: fields,
+          $inc: { version: 1 },
+          $setOnInsert: { documentId, ownerSub: sub }
+        },
+        { upsert: true, new: true, runValidators: true }
+      ).lean()
 
-    res.json({ success: true, document })
+      if (!document) {
+        res.status(500).json({ error: 'Failed to save document' })
+        return
+      }
+
+      res.json({
+        success: true,
+        document: {
+          ...document,
+          previewDataURL:
+            document.previewDataUrl ?? (document as { previewDataURL?: string }).previewDataURL
+        }
+      })
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: unknown }).code === 11000
+      ) {
+        res.status(409).json({ error: 'Document id already in use' })
+        return
+      }
+      throw error
+    }
   })
 
   /** DELETE /api/documents/:id — deletes a document the caller owns. */

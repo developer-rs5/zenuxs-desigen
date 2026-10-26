@@ -2,7 +2,7 @@ import { watch } from 'vue'
 import { createRouter, createWebHistory, type RouteLocationRaw } from 'vue-router'
 
 import { REDIRECT_QUERY_KEY, readRedirectTarget, signInRedirectFor } from '@/app/auth/redirect'
-import { authReady, isAuthenticated } from '@/app/auth/zenuxs'
+import { authReady, initAuth, isAuthenticated } from '@/app/auth/zenuxs'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -30,8 +30,16 @@ const router = createRouter({
 
 router.beforeEach(async (to): Promise<true | RouteLocationRaw> => {
   // An OAuth redirect returns with the authorization code on the current URL;
-  // the callback must be allowed to run before any auth decision is made.
-  if (to.query.code || to.query.access_token) return true
+  // wait for callback handling to complete and establish the server session,
+  // then navigate cleanly to the target destination without auth parameters.
+  if (to.query.code || to.query.access_token) {
+    await initAuth()
+    if (isAuthenticated.value) {
+      const target = readRedirectTarget(to.query[REDIRECT_QUERY_KEY])
+      return { path: target, query: {}, replace: true }
+    }
+    return { path: '/', query: {}, replace: true }
+  }
 
   // Wait for auth initialisation rather than bailing out early, otherwise a
   // protected route redirects to sign-in before the session has been restored

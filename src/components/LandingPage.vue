@@ -4,7 +4,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { readRedirectTarget } from '@/app/auth/redirect'
-import { authReady, currentUser, isAuthenticated, loginWithZenuxsTag } from '@/app/auth/zenuxs'
+import { authReady, currentUser, isAuthorized, loginWithZenuxsTag } from '@/app/auth/zenuxs'
 import GlassIcon from '@/components/originkit/GlassIcon.vue'
 import StarfieldButton from '@/components/originkit/StarfieldButton.vue'
 
@@ -20,9 +20,10 @@ const postSignInRoute = computed(() => readRedirectTarget(route.query.redirect))
 
 let revealObserver: IntersectionObserver | undefined
 
-// SPA-navigate once auth resolves if the visitor was redirected from a protected route.
+// SPA-navigate once auth resolves if the visitor was redirected from a protected route
+// or is an authorized (non-guest) user on the landing root.
 watch(
-  () => [authReady.value, isAuthenticated.value, route.query.redirect] as const,
+  () => [authReady.value, isAuthorized.value, route.query.redirect] as const,
   ([ready, authed, redirect]) => {
     if (!ready || !authed) return
     if (redirect || route.path === '/') void router.replace(postSignInRoute.value)
@@ -60,7 +61,7 @@ function setTheme(next: 'dark' | 'light') {
 
 async function handleGetStarted() {
   if (signingIn.value) return
-  if (isAuthenticated.value) {
+  if (isAuthorized.value) {
     router.push(postSignInRoute.value)
     return
   }
@@ -195,7 +196,7 @@ const marqueeWords = [
           <template v-if="!authReady">
             <div class="h-9 w-20 animate-pulse rounded-lg bg-panel-secondary" />
           </template>
-          <template v-else-if="isAuthenticated && currentUser">
+          <template v-else-if="isAuthorized && currentUser">
             <button class="profile-btn" @click="handleContinue">
               <img
                 v-if="currentUser.picture"
@@ -251,10 +252,10 @@ const marqueeWords = [
                 <button
                   class="zx-btn"
                   :disabled="signingIn"
-                  @click="isAuthenticated ? handleContinue() : handleGetStarted()"
+                  @click="isAuthorized ? handleContinue() : handleGetStarted()"
                 >
                   <template v-if="signingIn">Signing in…</template>
-                  <template v-else-if="isAuthenticated">Continue to editor</template>
+                  <template v-else-if="isAuthorized">Continue to editor</template>
                   <template v-else>Start designing →</template>
                 </button>
                 <button class="zx-btn ghost" @click="handleExplore">Open editor ⌘</button>
@@ -504,7 +505,7 @@ const marqueeWords = [
               </p>
               <button
                 class="final-input mono"
-                @click="isAuthenticated ? handleContinue() : handleGetStarted()"
+                @click="isAuthorized ? handleContinue() : handleGetStarted()"
               >
                 <span class="fi-mark">▸</span>
                 <span class="fi-text"
@@ -516,10 +517,10 @@ const marqueeWords = [
                 <button
                   class="zx-btn"
                   :disabled="signingIn"
-                  @click="isAuthenticated ? handleContinue() : handleGetStarted()"
+                  @click="isAuthorized ? handleContinue() : handleGetStarted()"
                 >
                   <template v-if="signingIn">Signing in…</template>
-                  <template v-else-if="isAuthenticated">Continue to editor →</template>
+                  <template v-else-if="isAuthorized">Continue to editor →</template>
                   <template v-else>Enter ZenuxsDesign →</template>
                 </button>
               </div>

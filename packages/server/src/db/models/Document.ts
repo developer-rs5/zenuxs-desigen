@@ -23,6 +23,8 @@ const DesignDocumentSchema = new Schema<IDesignDocument>(
   { timestamps: true }
 )
 
+DesignDocumentSchema.index({ ownerSub: 1, updatedAt: -1 })
+
 export const DesignDocument = mongoose.model<IDesignDocument>(
   'DesignDocument',
   DesignDocumentSchema
