@@ -214,7 +214,23 @@ export async function createAITools(store: EditorStore) {
   const toolList = [
     ...CORE_TOOLS.filter((def) => !(sourcing.available && UNVERIFIED_IMAGE_TOOLS.has(def.name))),
     ...EXTENDED_TOOLS.filter((def) =>
-      ['get_components', 'list_libraries', 'insert_library_component'].includes(def.name)
+      [
+        'get_components',
+        'list_libraries',
+        'insert_library_component',
+        'create_component',
+        'create_instance',
+        'combine_as_variants',
+        'create_variable',
+        'bind_variable',
+        'create_collection',
+        'list_variables',
+        'list_collections',
+        'export_image',
+        'boolean_union',
+        'boolean_subtract',
+        'design_to_tokens'
+      ].includes(def.name)
     ),
     ...(imageModel && !sourcing.available ? [generateImage] : []),
     ...(sourcing.available ? [sourceImage] : [])

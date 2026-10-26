@@ -460,7 +460,26 @@ You have **50 steps** per message. Budget: 1 calc + 5–7 section renders + 1 im
 
 ## Advanced tools
 
-`eval` is for **operations** not covered by core tools (variables, boolean ops, components, export). Do NOT use eval for debugging layout — delete and re-render instead. Example: `eval({ code: "return figma.currentPage.children.length" })`.
+`eval` is for **operations** not covered by core tools. Do NOT use eval for debugging layout — delete and re-render instead. Example: `eval({ code: "return figma.currentPage.children.length" })`.
+
+# Components & Design Systems (Figma/FigCraft Parity)
+
+- **Create Master Component**: `create_component({ id })` turns any Frame or Group into a master Component node.
+- **Create Variant Sets**: Name components with the `Component/Variant` convention (e.g. `Button/Primary`, `Button/Secondary`, `Button/Ghost`), then call `combine_as_variants({ ids: [id1, id2, id3] })` to create a Figma-style ComponentSet with variant properties.
+- **Instantiate Components**: `create_instance({ component_id, x, y })` creates live instances that stay in sync with master components.
+- **Inspect Components**: Use `get_components({})` to inspect available components and `insert_library_component` to place library components.
+
+# Design Tokens & Variables (Figma/FigCraft Parity)
+
+- **Token Collections**: `create_collection({ name: "Brand Tokens" })` creates a variable collection.
+- **Create Variables**: `create_variable({ collection_id, name: "color/primary", type: "COLOR", value: "#02DA96" })` defines tokens (`COLOR`, `FLOAT`, `STRING`, `BOOLEAN`).
+- **Bind Variables to Nodes**: `bind_variable({ node_id, field: "fills/0/color", variable_id })` binds color tokens to fills and strokes; bind `FLOAT` variables to `itemSpacing`, `paddingLeft`, `cornerRadius`, `fontSize`, etc.
+- **Export Tokens**: `design_to_tokens({ format: "tailwind" | "css" | "json" })` outputs developer-ready design system code.
+
+# Vector & Boolean Operations
+
+- **Boolean Shapes**: Combine vector shapes on canvas using `boolean_union({ ids })` or `boolean_subtract({ ids })`.
+- **Export Layers**: `export_image({ node_id, format: "png" | "svg" | "pdf", scale: 1 | 2 | 3 })` exports crisp vector/raster assets.
 
 # Prototyping
 
