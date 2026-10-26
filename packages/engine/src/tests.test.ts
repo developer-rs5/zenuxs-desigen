@@ -179,4 +179,84 @@ describe('engine session', () => {
     expect(info.name).toBe('Zenuxs App Design')
     expect(info.pages).toBe(1)
   })
+
+  test('board_sticky_and_timer', () => {
+    const s = new Session()
+    const sticky = s.execute('board.sticky.create', { text: 'Ship v2.0', color: 'pink', x: 50, y: 50 })
+    expect(sticky.ok).toBe(true)
+    const stickyId = sticky.id as number
+    expect(s.doc().node(stickyId)?.name).toContain('Ship v2.0')
+
+    const timer = s.execute('board.timer.start', { seconds: 120 })
+    expect(timer.running).toBe(true)
+    expect(timer.remainingSeconds).toBe(120)
+
+    const timerStatus = s.execute('board.timer.get', {})
+    expect(timerStatus.running).toBe(true)
+
+    s.execute('board.vote.cast', { node_id: stickyId })
+    const tally = s.execute('board.vote.tally', {})
+    expect(tally.votes[stickyId]).toBe(1)
+  })
+
+  test('structure_convert_and_wrap', () => {
+    const s = new Session()
+    const frameId = s.execute('shape.frame', { width: 120, height: 80 }).id as number
+    s.execute('object.convertToGroup', { ids: [frameId] })
+    expect(s.doc().node(frameId)?.kind.type).toBe('group')
+
+    s.execute('object.convertToFrame', { ids: [frameId] })
+    expect(s.doc().node(frameId)?.kind.type).toBe('frame')
+
+    const wrap = s.execute('object.wrapInSection', { ids: [frameId], name: 'Feature Block' })
+    expect(wrap.ok).toBe(true)
+    const sectionId = wrap.id as number
+    expect(s.doc().node(sectionId)?.kind.type).toBe('section')
+  })
+
+  test('arrange_distribute_and_flips', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 0, width: 50 }).id as number
+    const b = s.execute('shape.rectangle', { x: 100, width: 50 }).id as number
+    const c = s.execute('shape.rectangle', { x: 300, width: 50 }).id as number
+
+    s.execute('align.distributeH', { ids: [a, b, c], spacing: 20 })
+    expect(s.doc().node(a)?.transform.coeffs[4]).toBe(0)
+    expect(s.doc().node(b)?.transform.coeffs[4]).toBe(70)
+    expect(s.doc().node(c)?.transform.coeffs[4]).toBe(140)
+
+    s.execute('object.rotate180', { ids: [a] })
+    expect(s.doc().node(a)?.transform.coeffs[0]).toBe(-1)
+  })
+
+  test('vector_boolean_operations', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { width: 50, height: 50 }).id as number
+    const b = s.execute('shape.ellipse', { width: 50, height: 50 }).id as number
+    const union = s.execute('vector.boolean.union', { ids: [a, b] })
+    expect(union.ok).toBe(true)
+    expect(union.op).toBe('union')
+  })
+
+  test('codegen_inspect_and_css', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { width: 120, height: 60 }).id as number
+    const inspect = s.execute('dev.inspect', { id })
+    expect(inspect.width).toBe(120)
+    expect(inspect.height).toBe(60)
+
+    const css = s.execute('dev.code.css', { id })
+    expect(css.code).toContain('width: 120px;')
+    expect(css.code).toContain('height: 60px;')
+  })
+
+  test('templates_list_and_create', () => {
+    const s = new Session()
+    const list = s.execute('template.list', {})
+    expect(list.templates.length).toBe(8)
+
+    const created = s.execute('template.create', { id: 'mobile-app' })
+    expect(created.ok).toBe(true)
+    expect(created.rootIds.length).toBe(4) // 4 mobile screens
+  })
 })

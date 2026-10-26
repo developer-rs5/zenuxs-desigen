@@ -8,6 +8,12 @@ import { AutoLayout, Node, type NodeId } from '@zenuxs/doc'
 import { Affine, RectMath, rounded_rect, ellipse, polygon_points, star_points, transform_rect_bbox, type Radii } from '@zenuxs/geom'
 import { ok, spec, type CommandSpec, type Session } from '../lib'
 import { allAdvancedSpecs } from './advanced'
+import { ARRANGE_EXTENDED_SPECS } from './arrange'
+import { BOARD_SPECS } from './boards'
+import { CODEGEN_SPECS } from './codegen'
+import { STRUCTURE_EXTENDED_SPECS } from './structure'
+import { TEMPLATE_SPECS } from './templates'
+import { VECTOREDIT_SPECS } from './vectoredit'
 
 // ------------------------------ create.rs ------------------------------
 
@@ -701,10 +707,16 @@ export function allCoreSpecs(): CommandSpec[] {
     ...CREATE_SPECS,
     ...EDIT_SPECS,
     ...ARRANGE_SPECS,
+    ...ARRANGE_EXTENDED_SPECS,
     ...STRUCTURE_SPECS,
+    ...STRUCTURE_EXTENDED_SPECS,
     ...PAGE_SPECS,
     ...VIEW_SPECS,
     ...PROTO_SPECS,
+    ...BOARD_SPECS,
+    ...VECTOREDIT_SPECS,
+    ...CODEGEN_SPECS,
+    ...TEMPLATE_SPECS,
     ...allAdvancedSpecs()
   ]
 }

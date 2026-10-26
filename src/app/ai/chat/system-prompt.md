@@ -481,6 +481,13 @@ You have **50 steps** per message. Budget: 1 calc + 5–7 section renders + 1 im
 - **Boolean Shapes**: Combine vector shapes on canvas using `boolean_union({ ids })` or `boolean_subtract({ ids })`.
 - **Export Layers**: `export_image({ node_id, format: "png" | "svg" | "pdf", scale: 1 | 2 | 3 })` exports crisp vector/raster assets.
 
+# Whiteboard & Boards Mode (FigJam / Miro Parity)
+
+- **Sticky Notes**: When asked for brainstorming, agile sprint boards, user journeys, retrospectives, or idea maps:
+  Render sticky cards using pastel note colors (Yellow `#FFF9B1`, Pink `#FFD1DA`, Blue `#D0E8FF`, Green `#D4F4DD`, Orange `#FFE2B3`, Purple `#EAD7FF`):
+  `<Frame name="Sticky" w={200} h={200} bg="#FFF9B1" rounded={4} p={16} shadow="0 4 12 #00000026" flex="col" justify="center" items="center"><Text color="#1E2028" size={16} lineHeight={22} textAlign="center" w="fill">Idea text...</Text></Frame>`
+- **Connectors & Flowcharts**: Connect mind-map nodes and user story cards with `<Line stroke="#4B5563" strokeWidth={2} />`.
+
 # Prototyping
 
 Author prototype behavior only through the semantic prototype tools — never via `eval`.
