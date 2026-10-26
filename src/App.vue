@@ -6,7 +6,6 @@ import { defineAsyncComponent, onMounted } from 'vue'
 
 import { provideEditor, useI18n } from '@open-pencil/vue'
 
-import { initAuth } from '@/app/auth/zenuxs'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useAppTheme } from '@/app/shell/theme'
 import { toast } from '@/app/shell/ui'
@@ -48,7 +47,6 @@ onMounted(() => {
   toast.setupGlobalErrorHandler()
   scheduleStartupUpdateCheck(updates)
   void import('@/app/storage/sync').then(({ kickSyncEngine }) => kickSyncEngine())
-  void initAuth()
 })
 </script>
 

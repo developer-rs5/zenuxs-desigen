@@ -36,7 +36,7 @@ router.beforeEach(async (to): Promise<true | RouteLocationRaw> => {
   // Wait for auth initialisation rather than bailing out early, otherwise a
   // protected route redirects to sign-in before the session has been restored
   // from its cookie.
-  if (!authReady.value) {
+  if (!authReady.value && !isAuthenticated.value) {
     await new Promise<void>((resolve) => {
       const stop = watch(authReady, (ready) => {
         if (ready) {

@@ -2,10 +2,13 @@ import { createHead } from '@unhead/vue/client'
 import { createApp } from 'vue'
 
 import './app.css'
+import { initAuth } from '@/app/auth/zenuxs'
 import { IS_TAURI } from '@/constants'
 
 import App from './App.vue'
 import router from './router'
+
+void initAuth()
 
 const head = createHead()
 createApp(App).use(router).use(head).mount('#app')

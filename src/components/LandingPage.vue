@@ -24,7 +24,8 @@ let revealObserver: IntersectionObserver | undefined
 watch(
   () => [authReady.value, isAuthenticated.value, route.query.redirect] as const,
   ([ready, authed, redirect]) => {
-    if (ready && authed && redirect) router.push(postSignInRoute.value)
+    if (!ready || !authed) return
+    if (redirect || route.path === '/') void router.replace(postSignInRoute.value)
   },
   { immediate: true }
 )
