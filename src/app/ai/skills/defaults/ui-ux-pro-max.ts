@@ -53,6 +53,7 @@ When designing, building, or reviewing web interfaces, landing pages, dashboards
    - Mobile-first responsive layout (breakpoints: 640px, 768px, 1024px, 1280px).
    - Strict 8px spacing system: 4px, 8px, 16px, 24px, 32px, 48px, 64px, 96px.
    - Viewport meta tag mandatory. No horizontal overflow or forced horizontal scrolling.
+   - PERMANENT MOBILE DEVICE TEMPLATE (MANDATORY): In ZenuxsDesign, all mobile app screens MUST be built inside the permanent iPhone 16 Pro device mockup template (outer chassis w=426 h=886 rounded=54 with side buttons, screen viewport w=393 h=852 rounded=44, Dynamic Island status bar h=54, content area, and bottom home indicator h=34). Never render a bare floating rectangle for mobile designs.
 
 6. TYPOGRAPHY & COLOR HARMONY (MEDIUM):
    - Curated font pairings matching the brand identity:

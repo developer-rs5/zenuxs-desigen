@@ -22,6 +22,7 @@ import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
 import { createAIModelRuntime, resolveModelConnectionAPIKey } from '@/app/ai/models'
 import type { ImageGenerationReason } from '@/app/ai/models/image'
 import { getActiveSkillsPrompt } from '@/app/ai/skills'
+import { isMobileDesignPrompt } from '@/app/ai/templates/mobile-device'
 import {
   MAX_AGENT_STEPS,
   createAITools,
@@ -258,10 +259,15 @@ export async function createToolLoopTransport({
       resetRunSteps(store)
       // Variation is assigned per run, not per session: two requests in one
       // conversation must not inherit one direction.
-      const variation = nextDesignVariationDirective(lastUserMessageText(options))
+      const userText = lastUserMessageText(options)
+      const variation = nextDesignVariationDirective(userText)
+      const mobileDirective = isMobileDesignPrompt(userText)
+        ? '\n\n[MOBILE DESIGN REQUIREMENT: This request is for a mobile application. You MUST enclose the screen(s) in the permanent iPhone 16 Pro Device Mockup Template (w=426, h=886, rounded=54, chassis with side buttons, screen viewport 393×852 with rounded=44, Dynamic Island status bar h=54, and bottom home indicator h=34). Do NOT render a bare floating rectangle.]'
+        : ''
+      const callInstructions = `${instructions}${variation ? `\n\n${variation}` : ''}${mobileDirective}`
       return {
         ...options,
-        instructions: variation ? `${instructions}\n\n${variation}` : instructions,
+        instructions: callInstructions,
         maxOutputTokens,
         providerOptions
       }

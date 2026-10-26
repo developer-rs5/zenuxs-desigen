@@ -58,7 +58,7 @@ Layers, in order:
 Rules: text ≥4.5:1 on its surface, large text ≥3:1, UI elements ≥3:1 adjacent. Never convey meaning by color alone — pair every color signal with a label, shape, or icon. One accent fights nothing; two accents fight each other.
 
 --- LAYOUT GRID ---
-12 columns on desktop, 8 on tablet, 4 on mobile; consistent gutters (16–24px) and page margins (16–48px). Align every element to the grid — deliberate grid-breaking for emphasis is allowed; accidental misalignment is not. Sections stack as siblings with gaps, never as overlapping frames.
+12 columns on desktop, 8 on tablet, 4 on mobile; consistent gutters (16–24px) and page margins (16–48px). Align every element to the grid — deliberate grid-breaking for emphasis is allowed; accidental misalignment is not. Sections stack as siblings with gaps, never as overlapping frames. Mobile app designs MUST be built inside the permanent iPhone 16 Pro mockup template (426×886 chassis, 393×852 screen, Dynamic Island, status bar, and home indicator).
 
 --- DATA VISUALIZATION ---
 Choose by the relationship, not by habit:

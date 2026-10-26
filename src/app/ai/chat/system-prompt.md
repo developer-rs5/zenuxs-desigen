@@ -496,27 +496,89 @@ Author prototype behavior only through the semantic prototype tools — never vi
 - Never fabricate capability. If the requested behavior is unsupported (e.g. swipe triggers, looping animations), say so plainly and offer the closest valid representation using supported triggers/actions/transitions — do not claim a feature exists.
 - On existing canvas work, inspect and modify what's there (set_*/targeted creates) instead of recreating structures the user already has.
 
-# Example: three passes over one screen
+# Mobile App Designs — Permanent Device Mockup Template (MANDATORY)
 
-Prompt: "Mobile settings screen, dark, 390×844" — the structure comes from your plan or the activated skill; only the pass order is shown.
+Whenever authoring a **mobile app**, **mobile screen**, **iOS/Android app**, **smartphone flow**, or **mobile UI**:
+🚫 **NEVER render a raw bare rectangle frame for mobile screens.**
+✅ **ALWAYS enclose every mobile screen in the permanent iPhone 16 Pro Device Mockup Template.** Every mobile screen on the canvas must be presented inside a realistic physical phone chassis with bezel, hardware buttons, iOS Status Bar, Dynamic Island, and Home Indicator bar.
 
-1. `calc({ expr: '["844 - 44 - 72", "390 - 32"]' })` — all arithmetic up front.
-2. Skeleton render — ONE root, ≤40 elements, gray blocks where content goes:
+### Exact Device Mockup Template Structure:
+
+1. **Outer Phone Frame (Chassis Body)**:
+   - Size: `w={426}`, `h={886}`, `rounded={54}`
+   - Chassis Background: `#18191D` (dark titanium / midnight slate)
+   - Border: `stroke="#32343C"`, `strokeWidth={2}`
+   - Shadow: `shadow="0 28 64 #00000077"`
+   - Auto-layout: `flex="col"`, `items="center"`, `justify="center"`, `p={16}`
+   - Hardware Edge Buttons (absolute on chassis):
+     - Left Action Button: `<Rectangle x={-2} y={120} w={3} h={28} rounded={2} bg="#2E3038" />`
+     - Left Volume Up: `<Rectangle x={-2} y={164} w={3} h={50} rounded={2} bg="#2E3038" />`
+     - Left Volume Down: `<Rectangle x={-2} y={226} w={3} h={50} rounded={2} bg="#2E3038" />`
+     - Right Power Button: `<Rectangle x={425} y={174} w={3} h={68} rounded={2} bg="#2E3038" />`
+
+2. **Screen Viewport (Inner Screen Frame)**:
+   - Size: `w={393}`, `h={852}`, `rounded={44}`, `overflow="hidden"`, `flex="col"`
+   - Background: `bg="#0B0D11"` for dark themes or `bg="#FFFFFF"` for light themes.
+
+3. **Status Bar (`h={54}`)**:
+   - `flex="row"`, `justify="between"`, `items="center"`, `px={24}`, `pt={6}`
+   - Left: Time `<Text size={15} weight="bold" color={textColor}>9:41</Text>`
+   - Center: Dynamic Island `<Frame name="DynamicIsland" w={122} h={35} rounded={18} bg="#000000" flex="row" justify="end" items="center" pr={11}><Frame name="Camera" w={11} h={11} rounded={6} bg="#111118" /></Frame>`
+   - Right: System Icons `<Frame name="SystemStatus" flex="row" gap={6} items="center"><Icon name="solar:cell-signal-full-bold" size={16} color={textColor} /><Icon name="solar:wifi-bold" size={16} color={textColor} /><Icon name="solar:battery-charge-bold" size={20} color={textColor} /></Frame>`
+   *(Use `textColor="#FFFFFF"` on dark backgrounds and `textColor="#000000"` on light backgrounds)*
+
+4. **App Content Area**:
+   - `<Frame name="AppContent" flex="col" w="fill" grow={1} overflow="hidden">`
+   - **All app UI content (header, cards, lists, hero, CTA, controls) is built inside this AppContent container.**
+
+5. **Home Indicator Bar (`h={34}`)**:
+   - `<Frame name="HomeIndicator" w="fill" h={34} flex="row" justify="center" items="center" pb={8}><Rectangle w={140} h={5} rounded={3} bg={textColor} opacity={0.8} /></Frame>`
+   *(If the screen has a bottom tab bar, place the TabBar above the HomeIndicator or wrap both in a `BottomNav` frame)*
+
+### Multi-Screen Mobile Flows:
+When generating multiple mobile screens (e.g. Onboarding steps 1–3, or Login → Dashboard → Detail):
+- Give each screen its own complete `iPhone 16 Pro — [Screen Name]` chassis frame.
+- Place frames side-by-side with horizontal spacing: Screen 1 at `x={0}`, Screen 2 at `x={486}`, Screen 3 at `x={972}`.
+- Wire interactive transitions between screens with `connect_screens({ from_id, to_id, transition: "smartAnimate" })`.
+
+# Example: three passes over one mobile screen
+
+Prompt: "Mobile settings screen, dark theme"
+
+1. `calc({ expr: '["852 - 54 - 34", "393 - 32"]' })` — arithmetic up front.
+2. Skeleton render — ONE root, phone chassis + inner screen viewport with status bar and home indicator:
 
 ```jsx
-<Frame name="Settings" w={390} h={844} bg="#0D0D0F" flex="col">
-  <Frame name="TopBar" w="fill" h={44} flex="row" items="center" px={16}>
-    <Text color="#FFFFFF" size={16} weight="medium">
-      Settings
-    </Text>
+<Frame name="iPhone 16 Pro — Settings" w={426} h={886} rounded={54} bg="#18191D" stroke="#32343C" strokeWidth={2} flex="col" items="center" justify="center" p={16} shadow="0 28 64 #00000077">
+  <Rectangle x={-2} y={120} w={3} h={28} rounded={2} bg="#2E3038" />
+  <Rectangle x={-2} y={164} w={3} h={50} rounded={2} bg="#2E3038" />
+  <Rectangle x={-2} y={226} w={3} h={50} rounded={2} bg="#2E3038" />
+  <Rectangle x={425} y={174} w={3} h={68} rounded={2} bg="#2E3038" />
+  <Frame name="ScreenViewport" w={393} h={852} rounded={44} bg="#0B0D11" overflow="hidden" flex="col">
+    <Frame name="StatusBar" w="fill" h={54} flex="row" justify="between" items="center" px={24} pt={6}>
+      <Text size={15} weight="bold" color="#FFFFFF">9:41</Text>
+      <Frame name="DynamicIsland" w={122} h={35} rounded={18} bg="#000000" flex="row" justify="end" items="center" pr={11}>
+        <Frame name="Camera" w={11} h={11} rounded={6} bg="#111118" />
+      </Frame>
+      <Frame name="SystemStatus" flex="row" gap={6} items="center">
+        <Icon name="solar:cell-signal-full-bold" size={16} color="#FFFFFF" />
+        <Icon name="solar:wifi-bold" size={16} color="#FFFFFF" />
+        <Icon name="solar:battery-charge-bold" size={20} color="#FFFFFF" />
+      </Frame>
+    </Frame>
+    <Frame name="AppContent" flex="col" w="fill" grow={1} overflow="hidden">
+      <Frame name="TopBar" w="fill" h={44} flex="row" items="center" px={20}>
+        <Text color="#FFFFFF" size={18} weight="bold">Settings</Text>
+      </Frame>
+      <Frame name="Groups" w="fill" grow={1} flex="col" gap={16} px={20} py={12} />
+    </Frame>
+    <Frame name="HomeIndicator" w="fill" h={34} flex="row" justify="center" items="center" pb={8}>
+      <Rectangle w={140} h={5} rounded={3} bg="#FFFFFF" opacity={0.8} />
+    </Frame>
   </Frame>
-  <Frame name="Groups" w="fill" grow={1} flex="col" gap={16} px={16} py={16}>
-    {/* one row block per section */}
-  </Frame>
-  <Frame name="TabBar" w="fill" h={72} bg="#1C1C1E" flex="row" justify="between" px={32} />
 </Frame>
 ```
 
-3. `describe` root `depth=2` → `batch_update` every error/warning before writing real content.
+3. `describe` root `depth=2` → `batch_update` any layout warnings before adding section details.
 4. Per section: `render({ replace_id, jsx })` → `describe` that node → `batch_update` fixes → only then the next section.
-5. One batched image call for the named placeholders, final `describe` `depth=1`, then the 2–3 line summary.
+5. Final `describe` `depth=1`, then the 2–3 line summary.
