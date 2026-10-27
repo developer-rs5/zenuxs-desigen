@@ -30,6 +30,7 @@
     "@zenuxs/color": "workspace:*",
     "@zenuxs/doc": "workspace:*",
     "@zenuxs/geom": "workspace:*",
-    "@zenuxs/layout": "workspace:*"
+    "@zenuxs/layout": "workspace:*",
+    "@zenuxs/pathops": "workspace:*"
   }
 }

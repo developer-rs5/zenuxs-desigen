@@ -129,6 +129,18 @@
       ],
       "@zenuxs/layout/*": [
         "./packages/layout/src/*"
+      ],
+      "@zenuxs/pathops": [
+        "./packages/pathops/src/index.ts"
+      ],
+      "@zenuxs/pathops/*": [
+        "./packages/pathops/src/*"
+      ],
+      "@zenuxs/plugin": [
+        "./packages/plugin/src/index.ts"
+      ],
+      "@zenuxs/plugin/*": [
+        "./packages/plugin/src/*"
       ]
     }
   },

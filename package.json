@@ -143,6 +143,8 @@
     "@zenuxs/format": "workspace:*",
     "@zenuxs/geom": "workspace:*",
     "@zenuxs/layout": "workspace:*",
+    "@zenuxs/pathops": "workspace:*",
+    "@zenuxs/plugin": "workspace:*",
     "@zenuxs/render": "workspace:*",
     "acorn": "^8.18.0",
     "ai": "^7.0.66",

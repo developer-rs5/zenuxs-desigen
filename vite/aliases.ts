@@ -63,6 +63,10 @@ export function createOpenPencilAliases(rootDir: string) {
     { find: '@zenuxs/format', replacement: resolve(rootDir, 'packages/format/src') },
     { find: /^@zenuxs\/render$/, replacement: resolve(rootDir, 'packages/render/src/index.ts') },
     { find: '@zenuxs/render', replacement: resolve(rootDir, 'packages/render/src') },
+    { find: /^@zenuxs\/pathops$/, replacement: resolve(rootDir, 'packages/pathops/src/index.ts') },
+    { find: '@zenuxs/pathops', replacement: resolve(rootDir, 'packages/pathops/src') },
+    { find: /^@zenuxs\/plugin$/, replacement: resolve(rootDir, 'packages/plugin/src/index.ts') },
+    { find: '@zenuxs/plugin', replacement: resolve(rootDir, 'packages/plugin/src') },
     {
       find: 'opentype.js',
       replacement: resolve(rootDir, 'node_modules/opentype.js/dist/opentype.mjs')
