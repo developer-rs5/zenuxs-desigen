@@ -142,12 +142,8 @@ function onRailTabSelect(tab: 'file' | 'assets' | 'variables' | 'ai') {
       <MobileDrawer />
     </div>
 
-    <!-- UI Hidden state -->
-    <div
-      v-else-if="showChrome"
-      :key="'collapsed-' + activeTab?.id"
-      class="flex flex-1 overflow-hidden"
-    >
+    <!-- Chrome hidden by a test/focus URL: the canvas still fills the window -->
+    <div v-else :key="'bare-' + activeTab?.id" class="flex flex-1 overflow-hidden">
       <div class="relative flex min-w-0 flex-1">
         <EditorCanvas />
       </div>
