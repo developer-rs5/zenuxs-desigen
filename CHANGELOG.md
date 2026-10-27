@@ -52,6 +52,8 @@
 - Report accessibility problems from `describe`: prototype touch targets under 44×44, prototype interactions on text with no visible label, and text contrast measured against its real background with WCAG AA ratios.
 - Give each design request its own visual direction: the assigned composition, palette, type pairing, and signature element ride on the request so consecutive prompts in one conversation produce visibly different layouts instead of a repeated template, while explicit brief constraints always win.
 - Ship `impeccable` as a default design skill next to `ui-ux-pro-max` and `taste`, so the model's craft floor, anti-default calibration, and anti-repetition rules are active in every session and listed under Settings → Skills.
+- Install, run, and uninstall WASM plugins from a marketplace dialog backed by the real sandboxed runtime: host-call budgets, log and message limits, persisted installs, and per-run output and logs, while catalog-only entries state why they cannot run instead of pretending to execute.
+- Open another editor window from the left rail in the desktop app, focusing an existing window instead of rebuilding it when its label is reused.
 
 ### Changed
 
@@ -147,6 +149,7 @@
 - Preserve circles, ellipses, rectangles, lines, polylines, and polygons supplied as JSX children of inline SVG elements. (#452)
 - Preserve component links when pasting Figma instances so later component edits continue to update them.
 - Stop local MCP servers after the app disconnects instead of leaving orphaned background processes. (#494)
+- Heal vector paths when points are deleted: each removed point that joined two segments leaves one merged curve that still passes through it, and deleting several points at once keeps the fill regions intact on the canvas and through `vector.deleteHeal`.
 
 ### Performance
 
