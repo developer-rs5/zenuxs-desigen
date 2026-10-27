@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 
 import { currentUser } from '@/app/auth/zenuxs'
+import { openNewEditorWindow } from '@/app/desktop/window'
 import { openProjectsDialog } from '@/app/projects/dialog'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import Tip from '@/components/ui/overlay/Tip.vue'
@@ -162,6 +163,17 @@ const userInitials = computed(() => {
 
     <!-- Bottom: User avatar + Settings -->
     <div class="flex flex-col items-center gap-1.5">
+      <Tip label="New Window">
+        <button
+          type="button"
+          data-test-id="app-new-window"
+          class="flex size-7 items-center justify-center rounded text-[#888888] transition-colors hover:bg-[#383838] hover:text-white"
+          @click="openNewEditorWindow()"
+        >
+          <icon-lucide-app-window class="size-4" />
+        </button>
+      </Tip>
+
       <Tip :label="currentUser?.email || 'User Account'">
         <div
           class="flex size-7 items-center justify-center rounded-full bg-[#02DA96] text-[11px] font-bold text-[#07352A] shadow-sm cursor-pointer"

@@ -4,7 +4,6 @@ mod fonts;
 mod http;
 mod menu;
 mod menu_events;
-#[cfg(target_os = "macos")]
 mod window;
 
 use credentials::{
@@ -24,6 +23,7 @@ use tauri::{Emitter, Manager};
 use tauri_plugin_fs::FsExt;
 #[cfg(target_os = "macos")]
 use window::show_main_window;
+use window::create_new_window;
 
 #[derive(Clone, serde::Serialize)]
 struct PendingOpenFile {
@@ -141,6 +141,7 @@ pub fn run() {
         .manage(PendingOpen(Mutex::new(Vec::new())))
         .invoke_handler(tauri::generate_handler![
             build_fig_file,
+            create_new_window,
             credential_read,
             credential_access_paused,
             credential_retry_access,
