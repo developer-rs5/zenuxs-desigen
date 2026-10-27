@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from 'reka-ui'
 import { tv } from 'tailwind-variants'
+import { ref } from 'vue'
 
 import { useViewportKind } from '@open-pencil/vue'
+
 import { useAIChat } from '@/app/ai/chat/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { appRuntimeConfig } from '@/app/runtime/config'
@@ -15,6 +16,7 @@ import LayersPanel from '@/components/LayersPanel.vue'
 import MobileDrawer from '@/components/MobileDrawer.vue'
 import MobileHud from '@/components/MobileHud/MobileHud.vue'
 import LeftRail from '@/components/navigation/LeftRail.vue'
+import PluginsDialog from '@/components/plugins/PluginsDialog.vue'
 import PropertiesPanel from '@/components/PropertiesPanel.vue'
 import Toolbar from '@/components/Toolbar/Toolbar.vue'
 import VariablesDialog from '@/components/variables/VariablesDialog.vue'
@@ -31,6 +33,7 @@ const horizontalSplitterStyles = tv(splitterTheme)({ direction: 'horizontal' })
 const railTab = ref<'file' | 'assets' | 'variables' | 'ai'>('file')
 const leftCollapsed = ref(false)
 const variablesDialogOpen = ref(false)
+const pluginsDialogOpen = ref(false)
 
 function onRailTabSelect(tab: 'file' | 'assets' | 'variables' | 'ai') {
   if (tab === 'variables') {
@@ -62,6 +65,7 @@ function onRailTabSelect(tab: 'file' | 'assets' | 'variables' | 'ai') {
       @select-tab="onRailTabSelect"
       @toggle-collapse="leftCollapsed = !leftCollapsed"
       @open-home="showNewTab"
+      @open-plugins="pluginsDialogOpen = true"
     />
 
     <!-- 2. Main 3-Column Splitter: Layers Panel | Canvas with Floating Dock | Properties Panel -->
@@ -151,5 +155,8 @@ function onRailTabSelect(tab: 'file' | 'assets' | 'variables' | 'ai') {
 
     <!-- Variables Modal Dialog -->
     <VariablesDialog v-model:open="variablesDialogOpen" />
+
+    <!-- Plugins Marketplace Dialog -->
+    <PluginsDialog v-model="pluginsDialogOpen" />
   </div>
 </template>

@@ -16,6 +16,7 @@ const emit = defineEmits<{
   toggleCollapse: []
   openHome: []
   openMenu: []
+  openPlugins: []
 }>()
 
 const userInitials = computed(() => {
@@ -120,6 +121,20 @@ const userInitials = computed(() => {
             :class="[activeTab === 'variables' && !collapsed ? 'text-[#52E9B7]' : 'text-[#B3B3B3] group-hover:text-white']"
           />
           <span class="mt-1 text-[10px] font-medium">Variables</span>
+        </button>
+      </Tip>
+
+
+      <!-- Plugins & Extensions -->
+      <Tip label="Plugins & Extensions">
+        <button
+          type="button"
+          class="group flex w-12 flex-col items-center justify-center rounded-md py-1.5 transition-colors text-[#B3B3B3] hover:bg-[#383838] hover:text-white"
+          data-test-id="rail-plugins-tab"
+          @click="emit('openPlugins')"
+        >
+          <icon-lucide-box class="size-4 text-[#B3B3B3] group-hover:text-white" />
+          <span class="mt-1 text-[10px] font-medium">Plugins</span>
         </button>
       </Tip>
 

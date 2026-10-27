@@ -460,6 +460,11 @@ export class ZenuxsBridge {
     return doc
   }
 
+  /** The engine id for a SceneGraph node id (meaningful after `syncToZenuxs`). */
+  toEngineId(sceneGraphId: string): NodeId {
+    return this.idMap.toNum(sceneGraphId)
+  }
+
   /** Synchronizes changes from the Zenuxs engine back into SceneGraph. */
   syncFromZenuxs(): SceneGraph {
     const session = getZenuxsEngine()
