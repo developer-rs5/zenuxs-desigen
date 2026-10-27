@@ -1,17 +1,19 @@
 # FigCraft vs. ZenuxsDesign: Full Feature, Tool, Ecosystem & AI Usability Audit
 
-> **Date:** 2026-10-26  
+> **Date:** 2026-10-26 (completion claims corrected 2026-10-27)  
 > **Source References:**  
-> - Reference: `/home/azaz/reference-outside-workspace/figcraft` (Rust clean-room Figma reimplementation, 16 crates, 560+ commands)  
-> - Implementation: `/home/azaz/Projects/zenuxs-desigen` (Vue 3 + CanvasKit WASM + Yoga WASM + `@zenuxs/*` TS port + Generative AI engine)
+> - Reference: `/home/azaz/reference-outside-workspace/figcraft` (Rust clean-room Figma reimplementation, 16 crates, 570 registered command specs)  
+> - Implementation: `/home/azaz/Projects/zenuxs-desigen` (Vue 3 + CanvasKit WASM + Yoga WASM + partial `@zenuxs/*` TS port + generative AI layer)
+>
+> **Reading this document:** Part 1 is a capability inventory with estimated parity, not a measured score. The running app still uses the OpenPencil editor: 334 files under `src/` import `@open-pencil/*`, while 4 import `@zenuxs/*`; the Zenuxs packages are wired in through the engine bridge, the `.zenuxs` format, the plugin runtime, and AI tools. Part 2 reports measured source size per crate — the only objective comparison included here. It is not a functional-parity metric, because both sides count tests. Since the first draft, vector path healing, the in-app plugin marketplace, and desktop multi-window have shipped.
 
 ---
 
 ## Part 1: Comprehensive Comparison Matrix (21 Feature Areas)
 
-| # | Feature Area | FigCraft (Rust Reference) | ZenuxsDesign (Current Status) | Parity Status | Can AI Use It? | How AI Uses It (Tool / Syntax / Command) |
+| # | Feature Area | FigCraft (Rust Reference) | ZenuxsDesign (Current Status) | Parity Estimate (unmeasured) | Can AI Use It? | How AI Uses It (Tool / Syntax / Command) |
 |---|---|---|---|---|---|---|
-| **1** | **Canvas & Navigation** | Pan, zoom (0.02×–256×), rulers, guides, layout grids, pixel grid, outline mode, zoom-to-fit, multi-window. | Pan, zoom, on-canvas rulers, guides, layout grids, pixel grid, zoom dropdown, fit selection/canvas. | **95% Parity** (single window web/desktop). | **YES** | `viewport_zoom_to_fit({})`, `view.zoomIn`, `view.zoomFit`, `describe({ depth })`. |
+| **1** | **Canvas & Navigation** | Pan, zoom (0.02×–256×), rulers, guides, layout grids, pixel grid, outline mode, zoom-to-fit, multi-window. | Pan, zoom, on-canvas rulers, guides, layout grids, pixel grid, zoom dropdown, fit selection/canvas, additional desktop windows. | **95% Parity** (additional windows on desktop; browser falls back to a popup). | **YES** | `viewport_zoom_to_fit({})`, `view.zoomIn`, `view.zoomFit`, `describe({ depth })`. |
 | **2** | **Selection & Transform** | Snapping (distance/geometry), rotate, flip H/V, resize constraints, numeric input, multi-select. | Canvas selection, marquee, bounding box handles, rotation, flip H/V, distribute spacing, numeric fields. | **95% Parity** | **YES** | `update_node({ id, x, y, width, height, rotation })`, `transform.move`, `transform.resize`, `align.distributeH`, `object.flipH/V`. |
 | **3** | **Layers & Document Hierarchy** | Pages list, layer tree, reorder, group, ungroup, frame selection, lock, hide, rename, search. | FigCraft-style left rail (56px) + split pages & layer tree, drag-reorder, rename, eye/lock toggles. | **100% Parity** | **YES** | `object.group`, `object.ungroup`, `rename_node({ id, name })`, `set_locked`, `set_visible`, `reparent_node`. |
 | **4** | **Shapes & Vector Drawing** | Rectangles, ellipses, lines, arrows, polygons, stars, Bézier Pen/Pencil, path edit, corner smoothing, Boolean ops, shape builder. | Rect, ellipse, polygon, star, line, vector network blobs, CanvasKit pen tool, Boolean Union/Subtract/Intersect/Exclude. | **90% Parity** (Shape Builder UI manual drag is partial). | **YES** | JSX `<Rectangle>`, `<Ellipse>`, `<Line>`, `<Star points={5} innerRadius={0.4}>`, `boolean_union({ ids })`, `boolean_subtract({ ids })`. |
@@ -29,34 +31,46 @@
 | **16** | **Assets & File Import/Export** | SVG import/export, PNG/JPG/WebP/PDF export (1x, 2x, 3x), `.figcraft` zip, experimental `.fig` reader/writer. | SVG import/export, PNG/PDF export, native `.zenuxs` zip archive (`document.json` + `images/` + `thumbnail.png`), Figma `.fig` import. | **90% Parity** | **YES** | `export_image({ node_id, format: "png"\|"svg"\|"pdf", scale: 1\|2\|3 })`, `vector.export`. |
 | **17** | **Whiteboard & Boards Mode** | Whiteboard canvas: sticky notes, connectors, shared timer, voting. | `@zenuxs/engine/src/cmd/boards.ts`: `board.sticky.create`, `board.connector.create`, `board.timer`, `board.vote.cast/tally`. | **90% Parity** | **YES** | `board.sticky.create({ text, color, x, y })`, `board.connector.create({ from, to })`, or JSX `<Frame name="Sticky" ...>`. |
 | **18** | **Starter Templates** | 8 built-in templates: Mobile App, Landing Page, Dashboard, Design System, Wireframe, Slides, Social, Icon Set. | `@zenuxs/engine/src/cmd/templates.ts`: `template.list`, `template.create` supporting all 8 starter templates. | **95% Parity** | **YES** | `template.list({})`, `template.create({ id: "mobile-app" \| "landing-page" \| "dashboard" \| ... })`. |
-| **19** | **WASM Sandboxed Plugins** | Sandboxed WASM plugin runtime (`wasmi`), memory caps, fuel metering, host calls, plugin UI panels. | `@zenuxs/plugin`: Browser/Node standard WebAssembly sandbox (`runPlugin`), fuel metering, host command dispatch, manifest validation. | **85% Parity** (plugin marketplace UI pending). | **PARTIAL** (Host/Developer feature). | Runs compiled `.wasm` binaries via `runPlugin(wasmBytes, host)`. |
+| **19** | **WASM Sandboxed Plugins** | Sandboxed WASM plugin runtime (`wasmi`), memory caps, fuel metering, host calls, plugin UI panels. | `@zenuxs/plugin`: sandboxed WebAssembly runtime (`runPlugin`) implementing the FigCraft ABI (`figcraft_run`, `figcraft` host imports, reply buffer), manifest validation, host-call/log/string budgets, and an in-app marketplace that installs, runs, and reports output; `ui_show` and `widget_render` replies are accepted but panels are not rendered. | **80% Parity** (meter counts host interaction, not instructions; widget panels missing). | **PARTIAL** (Host/Developer feature). | Install from the Plugins rail, then `runPlugin(wasmBytes, host)`. |
 | **20** | **Collaboration & Live Sessions** | WebSocket live sessions: shared cursors, selections, cursor chat, spotlight, follow mode. | WebRTC peer-to-peer (Trystero) + Yjs document CRDT: live cursors, remote selections, presence avatar stack, room share URLs. | **90% Parity** | **NO** (Human multiplayer). | Handled in app UI via `src/app/collab/`. |
-| **21** | **Generative AI & Image Sourcing** | **0% in FigCraft** (only passive MCP command listener). | **100% in ZenuxsDesign**: Tool-loop AI agent, Vision image verification (`source_image`), AI image generation, default design skills, auto-repair critic. | **ZenuxsDesign Ahead (+100%)** | **YES** (Core Driver) | Full conversational agent driving the canvas with 50-step budget. |
+| **21** | **Generative AI & Image Sourcing** | **0% in FigCraft** (only passive MCP command listener). | **Built in ZenuxsDesign**: Tool-loop AI agent, Vision image verification (`source_image`), AI image generation, default design skills, auto-repair critic. | **ZenuxsDesign ahead** | **YES** (Core Driver) | Full conversational agent driving the canvas with 50-step budget. |
 
 ---
 
 ## Part 2: Detailed Audit of What FigCraft Had & What Is Pending in ZenuxsDesign
 
 ### 1. Engine & Command Breadth (Rust vs. TypeScript)
-- **FigCraft**: ~560 command IDs in `crates/engine/src/` (including minor keymap variants and CLI script helpers).
-- **ZenuxsDesign**: Ported ~110 core, advanced, arrange, structure, boards, vector, codegen, and template commands into `@zenuxs/engine`.
-- **Pending in ZenuxsDesign**:
-  - Fine-grained cursor-tracking commands (`pointer.down`, `pointer.move`, `pointer.up` simulated via gesture rather than headless engine coordinates).
-  - Advanced path-healing algorithms from `crates/pathops` (Bezier curve intersection clipping using Skia rather than standalone Rust Clipper crate).
+- **FigCraft**: 570 registered command specs (`spec!`) across 267 Rust files in `crates/engine/src/`.
+- **ZenuxsDesign**: 111 registered specs in `@zenuxs/engine` — create, edit, arrange, structure, pages, view, prototype, boards, vector, codegen, templates, file, style, variable, component, and comment — which is ~19% of the Rust catalog. The engine suite is 29 tests in 2 files.
+- **Closed since the first draft**: deleting vector points now heals the curve instead of breaking the path. Each point that joined two segments leaves one merged segment whose Bézier handles are solved so the curve still passes through it; region loops are re-indexed and repaired. The same operation backs the canvas Delete action (`removeVertices`) and `vector.deleteHeal`.
+- **Still pending**:
+  - Roughly 459 command specs, including the tools/library/branch/version areas of `crates/engine/src/`.
+  - Fine-grained pointer commands (`pointer.down`, `pointer.move`, `pointer.up`): gestures are driven by the UI rather than headless engine coordinates.
+  - Clipper-grade path clipping from `crates/pathops`; the port covers boolean ops and stroke outlining without reproducing the Rust clipping engine.
 
-### 2. Full Rust-to-TypeScript Porting Status of Crates
-| FigCraft Crate | ZenuxsDesign Equivalent | Status |
-|---|---|---|
-| `crates/geom` | `@zenuxs/geom` | **100% Complete** (Kurbo primitives, Affine, BezPath, Rect, Point, Radii, Smooth corners). |
-| `crates/color` | `@zenuxs/color` | **100% Complete** (Color, Paint, Gradients, ICC profiles, Display P3 / sRGB). |
-| `crates/doc` | `@zenuxs/doc` | **100% Complete** (Document, Node, NodeKind, AutoLayout, Styles, Variables, Proto). |
-| `crates/layout` | `@zenuxs/layout` | **100% Complete** (Yoga layout WASM + Flex/Grid auto-layout engine). |
-| `crates/render` | `@zenuxs/render` + CanvasKit | **100% Complete** (CanvasKit Skia WebGL + 2D fallback). |
-| `crates/format` | `@zenuxs/format` | **100% Complete** (`.zenuxs` zip package round-trip verified). |
-| `crates/engine` | `@zenuxs/engine` | **85% Complete** (Over 110 engine commands ported; 26/26 tests passing). |
-| `crates/plugin` | `@zenuxs/plugin` | **90% Complete** (WebAssembly sandboxed fuel metering runtime). |
-| `crates/collab` | `@zenuxs/collab` / `@zenuxs/collab-net` | **90% Complete** (Yjs CRDT + Trystero WebRTC + WebSocket test relay). |
-| `crates/ui-egui` | Vue 3 App UI (`src/`) | **Architectural Divergence**: FigCraft used Rust `egui` (desktop only, non-web native UI). ZenuxsDesign intentionally uses Vue 3 + Tailwind 4 + Reka UI for cross-platform desktop (Tauri) and high-speed web reactivity. |
+### 2. Measured Rust-to-TypeScript Porting Status
+Source size counts every `.ts`/`.rs` file under each crate's `src/`, including tests. It shows how much code exists, not how much behavior matches.
+
+| FigCraft Crate | ZenuxsDesign Equivalent | TS Files / LOC | Rust Files / LOC | Measured Status |
+|---|---|---|---|---|
+| `crates/geom` | `@zenuxs/geom` | 7 / 1,887 | 4 / 757 | **Near-complete** — points, rects, affine transforms, Bézier paths, radii, smooth corners. The TS side carries more test code, so LOC is not a coverage ratio. |
+| `crates/color` | `@zenuxs/color` | 12 / 2,205 | 10 / 1,808 | **Near-complete** — color spaces, paints, four gradient kinds, patterns, blend modes, named colors, ICC profiles. |
+| `crates/doc` | `@zenuxs/doc` | 18 / 4,653 | 33 / 11,301 | **Module-complete, partial depth** — every FigCraft module has a counterpart (prototype expressions merged into `proto.ts`), but 4.6k vs 11.3k LOC means less depth inside modules, not missing modules. |
+| `crates/layout` | `@zenuxs/layout` | 3 / 1,061 | 6 / 3,046 | **Partial, separate implementation** — flex/grid, hug/fill/fixed sizing, min/max, constraints, grid lines. The running app lays out frames with Yoga (`@open-pencil/yoga-layout`), not this package. |
+| `crates/text` | `@zenuxs/text` | 2 / 195 | 19 / 5,785 | **Minimal** — line wrapping and measurement behind an injected shaper. The app shapes text with CanvasKit; FigCraft's parser and paragraph code is not ported. |
+| `crates/pathops` | `@zenuxs/pathops` | 2 / 409 | 8 / 1,594 | **Partial** — boolean ops, stroke outlining, and Bézier handle healing. Clipper-grade clipping is not reproduced. |
+| `crates/render` | `@zenuxs/render` | 2 / 470 | 40 / 9,125 | **Replaced** — a Canvas2D paint/effect helper plus path extraction for SVG/PDF. The app renders with CanvasKit/Skia in `@open-pencil/core`, so most of this crate has no port. |
+| `crates/svg` | `@zenuxs/svg` | 2 / 260 | 19 / 4,208 | **Minimal** — node-to-SVG output and a basic importer used by `@zenuxs/pdf`; the app's SVG path runs through OpenPencil. |
+| `crates/pdf` | `@zenuxs/pdf` | 2 / 207 | 12 / 2,527 | **Minimal** — frame-to-PDF export with a raster fallback; not used by the running app. |
+| `crates/format` | `@zenuxs/format` | 2 / 329 | 50 / 22,407 | **Different scope** — `.zenuxs` zip round-trip (document JSON, images, thumbnail, versions). `.fig` read/write lives in `@open-pencil/fig` and `@open-pencil/kiwi`, not here. |
+| `crates/engine` | `@zenuxs/engine` | 14 / 3,151 | 267 / 82,263 | **Partial** — 111 of 570 command specs; 29 tests in 2 files. |
+| `crates/plugin` | `@zenuxs/plugin` | 2 / 522 | 9 / 2,343 | **Runtime ported** — FigCraft ABI, manifest validation, host functions, call/log/string budgets, marketplace. The meter counts host interaction and cannot stop a tight loop; widget/panel rendering and bundle loading are not ported. |
+| `crates/collab` | `@zenuxs/collab` | 2 / 241 | 28 / 8,025 | **Narrow** — presence maps, cursors, replica, message codec. The shipped collaboration stack is Yjs + Trystero under `src/app/collab/`, not this crate. |
+| `crates/collab-net` | `@zenuxs/collab-net` | 2 / 216 | 28 / 7,144 | **Narrow** — join links, in-memory and WebSocket transports, room/client shells. |
+| `crates/mcp` | `@zenuxs/engine` (`mcp.ts`) | 1 / 170 | 8 / 1,774 | **Partial** — a command-backed MCP surface; the app also ships the separate OpenPencil MCP package, which is not a FigCraft port. |
+| `crates/ui-egui` | Vue 3 app (`src/`) | — | — | **Architectural divergence** — Rust `egui` is replaced by Vue 3 + Tailwind 4 + Reka UI for browser and Tauri. |
+
+The FigCraft apps (`apps/figcraft`, `apps/figcraft-cli`, 12,129 Rust LOC) map onto the Vue app and the OpenPencil CLI, not a line-for-line port.
 
 ### 3. Designer Project Management Options (What Designer Can Do)
 In FigCraft / ZenuxsDesign, a designer manages projects across these dimensions:
@@ -233,9 +247,11 @@ export_image({ "node_id": "0:1", "format": "png", "scale": 2 })
 ---
 
 ## Part 4: Conclusion & Next Steps
-1. **Core Parity**: ZenuxsDesign matches or exceeds FigCraft across 18 out of 21 design feature areas.
-2. **Key Advantage**: FigCraft had 0% generative AI capability; ZenuxsDesign has a 100% autonomous, skill-driven, vision-verified AI agent.
-3. **Pending Depth**:
-   - Complex path healing in vector edit mode (currently handled via CanvasKit Skia paths).
-   - In-app plugin marketplace UI (engine WASM runtime is complete).
-   - Multi-track After Effects motion timeline (Figma itself does not have this; FigCraft and ZenuxsDesign both use Smart Animate + physics springs).
+1. **Measured status, not a parity score**: the engine implements 111 of FigCraft's 570 command specs; the canvas, scene graph, and renderer still run on OpenPencil packages; the ports closest to 1:1 are `geom`, `color`, and the `.zenuxs` file format. Treat the Part 1 percentages as design targets until each area is measured against the reference.
+2. **AI is the differentiator**: FigCraft had no generative AI. The tool-loop agent, design skills, image sourcing, and vision verification are original work in this project, not part of the port.
+3. **Closed since the first draft**: vector path healing (canvas Delete and `vector.deleteHeal`), the in-app plugin marketplace, and desktop multi-window.
+4. **Still open**:
+   - Migrate the running app off `@open-pencil/*` (334 files under `src/` import it). The SceneGraph is still the document owner; `@zenuxs/engine` is bridged, not authoritative.
+   - Remaining engine command specs (~459) and deeper doc/render/format coverage if full command and file-format parity is the goal.
+   - Plugin host commands mutate the engine session, but the result is not yet synced back to the live canvas.
+   - Multi-track After Effects motion timeline (neither Figma nor FigCraft has it; both use Smart Animate and physics springs).
