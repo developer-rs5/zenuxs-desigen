@@ -5,6 +5,8 @@
 
 import { describe, expect, test } from 'bun:test'
 
+import { Vertex, type Segment, type VectorNetwork } from '@zenuxs/doc'
+
 import { Session, History, ViewState, MIN_ZOOM, MAX_ZOOM } from './lib'
 
 describe('engine session', () => {
@@ -100,7 +102,13 @@ describe('engine session', () => {
     const s = new Session()
     const a = s.execute('shape.rectangle', { width: 100, height: 50 }).id as number
     const b = s.execute('shape.rectangle', { x: 200, width: 100, height: 50 }).id as number
-    s.execute('proto.interaction.add', { id: a, dest: b, trigger: 'onClick', transition: 'smartAnimate', durationMs: 300 })
+    s.execute('proto.interaction.add', {
+      id: a,
+      dest: b,
+      trigger: 'onClick',
+      transition: 'smartAnimate',
+      durationMs: 300
+    })
     const n = s.doc().node(a)!
     expect(n.interactions.length).toBe(1)
     expect((n.interactions[0] as { trigger: { type: string } }).trigger.type).toBe('onClick')
@@ -182,7 +190,12 @@ describe('engine session', () => {
 
   test('board_sticky_and_timer', () => {
     const s = new Session()
-    const sticky = s.execute('board.sticky.create', { text: 'Ship v2.0', color: 'pink', x: 50, y: 50 })
+    const sticky = s.execute('board.sticky.create', {
+      text: 'Ship v2.0',
+      color: 'pink',
+      x: 50,
+      y: 50
+    })
     expect(sticky.ok).toBe(true)
     const stickyId = sticky.id as number
     expect(s.doc().node(stickyId)?.name).toContain('Ship v2.0')
@@ -236,6 +249,103 @@ describe('engine session', () => {
     const union = s.execute('vector.boolean.union', { ids: [a, b] })
     expect(union.ok).toBe(true)
     expect(union.op).toBe('union')
+  })
+
+  test('vector_delete_heal_joins_neighbours_and_keeps_region', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { width: 10, height: 10 }).id as number
+    const node = s.doc().node_mut(id)
+    if (!node) throw new Error('missing node')
+    const line = (a: number, b: number): Segment => ({ a, b, ta: [0, 0], tb: [0, 0] })
+    const network: VectorNetwork = {
+      vertices: [
+        Vertex.new(0, 0),
+        Vertex.new(50, 0),
+        Vertex.new(100, 0),
+        Vertex.new(100, 100),
+        Vertex.new(0, 100)
+      ],
+      segments: [line(0, 1), line(1, 2), line(2, 3), line(3, 4), line(4, 0)],
+      regions: [{ loops: [[0, 1, 2, 3, 4]], winding: 'nonZero' }]
+    }
+    node.kind = { type: 'vector', network }
+
+    const result = s.execute('vector.deleteHeal', { id, vertices: [1] })
+    expect(result.healed).toBe(1)
+    expect(result.removed).toBe(1)
+
+    const healed = s.doc().node(id)?.kind
+    if (healed?.type !== 'vector') throw new Error('not a vector')
+    const net = healed.network as VectorNetwork
+    expect(net.vertices.length).toBe(4)
+    expect(net.segments.length).toBe(4)
+    expect(net.regions[0]?.loops[0]?.length).toBe(4)
+    expect(net.segments.some((segment) => segment.a === 0 && segment.b === 1)).toBe(true)
+  })
+
+  test('vector_delete_heal_solves_curve_through_deleted_point', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { width: 10, height: 10 }).id as number
+    const node = s.doc().node_mut(id)
+    if (!node) throw new Error('missing node')
+    const network: VectorNetwork = {
+      vertices: [Vertex.new(0, 0), Vertex.new(50, 50), Vertex.new(100, 0)],
+      segments: [
+        { a: 0, b: 1, ta: [10, 30], tb: [0, 0] },
+        { a: 1, b: 2, ta: [0, 0], tb: [0, 0] }
+      ],
+      regions: []
+    }
+    node.kind = { type: 'vector', network }
+
+    s.execute('vector.deleteHeal', { id, vertices: [1] })
+
+    const healed = s.doc().node(id)?.kind
+    if (healed?.type !== 'vector') throw new Error('not a vector')
+    const net = healed.network as VectorNetwork
+    expect(net.vertices.length).toBe(2)
+    expect(net.segments.length).toBe(1)
+    const segment = net.segments[0]
+    const a = net.vertices[0]
+    const b = net.vertices[1]
+    if (!segment || !a || !b) throw new Error('missing healed segment')
+
+    const t = 0.5
+    const u = 1 - t
+    const x =
+      u * u * u * a.x +
+      3 * u * u * t * (a.x + segment.ta[0]) +
+      3 * u * t * t * (b.x + segment.tb[0]) +
+      t * t * t * b.x
+    const y =
+      u * u * u * a.y +
+      3 * u * u * t * (a.y + segment.ta[1]) +
+      3 * u * t * t * (b.y + segment.tb[1]) +
+      t * t * t * b.y
+    expect(x).toBeCloseTo(50, 6)
+    expect(y).toBeCloseTo(50, 6)
+  })
+
+  test('vector_delete_heal_defaults_to_redundant_points', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { width: 10, height: 10 }).id as number
+    const node = s.doc().node_mut(id)
+    if (!node) throw new Error('missing node')
+    const line = (a: number, b: number): Segment => ({ a, b, ta: [0, 0], tb: [0, 0] })
+    node.kind = {
+      type: 'vector',
+      network: {
+        vertices: [Vertex.new(0, 0), Vertex.new(50, 0), Vertex.new(100, 0)],
+        segments: [line(0, 1), line(1, 2)],
+        regions: []
+      } satisfies VectorNetwork
+    }
+
+    const result = s.execute('vector.deleteHeal', { id })
+    expect(result.removed).toBe(1)
+    const healed = s.doc().node(id)?.kind
+    if (healed?.type !== 'vector') throw new Error('not a vector')
+    expect((healed.network as VectorNetwork).vertices.length).toBe(2)
   })
 
   test('codegen_inspect_and_css', () => {

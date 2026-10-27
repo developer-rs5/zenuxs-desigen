@@ -220,3 +220,78 @@ export function strokeOutline(path: BezPath, width: number, tolerance = 0.1): Be
   out.close_path()
   return out
 }
+
+export interface HealPoint {
+  x: number
+  y: number
+}
+
+export interface HealHandlesResult {
+  ta: [number, number]
+  tb: [number, number]
+}
+
+/**
+ * Computes cubic Bézier handles for the curve that heals over deleted point `p`
+ * between neighbors `a` and `b`, preserving curve trajectory.
+ * (Converted 1:1 from FigCraft `crates/engine/src/vectoredit/ops.rs::heal_handles`.)
+ */
+export function healBezierHandles(
+  p: HealPoint,
+  a: HealPoint,
+  b: HealPoint,
+  h1: [number, number] = [0, 0],
+  h2: [number, number] = [0, 0]
+): HealHandlesResult {
+  const norm = (h: [number, number], from: HealPoint): { x: number; y: number } => {
+    const len = Math.hypot(h[0], h[1])
+    if (len > 1e-9) return { x: h[0] / len, y: h[1] / len }
+    const dx = p.x - from.x
+    const dy = p.y - from.y
+    const dlen = Math.hypot(dx, dy)
+    if (dlen > 1e-9) return { x: dx / dlen, y: dy / dlen }
+    return { x: 0, y: 0 }
+  }
+
+  const d1 = norm(h1, a)
+  const d2 = norm(h2, b)
+  const la = Math.hypot(p.x - a.x, p.y - a.y)
+  const lb = Math.hypot(p.x - b.x, p.y - b.y)
+  const t = la / Math.max(1e-12, la + lb)
+  const u = 1.0 - t
+  const k1 = 3.0 * u * u * t
+  const k2 = 3.0 * u * t * t
+
+  const baseX = a.x * (u * u * u + 3.0 * u * u * t) + b.x * (3.0 * u * t * t + t * t * t)
+  const baseY = a.y * (u * u * u + 3.0 * u * u * t) + b.y * (3.0 * u * t * t + t * t * t)
+  const rx = p.x - baseX
+  const ry = p.y - baseY
+
+  const c1x = d1.x * k1
+  const c1y = d1.y * k1
+  const c2x = d2.x * k2
+  const c2y = d2.y * k2
+
+  const det = c1x * c2y - c1y * c2x
+  let l1: number
+  let l2: number
+
+  if (Math.abs(det) > 1e-9 * Math.hypot(c1x, c1y) * Math.hypot(c2x, c2y)) {
+    l1 = (rx * c2y - ry * c2x) / det
+    l2 = (c1x * ry - c1y * rx) / det
+  } else {
+    const cx = c1x + c2x
+    const cy = c1y + c2y
+    const chypot2 = cx * cx + cy * cy
+    const l = Math.max(0, (rx * cx + ry * cy) / Math.max(1e-12, chypot2))
+    l1 = l
+    l2 = l
+  }
+
+  const ok1 = Number.isFinite(l1) && l1 > 0
+  const ok2 = Number.isFinite(l2) && l2 > 0
+  return {
+    ta: ok1 ? [d1.x * l1, d1.y * l1] : [0, 0],
+    tb: ok2 ? [d2.x * l2, d2.y * l2] : [0, 0]
+  }
+}

@@ -1,5 +1,5 @@
 import type { Editor } from '@open-pencil/core/editor'
-import { breakAtVertex, deleteVertex, vectorHandleParts } from '@open-pencil/core/vector'
+import { breakAtVertex, removeVertices, vectorHandleParts } from '@open-pencil/core/vector'
 
 import { pushNodeEditHistory } from './history'
 import { getLiveNetwork, setNodeEditNetwork } from './network'
@@ -64,14 +64,9 @@ export function createVectorEditSelectionActions(editor: Editor, state: VectorEd
       else seg.tangentEnd = { x: 0, y: 0 }
     }
 
-    const verticesToDelete = [...es.selectedVertexIndices].sort((a, b) => b - a)
-    for (const vi of verticesToDelete) {
-      const next = deleteVertex(live, vi)
-      if (!next) break
-      live = next
-    }
-
-    setNodeEditNetwork(es, live)
+    // Deleting points heals the curve through them instead of breaking the
+    // path: each point that joined two segments leaves one merged segment.
+    setNodeEditNetwork(es, removeVertices(live, es.selectedVertexIndices))
     es.selectedVertexIndices = new Set()
     es.selectedHandles = new Set()
     editor.requestRender()

@@ -3,8 +3,10 @@
  * (Converted 1:1 from FigCraft `crates/engine/src/vectoredit.rs` and `shapebuilder.rs`.)
  */
 
-import { Node, type NodeId } from '@zenuxs/doc'
+import { Node, type NodeId, type VectorNetwork } from '@zenuxs/doc'
+
 import { ok, spec, type CommandSpec, type Session } from '../lib'
+import { deleteVertices, redundantVertices } from './vectoredit-ops'
 
 function reqTargets(s: Session, p: Record<string, unknown>): NodeId[] {
   if (Array.isArray(p.ids)) return p.ids.map(Number).filter(Number.isFinite)
@@ -97,5 +99,33 @@ export const VECTOREDIT_SPECS: CommandSpec[] = [
       if (n) n.stroke.weight = weight
     }
     return ok({ weight })
-  })
+  }),
+
+  spec(
+    'vector.deleteHeal',
+    'Delete points and heal the curve through them',
+    '{ids?, vertices?} (default: redundant points of every target layer)',
+    true,
+    (s, p) => {
+      const ids = reqTargets(s, p)
+      const requested = Array.isArray(p.vertices)
+        ? p.vertices.map(Number).filter((index) => Number.isInteger(index) && index >= 0)
+        : null
+      let layers = 0
+      let removed = 0
+      for (const id of ids) {
+        const n = s.doc().node_mut(id)
+        if (!n || n.kind.type !== 'vector') continue
+        const network = n.kind.network
+        if (!network || typeof network !== 'object') continue
+        const net = network as VectorNetwork
+        const indices = requested ?? redundantVertices(net)
+        if (indices.length === 0) continue
+        removed += deleteVertices(net, indices, true)
+        layers += 1
+      }
+      if (layers === 0) throw new Error('vector.deleteHeal needs a vector layer with points')
+      return ok({ healed: layers, removed })
+    }
+  )
 ]

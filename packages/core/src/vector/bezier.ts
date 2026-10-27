@@ -309,6 +309,24 @@ export function removeVertex(network: VectorNetwork, vertexIndex: number): Vecto
   return { vertices: newVertices, segments: result.segments, regions: newRegions }
 }
 
+/**
+ * Remove several vertices, healing each place where the point joined exactly
+ * two segments. Indices refer to the input network; removal runs from the
+ * highest index down so the remaining indices stay valid.
+ */
+export function removeVertices(network: VectorNetwork, indices: Iterable<number>): VectorNetwork {
+  const ordered = [...new Set(indices)]
+    .filter((index) => Number.isInteger(index) && index >= 0 && index < network.vertices.length)
+    .sort((a, b) => b - a)
+  let result = network
+  for (const index of ordered) {
+    const next = removeVertex(result, index)
+    if (!next) break
+    result = next
+  }
+  return result
+}
+
 // ---------------------------------------------------------------------------
 // Delete vertex with all connected segments
 // ---------------------------------------------------------------------------

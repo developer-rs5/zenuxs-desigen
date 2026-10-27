@@ -10,6 +10,7 @@ export {
   mirrorHandle,
   nearestPointOnNetwork,
   removeVertex,
+  removeVertices,
   splitSegmentAt
 } from './bezier'
 

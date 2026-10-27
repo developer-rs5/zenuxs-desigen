@@ -241,6 +241,7 @@ export {
   nearestPointOnNetwork,
   splitSegmentAt,
   removeVertex,
+  removeVertices,
   breakAtVertex,
   deleteVertex,
   mirrorHandle,

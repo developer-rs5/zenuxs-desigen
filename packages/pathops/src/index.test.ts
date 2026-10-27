@@ -6,7 +6,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import { BezPath } from '@zenuxs/geom'
-import { binary, union, subtract, intersect, exclude, strokeOutline } from './index'
+
+import { union, subtract, intersect, exclude, strokeOutline, healBezierHandles } from './index'
 
 function square(x: number, y: number, size: number): BezPath {
   const p = BezPath.new()
@@ -77,5 +78,35 @@ describe('pathops stroke outline', () => {
     line.line_to({ x: 100, y: 0 })
     const outline = strokeOutline(line, 10)
     expect(area(outline)).toBeCloseTo(1000, -1)
+  })
+
+  test('heal_handles_computes_smooth_transition', () => {
+    const a = { x: 0, y: 0 }
+    const p = { x: 50, y: 25 }
+    const b = { x: 100, y: 0 }
+    const result = healBezierHandles(p, a, b)
+    expect(result.ta[0]).toBeGreaterThan(0)
+    expect(result.tb[0]).toBeLessThan(0)
+  })
+
+  test('heal_handles_curve_passes_through_deleted_point', () => {
+    const a = { x: 0, y: 0 }
+    const p = { x: 50, y: 50 }
+    const b = { x: 100, y: 0 }
+    const { ta, tb } = healBezierHandles(p, a, b, [10, 30], [0, 0])
+    const t = 0.5
+    const u = 1 - t
+    const x =
+      u * u * u * a.x +
+      3 * u * u * t * (a.x + ta[0]) +
+      3 * u * t * t * (b.x + tb[0]) +
+      t * t * t * b.x
+    const y =
+      u * u * u * a.y +
+      3 * u * u * t * (a.y + ta[1]) +
+      3 * u * t * t * (b.y + tb[1]) +
+      t * t * t * b.y
+    expect(x).toBeCloseTo(p.x, 6)
+    expect(y).toBeCloseTo(p.y, 6)
   })
 })
