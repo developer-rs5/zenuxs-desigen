@@ -4,10 +4,17 @@ import { SceneGraph, type SceneNode } from '@open-pencil/scene-graph'
 
 import {
   NodeIdMap,
+  reapplyEnginePatch,
+  revertEnginePatch,
   sceneGraphToZenuxsDoc,
   zenuxsDocToSceneGraph,
   zenuxsBridge
 } from '@/app/zenuxs-bridge'
+import { getZenuxsEngine, resetZenuxsEngine } from '@/app/zenuxs-engine'
+
+function resetEngine(): void {
+  resetZenuxsEngine()
+}
 
 describe('Zenuxs Document Bridge', () => {
   test('NodeIdMap maps string IDs to numeric NodeIds consistently', () => {
@@ -78,5 +85,110 @@ describe('Zenuxs Document Bridge', () => {
       height: 60
     })
     expect(res).toBeTruthy()
+  })
+})
+
+describe('Zenuxs engine patch round-trip', () => {
+  function setup() {
+    resetEngine()
+    const graph = new SceneGraph()
+    const page = graph.addPage('Page A')
+    const frame = graph.createNode('FRAME', page.id, {
+      name: 'Frame',
+      x: 0,
+      y: 0,
+      width: 400,
+      height: 400
+    })
+    zenuxsBridge.syncToZenuxs(graph, page.id)
+    return { graph, page, frame }
+  }
+
+  test('created nodes land on the active page', () => {
+    const { graph, page } = setup()
+    zenuxsBridge.execute('shape.rectangle', { x: 20, y: 20, width: 100, height: 60 })
+    const patch = zenuxsBridge.applyEngineChanges(graph)
+    expect(patch.changed).toBe(true)
+
+    const [created] = patch.created
+    expect(created).toBeDefined()
+    const node = graph.getNode(created?.node.id ?? '')
+    expect(node?.name).toBe('Rectangle')
+    expect(node?.parentId).toBe(page.id)
+    expect(graph.getNode(page.id)?.childIds).toContain(node?.id)
+  })
+
+  test('field changes revert and reapply', () => {
+    const { graph, frame } = setup()
+    const engineId = zenuxsBridge.toEngineId(frame.id)
+    zenuxsBridge.execute('node.set', {
+      id: engineId,
+      props: { name: 'Renamed', x: 77 }
+    })
+    const patch = zenuxsBridge.applyEngineChanges(graph)
+    expect(patch.changed).toBe(true)
+    expect(graph.getNode(frame.id)?.name).toBe('Renamed')
+    expect(graph.getNode(frame.id)?.x).toBe(77)
+
+    revertEnginePatch(graph, patch)
+    expect(graph.getNode(frame.id)?.name).toBe('Frame')
+    expect(graph.getNode(frame.id)?.x).toBe(0)
+
+    reapplyEnginePatch(graph, patch)
+    expect(graph.getNode(frame.id)?.name).toBe('Renamed')
+    expect(graph.getNode(frame.id)?.x).toBe(77)
+  })
+
+  test('deleted subtrees are restored on revert', () => {
+    const { graph, page } = setup()
+    const frame = graph.createNode('FRAME', page.id, {
+      name: 'Group',
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 200
+    })
+    const child = graph.createNode('RECTANGLE', frame.id, {
+      name: 'Child',
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 80
+    })
+    const leaf = graph.createNode('TEXT', child.id, {
+      name: 'Label',
+      x: 2,
+      y: 2,
+      width: 40,
+      height: 16,
+      text: 'hi'
+    })
+    zenuxsBridge.syncToZenuxs(graph, page.id)
+    getZenuxsEngine().ds().selection = [zenuxsBridge.toEngineId(frame.id)]
+    zenuxsBridge.execute('edit.delete')
+
+    const patch = zenuxsBridge.applyEngineChanges(graph)
+    expect(patch.changed).toBe(true)
+    expect(graph.getNode(frame.id)).toBeUndefined()
+    expect(graph.getNode(leaf.id)).toBeUndefined()
+
+    revertEnginePatch(graph, patch)
+    expect(graph.getNode(frame.id)?.name).toBe('Group')
+    expect(graph.getNode(leaf.id)?.name).toBe('Label')
+    expect(graph.getNode(child.id)?.parentId).toBe(frame.id)
+    expect(graph.getNode(leaf.id)?.parentId).toBe(child.id)
+
+    reapplyEnginePatch(graph, patch)
+    expect(graph.getNode(frame.id)).toBeUndefined()
+    expect(graph.getNode(leaf.id)).toBeUndefined()
+  })
+
+  test('a run with no mutations produces an empty patch', () => {
+    const { graph } = setup()
+    const patch = zenuxsBridge.applyEngineChanges(graph)
+    expect(patch.changed).toBe(false)
+    expect(patch.created).toHaveLength(0)
+    expect(patch.deleted).toHaveLength(0)
+    expect(patch.fieldChanges).toHaveLength(0)
   })
 })

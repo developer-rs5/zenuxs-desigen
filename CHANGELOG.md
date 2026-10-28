@@ -52,7 +52,7 @@
 - Report accessibility problems from `describe`: prototype touch targets under 44×44, prototype interactions on text with no visible label, and text contrast measured against its real background with WCAG AA ratios.
 - Give each design request its own visual direction: the assigned composition, palette, type pairing, and signature element ride on the request so consecutive prompts in one conversation produce visibly different layouts instead of a repeated template, while explicit brief constraints always win.
 - Ship `impeccable` as a default design skill next to `ui-ux-pro-max` and `taste`, so the model's craft floor, anti-default calibration, and anti-repetition rules are active in every session and listed under Settings → Skills.
-- Install, run, and uninstall WASM plugins from a marketplace dialog backed by the real sandboxed runtime: host-call budgets, log and message limits, persisted installs, and per-run output and logs, while catalog-only entries state why they cannot run instead of pretending to execute.
+- Install, run, and uninstall WASM plugins from a marketplace dialog backed by the real sandboxed runtime: host-call budgets, log and message limits, persisted installs, and per-run output and logs, while catalog-only entries state why they cannot run instead of pretending to execute. What a plugin changes now lands on the canvas as a single undoable step, so one Undo removes the whole run instead of leaving a half-applied document.
 - Open another editor window from the left rail in the desktop app, focusing an existing window instead of rebuilding it when its label is reused.
 
 ### Changed

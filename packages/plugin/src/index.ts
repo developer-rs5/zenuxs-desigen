@@ -106,7 +106,7 @@ function decoderTextError(bytes: Uint8Array): string {
  * Rejects invalid modules, budget overruns, memory overruns, and plugin traps.
  */
 export async function runPlugin(
-  wasm: Uint8Array,
+  wasm: Uint8Array<ArrayBuffer>,
   host: PluginHost,
   options: PluginRunOptions = {}
 ): Promise<PluginRunResult> {

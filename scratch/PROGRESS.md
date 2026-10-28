@@ -1,28 +1,44 @@
 # Conversion Progress Ledger
 
-## Wire-in progress
-- [x] STEP 1 DONE (2026-10-25): @zenuxs packages added as app dependencies; src/app/zenuxs-engine.ts mounts a headless Zenuxs Session; exposed via window.openPencil.getZenuxsEngine() in WorkspaceView; tsconfig paths for @zenuxs/* in root + packages/vue tsconfigs; VERIFIED LIVE in browser (engine.execute works, 50 commands). Requires dist builds: cd packages/{geom,color,doc,layout,engine} && bun run build (vite resolves exports.import → dist).
-- [x] STEP 2 DONE (2026-10-25): Full Prototype Player presentation stage wired in `PrototypePlayer.vue` using recursive `PrototypeNodeRenderer`, interactive state animation loop, overlay dimmer, hotspot ripple feedback, and physics momentum scrolling.
-- [x] STEP 3 DONE (2026-10-25): Bidirectional Document Bridge (`src/app/zenuxs-bridge.ts`) with lossless `SceneGraph` <-> `@zenuxs/doc` `Document` round-trip conversion, live `ZenuxsBridge` syncing, and `window.openPencil.getZenuxsBridge()`.
-- [x] STEP 4 DONE (2026-10-25): Native `.zenuxs` format integration (`src/app/document/io/zenuxs.ts`) wired into `IORegistry`, editor session creation, tabs, and file menu with verified zip export and import round-trip.
-- [x] STEP 5 DONE (2026-10-25): Engine command expansion (`packages/engine/src/cmd/advanced.ts`) expanding total catalog from 50 to 73 commands covering `file.*`, `style.*`, `variable.*`, `component.*`, and `comment.*`.
-- [x] STEP 6 DONE (2026-10-25): AI Motion & Prototype intelligence prompt hardening in `src/app/ai/chat/system-prompt.md` enforcing automatic multi-screen interaction wiring, Smart Animate for shared layers, and tactile micro-interactions.
-- Remaining wire-in: complete retirement of legacy @open-pencil/scene-graph dependencies once document state store directly wraps @zenuxs/engine.
+Last corrected: 2026-10-27, after measuring the packages directly. Earlier
+versions of this file claimed "all 16 crates ported + verified"; that was not
+true and contradicted its own gap list.
 
-## Completed — all 16 crates ported + verified
-- geom, color, doc (14 modules), layout, engine (73 commands + mcp), format, pathops, render, svg, text, pdf, collab, collab-net, plugin, apps/cli.
-- Live GUI verified: guest auth 200, 6 skills active, AI generated designs, cloud save fresh, in-canvas and full-window prototype player works.
-- Suites: all 124 @zenuxs package tests + bridge + format + motion tests green; check:vue clean; type-shapes clean.
+## Wire-in progress
+- [x] STEP 1 (2026-10-25): `@zenuxs/*` packages added as app dependencies; `src/app/zenuxs-engine.ts` mounts a headless Zenuxs `Session` (111 registered specs, up from 50) exposed via `window.openPencil.getZenuxsEngine()`.
+- [x] STEP 2 (2026-10-25): Prototype Player presentation stage in `PrototypePlayer.vue` using `PrototypeNodeRenderer`, interactive state animation, overlay dimmer, hotspot feedback, physics scrolling.
+- [x] STEP 3 (2026-10-25): Bidirectional document bridge (`src/app/zenuxs-bridge.ts`) between `SceneGraph` and `@zenuxs/doc`, with `syncToZenuxs`, `syncFromZenuxs`, and `toEngineId`.
+- [x] STEP 4 (2026-10-25): Native `.zenuxs` I/O (`src/app/document/io/zenuxs.ts`) wired into `IORegistry`, tabs, and the file menu.
+- [x] STEP 5 (2026-10-25): Engine command expansion to 111 specs across create, edit, arrange, structure, pages, view, prototype, boards, vector, codegen, templates, file, style, variable, component, comment.
+- [x] STEP 6 (2026-10-25): AI motion and prototype prompt hardening in `src/app/ai/chat/system-prompt.md`.
+- [x] STEP 7 (2026-10-27): Plugin runs are synced back to the live canvas. `runPluginById` rebuilds the engine document from the on-screen graph, mirrors the canvas selection, then `commitEnginePatch` replays the engine diff onto the SceneGraph and pushes one undo entry per run. Covered by `tests/engine/zenuxs-bridge.test.ts` (created nodes, field changes, deleted subtrees, empty patch).
+- [ ] Remaining wire-in: retire the OpenPencil document owner. 334 files under `src/` still import `@open-pencil/*`; 4 import `@zenuxs/*`. The SceneGraph is authoritative and the Zenuxs session is bridged.
+
+## Measured package state (2026-10-27)
+- 14 `@zenuxs/*` packages + `apps/cli`; the app depends on 9 of them.
+- `bun test` across all 14 packages: 172 pass, 0 fail, 916 assertions.
+- Engine: 111 of FigCraft's 570 command specs (~19%); 29 tests.
+- Closest to 1:1: `geom` (7 files / 1,887 LOC), `color` (12 / 2,205), `.zenuxs` format (2 / 329).
+- Partial: `doc` (18 / 4,653), `layout` (3 / 1,061), `pathops`, `engine`, `plugin`, `mcp`.
+- Replaced or narrow: `render` (2 / 470), `text` (2 / 195), `svg`, `pdf`, `collab`, `collab-net`.
+- `@zenuxs/layout`, `@zenuxs/text`, `@zenuxs/render`, `@zenuxs/svg`, and `@zenuxs/pdf` are not used by the running app, which uses Yoga, CanvasKit, and OpenPencil's SVG/PDF paths.
+- Source size comparison: `docs/figcraft-vs-zenuxsdesign-audit.md` Part 2.
+
+## Shipped since the audit
+- Vector path healing: deleting points merges the two incident segments and solves Bézier handles so the curve still passes through the deleted point, with region-loop repair. Canvas Delete uses `removeVertices`; the engine exposes `vector.deleteHeal`.
+- In-app plugin marketplace: real FigCraft WASM ABI, host-call/log/string budgets, persisted installs, per-run output and logs; catalog entries without a build state why.
+- Desktop multi-window: `create_new_window` command, label validation, focus-existing behavior, external URL parsing without the `url` crate; browser fallback popup. Not compiled locally (no Cargo); type-checked frontend only.
 
 ## Known gaps (honest)
-- engine cmd tail (file/styles/component/library/codegen/tools.rs ~14k lines of cmd + 61k engine total) not ported — Zenuxs engine has 50 commands vs FigCraft 212
-- ui-egui (61.7k) intentionally maps onto existing Vue app, not a package
-- PrototypePlayer.vue renders chrome only — wire to @zenuxs/render for full-window player
-- Multi-screen AI runs wire interactions; single-screen requests have 0 interactions (expected)
+- Engine command tail: ~459 of 570 specs missing, including tools/library/branch/version areas.
+- Document/render/format depth: `@zenuxs/doc` is module-complete but much smaller than Rust; `.fig` read/write is OpenPencil's, not `@zenuxs/format`; CanvasKit draws the app while `@zenuxs/render` is a helper.
+- Plugin runs now land on the live canvas as one undoable step per run.
+- Multi-track motion timeline not built.
+- Native window command requires a Cargo build to verify (CI has Rust; this machine does not).
 
-## Session context (read scratch/CONVERSION-MISSION.md FIRST after compaction)
-- packages/mcp = OLD @open-pencil/mcp — do not clobber; @zenuxs/mcp = packages/engine/src/mcp.ts
-- New packages: packages/{geom,color,doc,layout,engine,format,pathops,render,svg,text,pdf,collab,collab-net,plugin}, apps/cli; colocated *.test.ts
-- Vite needs dist: build zenuxs packages after any engine/doc/geom/color/layout source change before running dev
-- Node v22 breaks steiger locally (CI = Node 24)
-- Dev stack: bun run dev (:1420) + zenuxs-mongo docker (:27017); restart both when API 502
+## Session context
+- `packages/mcp` is the old OpenPencil MCP; `@zenuxs/engine/mcp` is the engine MCP surface.
+- Vite and tsconfig alias the 9 app-used `@zenuxs/*` packages to source, so dev no longer needs package `dist` builds. Packages outside that list resolve through workspace exports.
+- Node v22 breaks `check:arch` (steiger) and `lint` locally; CI uses Node 24.
+- Dev stack: `bun run dev` (:1420) + MongoDB for the Zenuxs server (:3000).
+- E2E recipe: `bunx playwright test <spec> --project=openpencil --timeout=120000` with the auth server and MongoDB running.

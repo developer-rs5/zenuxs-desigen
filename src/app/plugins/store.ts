@@ -11,8 +11,8 @@ import { useLocalStorage } from '@vueuse/core'
 import { parseManifest, runPlugin, type PluginManifest } from '@zenuxs/plugin'
 import { computed, ref } from 'vue'
 
-import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
-import { zenuxsBridge } from '@/app/zenuxs-bridge'
+import { getActiveEditorStoreOrNull, type EditorStore } from '@/app/editor/active-store'
+import { reapplyEnginePatch, revertEnginePatch, zenuxsBridge } from '@/app/zenuxs-bridge'
 import { getZenuxsEngine } from '@/app/zenuxs-engine'
 
 export type PluginCategory = 'accessibility' | 'design-system' | 'layout' | 'assets' | 'utility'
@@ -195,7 +195,7 @@ function manifestOf(plugin: DirectoryPlugin): PluginManifest {
   return manifest
 }
 
-function decodeBase64(value: string): Uint8Array {
+function decodeBase64(value: string): Uint8Array<ArrayBuffer> {
   const binary = atob(value)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
@@ -207,6 +207,40 @@ function parseParams(params: string): Record<string, unknown> {
   return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
     ? (parsed as Record<string, unknown>)
     : {}
+}
+
+/**
+ * Writes engine-side mutations from a finished plugin run back onto the live
+ * canvas. The whole run lands as one undo step so a plugin cannot leave a
+ * half-applied document behind.
+ */
+function commitEnginePatch(store: EditorStore, pluginName: string): void {
+  const patch = zenuxsBridge.applyEngineChanges(store.graph)
+  if (!patch.changed) return
+
+  const settleLayout = (): void => {
+    const touched = [
+      ...patch.created.map((created) => created.node.id),
+      ...patch.fieldChanges.map((change) => change.id)
+    ]
+    for (const id of new Set(touched)) store.runLayoutForNode(id)
+  }
+  settleLayout()
+
+  store.pushUndoEntry({
+    label: `Run "${pluginName}"`,
+    forward: () => {
+      reapplyEnginePatch(store.graph, patch)
+      settleLayout()
+      store.requestRender()
+    },
+    inverse: () => {
+      revertEnginePatch(store.graph, patch)
+      settleLayout()
+      store.requestRender()
+    }
+  })
+  store.requestRender()
 }
 
 export function usePluginStore() {
@@ -243,7 +277,7 @@ export function usePluginStore() {
     // reads see the same nodes the user does.
     const store = getActiveEditorStoreOrNull()
     if (store) {
-      zenuxsBridge.syncToZenuxs(store.graph)
+      zenuxsBridge.syncToZenuxs(store.graph, store.state.currentPageId)
       engine.ds().selection = [...store.state.selectedIds].map((id) => zenuxsBridge.toEngineId(id))
     }
 
@@ -258,6 +292,10 @@ export function usePluginStore() {
       },
       { input: JSON.stringify({ api: 3, command: `plugin.${manifest.id}` }) }
     )
+
+    // The plugin talks to the engine, not the canvas: replay whatever it
+    // changed back onto the live graph as a single undoable step.
+    if (store) commitEnginePatch(store, plugin.name)
 
     return {
       plugin: plugin.name,
