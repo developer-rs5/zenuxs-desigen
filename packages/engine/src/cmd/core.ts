@@ -5,7 +5,17 @@
  */
 
 import { AutoLayout, Node, type NodeId } from '@zenuxs/doc'
-import { Affine, RectMath, rounded_rect, ellipse, polygon_points, star_points, transform_rect_bbox, type Radii } from '@zenuxs/geom'
+import {
+  Affine,
+  RectMath,
+  rounded_rect,
+  ellipse,
+  polygon_points,
+  star_points,
+  transform_rect_bbox,
+  type Radii
+} from '@zenuxs/geom'
+
 import { ok, spec, type CommandSpec, type Session } from '../lib'
 import { allAdvancedSpecs } from './advanced'
 import { ARRANGE_EXTENDED_SPECS } from './arrange'
@@ -14,14 +24,28 @@ import { CODEGEN_SPECS } from './codegen'
 import { STRUCTURE_EXTENDED_SPECS } from './structure'
 import { TEMPLATE_SPECS } from './templates'
 import { VECTOREDIT_SPECS } from './vectoredit'
+import { VIEW_TOOL_SPECS } from './view'
 
 // ------------------------------ create.rs ------------------------------
 
 /** Insert a shape of `kind` built by `make` into the current page. */
-function createNode(session: Session, name: string, w: number, h: number, kind: Node['kind'], params?: Record<string, unknown>): NodeId {
+function createNode(
+  session: Session,
+  name: string,
+  w: number,
+  h: number,
+  kind: Node['kind'],
+  params?: Record<string, unknown>
+): NodeId {
   const ds = session.ds()
   const id = ds.doc.alloc_id()
-  const node = Node.new(id, kind, typeof params?.name === 'string' && params.name.length > 0 ? params.name : name, w, h)
+  const node = Node.new(
+    id,
+    kind,
+    typeof params?.name === 'string' && params.name.length > 0 ? params.name : name,
+    w,
+    h
+  )
   node.parent = ds.page
   ds.doc.insert(node)
   const page = ds.doc.node_mut(ds.page)
@@ -46,7 +70,14 @@ export const CREATE_SPECS: CommandSpec[] = [
     const h = numParam(p, 'height', 100)
     const id = createNode(s, 'Frame', w, h, { type: 'frame' }, p)
     const n = s.ds().doc.node_mut(id)!
-    n.fills = [{ kind: { type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
+    n.fills = [
+      {
+        kind: { type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 } },
+        opacity: 1,
+        visible: true,
+        blend: 'normal'
+      }
+    ]
     n.corners = { radii: radiiFrom(p), smoothing: 0 }
     moveNode(n, p)
     return { ok: true, id }
@@ -56,7 +87,14 @@ export const CREATE_SPECS: CommandSpec[] = [
     const h = numParam(p, 'height', 100)
     const id = createNode(s, 'Rectangle', w, h, { type: 'rectangle' }, p)
     const n = s.ds().doc.node_mut(id)!
-    n.fills = [{ kind: { type: 'solid', color: { r: 0.851, g: 0.851, b: 0.851, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
+    n.fills = [
+      {
+        kind: { type: 'solid', color: { r: 0.851, g: 0.851, b: 0.851, a: 1 } },
+        opacity: 1,
+        visible: true,
+        blend: 'normal'
+      }
+    ]
     n.corners = { radii: radiiFrom(p), smoothing: 0 }
     moveNode(n, p)
     return { ok: true, id }
@@ -64,30 +102,57 @@ export const CREATE_SPECS: CommandSpec[] = [
   spec('shape.ellipse', 'Ellipse', '{x?, y?, width?, height?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
-    const id = createNode(s, 'Ellipse', w, h, { type: 'ellipse', start: 0, sweep: Math.PI * 2, inner: 0 }, p)
+    const id = createNode(
+      s,
+      'Ellipse',
+      w,
+      h,
+      { type: 'ellipse', start: 0, sweep: Math.PI * 2, inner: 0 },
+      p
+    )
     const n = s.ds().doc.node_mut(id)!
-    n.fills = [{ kind: { type: 'solid', color: { r: 0.851, g: 0.851, b: 0.851, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
+    n.fills = [
+      {
+        kind: { type: 'solid', color: { r: 0.851, g: 0.851, b: 0.851, a: 1 } },
+        opacity: 1,
+        visible: true,
+        blend: 'normal'
+      }
+    ]
     moveNode(n, p)
     return { ok: true, id }
   }),
-  spec('shape.polygon', 'Polygon', '{x?, y?, width?, height?, count?, cornerRadius?}', true, (s, p) => {
-    const w = numParam(p, 'width', 100)
-    const h = numParam(p, 'height', 100)
-    const count = Math.min(120, Math.max(3, numParam(p, 'count', 3)))
-    const id = createNode(s, 'Polygon', w, h, { type: 'polygon', count }, p)
-    const n = s.ds().doc.node_mut(id)!
-    n.corners = { radii: radiiFrom(p), smoothing: 0 }
-    moveNode(n, p)
-    return { ok: true, id }
-  }),
+  spec(
+    'shape.polygon',
+    'Polygon',
+    '{x?, y?, width?, height?, count?, cornerRadius?}',
+    true,
+    (s, p) => {
+      const w = numParam(p, 'width', 100)
+      const h = numParam(p, 'height', 100)
+      const count = Math.min(120, Math.max(3, numParam(p, 'count', 3)))
+      const id = createNode(s, 'Polygon', w, h, { type: 'polygon', count }, p)
+      const n = s.ds().doc.node_mut(id)!
+      n.corners = { radii: radiiFrom(p), smoothing: 0 }
+      moveNode(n, p)
+      return { ok: true, id }
+    }
+  ),
   spec('shape.star', 'Star', '{x?, y?, width?, height?, count?, innerRatio?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
-    const id = createNode(s, 'Star', w, h, {
-      type: 'star',
-      count: Math.min(120, Math.max(3, numParam(p, 'count', 5))),
-      inner_ratio: numParam(p, 'innerRatio', 0.38)
-    }, p)
+    const id = createNode(
+      s,
+      'Star',
+      w,
+      h,
+      {
+        type: 'star',
+        count: Math.min(120, Math.max(3, numParam(p, 'count', 5))),
+        inner_ratio: numParam(p, 'innerRatio', 0.38)
+      },
+      p
+    )
     moveNode(s.ds().doc.node_mut(id)!, p)
     return { ok: true, id }
   }),
@@ -103,7 +168,19 @@ export const CREATE_SPECS: CommandSpec[] = [
     const id = createNode(s, characters.slice(0, 20) || 'Text', 200, fontSize * 1.4, {
       type: 'text',
       characters,
-      style: { font_family: 'Inter', font_style: 'Regular', font_features: {}, variation_axes: {}, font_size: fontSize, line_height: { unit: 'auto' }, letter_spacing: { unit: 'percent', value: 0 }, decoration: 'none', decoration_look: { style: 'solid', offset: 0, thickness: 1, color: null }, text_case: 'original', links: {} },
+      style: {
+        font_family: 'Inter',
+        font_style: 'Regular',
+        font_features: {},
+        variation_axes: {},
+        font_size: fontSize,
+        line_height: { unit: 'auto' },
+        letter_spacing: { unit: 'percent', value: 0 },
+        decoration: 'none',
+        decoration_look: { style: 'solid', offset: 0, thickness: 1, color: null },
+        text_case: 'original',
+        links: {}
+      },
       runs: [],
       auto_resize: 'widthAndHeight',
       align_h: 'left',
@@ -264,7 +341,7 @@ export const EDIT_SPECS: CommandSpec[] = [
   }),
   spec('select.all', 'Select all', '{}', false, (s) => {
     const ds = s.ds()
-    ds.selection = [...ds.doc.node(ds.page)?.children ?? []]
+    ds.selection = [...(ds.doc.node(ds.page)?.children ?? [])]
     return ok()
   }),
   spec('select.none', 'Deselect', '{}', false, (s) => {
@@ -272,7 +349,9 @@ export const EDIT_SPECS: CommandSpec[] = [
     return ok()
   }),
   spec('command.batch', 'Batch commands', '{commands}', true, (s, p) => {
-    const commands = Array.isArray(p.commands) ? (p.commands as Array<{ id: string; params?: Record<string, unknown> }>) : []
+    const commands = Array.isArray(p.commands)
+      ? (p.commands as Array<{ id: string; params?: Record<string, unknown> }>)
+      : []
     const results: unknown[] = []
     for (const c of commands) {
       results.push(s.execute(c.id, c.params ?? {}))
@@ -282,14 +361,19 @@ export const EDIT_SPECS: CommandSpec[] = [
   spec('fill.set', 'Set fill', '{id?, fill}', true, (s, p) => {
     const ds = s.ds()
     const ids = nodeIdsParam(p.id) ?? ds.selection
-    const fill = p.fill as { type?: string; color?: { r: number; g: number; b: number; a?: number } } | undefined
+    const fill = p.fill as
+      | { type?: string; color?: { r: number; g: number; b: number; a?: number } }
+      | undefined
     for (const id of ids) {
       const n = ds.doc.node_mut(id)
       if (!n) continue
       if (fill && fill.color) {
         n.fills = [
           {
-            kind: { type: 'solid', color: { r: fill.color.r, g: fill.color.g, b: fill.color.b, a: fill.color.a ?? 1 } },
+            kind: {
+              type: 'solid',
+              color: { r: fill.color.r, g: fill.color.g, b: fill.color.b, a: fill.color.a ?? 1 }
+            },
             opacity: 1,
             visible: true,
             blend: 'normal'
@@ -306,7 +390,9 @@ export const EDIT_SPECS: CommandSpec[] = [
 function idList(v: unknown): NodeId[] | null {
   if (!Array.isArray(v)) return null
   return v
-    .map((x) => (typeof x === 'string' ? Number(x.split(':').at(-1)) : typeof x === 'number' ? x : null))
+    .map((x) =>
+      typeof x === 'string' ? Number(x.split(':').at(-1)) : typeof x === 'number' ? x : null
+    )
     .filter((x): x is NodeId => x !== null && Number.isFinite(x))
 }
 
@@ -383,19 +469,30 @@ export const ARRANGE_SPECS: CommandSpec[] = [
   })
 ]
 
-function boundsOf(session: Session, ids: NodeId[]): { min0: number; min1: number; max0: number; max1: number } | null {
+function boundsOf(
+  session: Session,
+  ids: NodeId[]
+): { min0: number; min1: number; max0: number; max1: number } | null {
   let box: { x0: number; y0: number; x1: number; y1: number } | null = null
   for (const id of ids) {
     const n = session.ds().doc.node(id)
     if (!n) continue
-    const b = transform_rect_bbox({ coeffs: n.transform.coeffs }, RectMath.new(0, 0, n.width, n.height))
+    const b = transform_rect_bbox(
+      { coeffs: n.transform.coeffs },
+      RectMath.new(0, 0, n.width, n.height)
+    )
     box = box ? RectMath.union(box, b) : b
   }
   if (!box) return null
   return { min0: box.x0, min1: box.y0, max0: box.x1, max1: box.y1 }
 }
 
-function alignAxis(s: Session, p: Record<string, unknown>, mode: 'min' | 'center' | 'max', axis: 'x' | 'y'): Record<string, unknown> {
+function alignAxis(
+  s: Session,
+  p: Record<string, unknown>,
+  mode: 'min' | 'center' | 'max',
+  axis: 'x' | 'y'
+): Record<string, unknown> {
   const ds = s.ds()
   const ids = idList(p.ids) ?? ds.selection
   const b = boundsOf(s, ids)
@@ -404,15 +501,26 @@ function alignAxis(s: Session, p: Record<string, unknown>, mode: 'min' | 'center
   for (const id of ids) {
     const n = ds.doc.node(id)
     if (!n) continue
-    const nb = transform_rect_bbox({ coeffs: n.transform.coeffs }, RectMath.new(0, 0, n.width, n.height))
+    const nb = transform_rect_bbox(
+      { coeffs: n.transform.coeffs },
+      RectMath.new(0, 0, n.width, n.height)
+    )
     const cur = axis === 'x' ? (nb.x0 + nb.x1) / 2 : (nb.y0 + nb.y1) / 2
     const span = axis === 'x' ? nb.x1 - nb.x0 : nb.y1 - nb.y0
-    const target = mode === 'min' ? (axis === 'x' ? b.min0 : b.min1) : mode === 'max' ? (axis === 'x' ? b.max0 : b.max1) - span : (axis === 'x' ? b.min0 + b.max0 : b.min1 + b.max1) / 2 - span / 2
+    const target =
+      mode === 'min'
+        ? axis === 'x'
+          ? b.min0
+          : b.min1
+        : mode === 'max'
+          ? (axis === 'x' ? b.max0 : b.max1) - span
+          : (axis === 'x' ? b.min0 + b.max0 : b.min1 + b.max1) / 2 - span / 2
     const delta = target - (axis === 'x' ? (mode === 'center' ? cur - span / 2 : cur) : cur)
     void i0
     void delta
     const c = [...n.transform.coeffs] as [number, number, number, number, number, number]
-    if (axis === 'x') c[4] += target - (mode === 'center' ? nb.x0 + span / 2 : mode === 'min' ? nb.x0 : nb.x1)
+    if (axis === 'x')
+      c[4] += target - (mode === 'center' ? nb.x0 + span / 2 : mode === 'min' ? nb.x0 : nb.x1)
     else c[5] += target - (mode === 'center' ? nb.y0 + span / 2 : mode === 'min' ? nb.y0 : nb.y1)
     const mut = ds.doc.node_mut(id)
     if (mut) mut.transform = Affine.new(c)
@@ -420,7 +528,11 @@ function alignAxis(s: Session, p: Record<string, unknown>, mode: 'min' | 'center
   return ok()
 }
 
-function reorder(s: Session, p: Record<string, unknown>, to: 'front' | 'back'): Record<string, unknown> {
+function reorder(
+  s: Session,
+  p: Record<string, unknown>,
+  to: 'front' | 'back'
+): Record<string, unknown> {
   const ds = s.ds()
   const ids = idList(p.ids) ?? ds.selection
   for (const id of ids) {
@@ -445,7 +557,13 @@ export const STRUCTURE_SPECS: CommandSpec[] = [
     const box = boundsOf(s, ds.selection)
     if (!box) return ok()
     const gid = ds.doc.alloc_id()
-    const group = Node.new(gid, { type: 'group' }, typeof p.name === 'string' ? p.name : 'Group', box.max0 - box.min0, box.max1 - box.min1)
+    const group = Node.new(
+      gid,
+      { type: 'group' },
+      typeof p.name === 'string' ? p.name : 'Group',
+      box.max0 - box.min0,
+      box.max1 - box.min1
+    )
     group.parent = parent
     group.transform = Affine.new([1, 0, 0, 1, box.min0, box.min1])
     ds.doc.insert(group)
@@ -498,10 +616,23 @@ export const STRUCTURE_SPECS: CommandSpec[] = [
     const box = boundsOf(s, ds.selection)
     if (!box) return ok()
     const fid = ds.doc.alloc_id()
-    const frame = Node.new(fid, { type: 'frame' }, typeof p.name === 'string' ? p.name : 'Frame', box.max0 - box.min0, box.max1 - box.min1)
+    const frame = Node.new(
+      fid,
+      { type: 'frame' },
+      typeof p.name === 'string' ? p.name : 'Frame',
+      box.max0 - box.min0,
+      box.max1 - box.min1
+    )
     frame.parent = ds.page
     frame.transform = Affine.new([1, 0, 0, 1, box.min0, box.min1])
-    frame.fills = [{ kind: { type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 } }, opacity: 1, visible: true, blend: 'normal' }]
+    frame.fills = [
+      {
+        kind: { type: 'solid', color: { r: 1, g: 1, b: 1, a: 1 } },
+        opacity: 1,
+        visible: true,
+        blend: 'normal'
+      }
+    ]
     ds.doc.insert(frame)
     for (const id of [...ds.selection]) {
       const n = ds.doc.node(id)
@@ -547,7 +678,21 @@ export const PAGE_SPECS: CommandSpec[] = [
     const ds = s.ds()
     const id = ds.doc.alloc_id()
     const name = typeof p.name === 'string' ? p.name : `Page ${ds.doc.pages.length + 1}`
-    ds.doc.insert(Node.new(id, { type: 'page', background: { r: 0.9608, g: 0.9608, b: 0.9608, a: 1 }, flows: [], prototype: {}, guides: [] }, name, 0, 0))
+    ds.doc.insert(
+      Node.new(
+        id,
+        {
+          type: 'page',
+          background: { r: 0.9608, g: 0.9608, b: 0.9608, a: 1 },
+          flows: [],
+          prototype: {},
+          guides: []
+        },
+        name,
+        0,
+        0
+      )
+    )
     ds.doc.pages.push(id)
     return { ok: true, id }
   }),
@@ -577,63 +722,43 @@ export const PAGE_SPECS: CommandSpec[] = [
 
 // ------------------------------ view.rs ------------------------------
 
-export const VIEW_SPECS: CommandSpec[] = [
-  spec('view.zoomIn', 'Zoom in', '{}', false, (s) => {
-    zoom(s, s.ds().view.zoom * 1.1)
-    return ok()
-  }),
-  spec('view.zoomOut', 'Zoom out', '{}', false, (s) => {
-    zoom(s, s.ds().view.zoom / 1.1)
-    return ok()
-  }),
-  spec('view.zoom100', 'Zoom to 100%', '{}', false, (s) => {
-    zoom(s, 1)
-    return ok()
-  }),
-  spec('view.zoomFit', 'Zoom to fit', '{}', false, (s) => {
-    const ds = s.ds()
-    const ids = ds.selection.length > 0 ? ds.selection : [...(ds.doc.node(ds.page)?.children ?? [])]
-    const b = boundsOf(s, ids) ?? { min0: 0, min1: 0, max0: 100, max1: 100 }
-    const { ViewState } = require('../lib') as typeof import('../lib')
-    ViewState.fit(ds.view, RectMath.new(b.min0, b.min1, b.max0, b.max1))
-    return ok()
-  }),
-  spec('view.set', 'Set view toggle', '{key?, on?}', false, (s, p) => {
-    const key = typeof p.key === 'string' ? p.key : ''
-    const view = s.ds().view as unknown as Record<string, unknown>
-    if (key in view && typeof p.on === 'boolean') view[key] = p.on
-    return ok()
-  })
-]
-
-function zoom(s: Session, z: number): void {
-  const v = s.ds().view
-  v.zoom = Math.min(256, Math.max(0.02, z))
-}
+/** The view, tool and preference commands (see `cmd/view.ts`). */
+export { VIEW_TOOL_SPECS, applyKeptToggles, viewChecked, PAN_STEP_PX } from './view'
 
 // ------------------------------ proto.rs ------------------------------
 
 export const PROTO_SPECS: CommandSpec[] = [
-  spec('proto.interaction.add', 'Add interaction', '{id?, dest, trigger?, transition?, durationMs?}', true, (s, p) => {
-    const ds = s.ds()
-    const ids = nodeIdsParam(p.id) ?? ds.selection
-    const dest = typeof p.dest === 'string' ? Number(p.dest.split(':').at(-1)) : typeof p.dest === 'number' ? p.dest : null
-    if (dest === null || !ds.doc.contains_id(dest)) throw new Error('no destination')
-    const trigger = (typeof p.trigger === 'string' ? p.trigger : 'onClick') as 'onClick'
-    const transition = typeof p.transition === 'string' ? p.transition : 'instant'
-    const duration = numParam(p, 'durationMs', 300)
-    for (const id of ids) {
-      const n = ds.doc.node_mut(id)
-      if (!n) continue
-      n.interactions.push({
-        trigger: { type: trigger },
-        actions: [{ type: 'navigate', dest }],
-        transition: { type: transition as 'instant' },
-        duration_ms: duration
-      })
+  spec(
+    'proto.interaction.add',
+    'Add interaction',
+    '{id?, dest, trigger?, transition?, durationMs?}',
+    true,
+    (s, p) => {
+      const ds = s.ds()
+      const ids = nodeIdsParam(p.id) ?? ds.selection
+      const dest =
+        typeof p.dest === 'string'
+          ? Number(p.dest.split(':').at(-1))
+          : typeof p.dest === 'number'
+            ? p.dest
+            : null
+      if (dest === null || !ds.doc.contains_id(dest)) throw new Error('no destination')
+      const trigger = (typeof p.trigger === 'string' ? p.trigger : 'onClick') as 'onClick'
+      const transition = typeof p.transition === 'string' ? p.transition : 'instant'
+      const duration = numParam(p, 'durationMs', 300)
+      for (const id of ids) {
+        const n = ds.doc.node_mut(id)
+        if (!n) continue
+        n.interactions.push({
+          trigger: { type: trigger },
+          actions: [{ type: 'navigate', dest }],
+          transition: { type: transition as 'instant' },
+          duration_ms: duration
+        })
+      }
+      return ok()
     }
-    return ok()
-  }),
+  ),
   spec('proto.interaction.remove', 'Remove interaction', '{id?, index}', true, (s, p) => {
     const ds = s.ds()
     const ids = nodeIdsParam(p.id) ?? ds.selection
@@ -693,11 +818,20 @@ export function ellipsePath(w: number, h: number): ReturnType<typeof ellipse> {
   return ellipse(w, h, 0, Math.PI * 2, 0)
 }
 
-export function polygonPath(w: number, h: number, count: number): ReturnType<typeof polygon_points> {
+export function polygonPath(
+  w: number,
+  h: number,
+  count: number
+): ReturnType<typeof polygon_points> {
   return polygon_points(w, h, count)
 }
 
-export function starPath(w: number, h: number, count: number, inner: number): ReturnType<typeof star_points> {
+export function starPath(
+  w: number,
+  h: number,
+  count: number,
+  inner: number
+): ReturnType<typeof star_points> {
   return star_points(w, h, count, inner)
 }
 
@@ -711,7 +845,7 @@ export function allCoreSpecs(): CommandSpec[] {
     ...STRUCTURE_SPECS,
     ...STRUCTURE_EXTENDED_SPECS,
     ...PAGE_SPECS,
-    ...VIEW_SPECS,
+    ...VIEW_TOOL_SPECS,
     ...PROTO_SPECS,
     ...BOARD_SPECS,
     ...VECTOREDIT_SPECS,

@@ -53,10 +53,20 @@ export interface ViewState {
   layout_grids: boolean
   rulers: boolean
   outlines: boolean
+  /** Outline mode for the selected layers only (the rest draws normally). */
   outlines_selection: boolean
+  /** Outline mode also outlines hidden layers. */
+  outline_hidden: boolean
+  /** Outline mode also draws every layer's box. */
+  outline_bounds: boolean
   mask_outlines: boolean
   pixel_preview: boolean
+  /** Pixel preview resolution: rendered pixels per page pixel (1 or 2). */
+  pixel_scale: number
+  show_slices: boolean
   frame_outlines: boolean
+  /** Soft-proof sRGB: mark Display P3 colours an sRGB screen can't show. */
+  proof_srgb: boolean
   comments: boolean
   multiplayer_cursors: boolean
   snap_geometry: boolean
@@ -81,9 +91,14 @@ export const ViewState = {
       rulers: true,
       outlines: false,
       outlines_selection: false,
+      outline_hidden: false,
+      outline_bounds: false,
       mask_outlines: false,
       pixel_preview: false,
+      pixel_scale: 1,
+      show_slices: false,
       frame_outlines: false,
+      proof_srgb: false,
       comments: false,
       multiplayer_cursors: true,
       snap_geometry: true,
@@ -119,6 +134,117 @@ export const ViewState = {
   }
 }
 
+/** The tools the engine can select (FigCraft's `ToolId`). */
+export const TOOL_IDS = [
+  'move',
+  'scale',
+  'hand',
+  'frame',
+  'section',
+  'slice',
+  'rectangle',
+  'line',
+  'arrow',
+  'ellipse',
+  'polygon',
+  'star',
+  'pen',
+  'pencil',
+  'text',
+  'comment',
+  'eyedropper',
+  'shapeBuilder'
+] as const
+
+export type ToolId = (typeof TOOL_IDS)[number]
+
+/** The command id of each tool (the eyedropper is `edit.pickColor`). */
+export const TOOL_COMMAND: Record<ToolId, string> = {
+  move: 'tool.move',
+  scale: 'tool.scale',
+  hand: 'tool.hand',
+  frame: 'tool.frame',
+  section: 'tool.section',
+  slice: 'tool.slice',
+  rectangle: 'tool.rectangle',
+  line: 'tool.line',
+  arrow: 'tool.arrow',
+  ellipse: 'tool.ellipse',
+  polygon: 'tool.polygon',
+  star: 'tool.star',
+  pen: 'tool.pen',
+  pencil: 'tool.pencil',
+  text: 'tool.text',
+  comment: 'tool.comment',
+  eyedropper: 'edit.pickColor',
+  shapeBuilder: 'tool.shapeBuilder'
+}
+
+const TOOL_LABELS: Record<ToolId, string> = {
+  move: 'Move',
+  scale: 'Scale',
+  hand: 'Hand tool',
+  frame: 'Frame',
+  section: 'Section',
+  slice: 'Slice',
+  rectangle: 'Rectangle',
+  line: 'Line',
+  arrow: 'Arrow',
+  ellipse: 'Ellipse',
+  polygon: 'Polygon',
+  star: 'Star',
+  pen: 'Pen',
+  pencil: 'Pencil',
+  text: 'Text',
+  comment: 'Comment',
+  eyedropper: 'Pick color',
+  shapeBuilder: 'Shape builder'
+}
+
+export const ToolId = {
+  /** The tool with id `id` (case-insensitive), or `null`. */
+  fromId(id: string): ToolId | null {
+    const k = id.trim().toLowerCase()
+    return (TOOL_IDS as readonly string[]).includes(k) ? (k as ToolId) : null
+  },
+
+  label(t: ToolId): string {
+    return TOOL_LABELS[t]
+  }
+}
+
+/** The nine anchor points of a selection box, as `tl`…`br`. */
+export const ANCHORS = ['tl', 't', 'tr', 'l', 'c', 'r', 'bl', 'b', 'br'] as const
+
+/** An anchor's column and row (0 start, 1 middle, 2 end). */
+export type Anchor = readonly [number, number]
+
+/** The anchor named `name` (case-insensitive), or `null`. */
+export function anchorOf(name: string): Anchor | null {
+  const i = ANCHORS.indexOf(name.trim().toLowerCase() as (typeof ANCHORS)[number])
+  return i < 0 ? null : [i % 3, Math.floor(i / 3)]
+}
+
+/** The name of anchor `(column, row)`. */
+export function anchorName(a: Anchor): string {
+  return ANCHORS[Math.min(2, a[1]) * 3 + Math.min(2, a[0])] ?? 'tl'
+}
+
+/** The engine's tool state (the selected tool and its options). */
+export interface ToolState {
+  tool: ToolId
+  /** The Scale tool's anchor: the point of the selection box that stays put. */
+  scale_anchor: Anchor
+  /** The brush the Pencil draws with (`null`: a plain stroke). */
+  pencil_brush: Record<string, unknown> | null
+}
+
+export const ToolState = {
+  default(): ToolState {
+    return { tool: 'move', scale_anchor: [1, 1], pencil_brush: null }
+  }
+}
+
 /** App preferences the engine owns. */
 export interface Prefs {
   nudge_small: number
@@ -127,15 +253,25 @@ export interface Prefs {
   highlight_hover: boolean
   rename_duplicates: boolean
   show_dimensions: boolean
-  number_keys_opacity: number
+  number_keys_opacity: boolean
   reduce_motion: boolean
   auto_save: boolean
+  start_on_home: boolean
   user_name: string
   language: string
-  dark: boolean | null
+  /** `'system'` by default; an explicit `'light'` or `'dark'` choice stays saved. */
+  theme: string
+  /** How large the whole interface is drawn, relative to the system display scale. */
+  ui_scale: number
   panel_left: number
   panel_right: number
+  /** View toggles the preferences keep for files opened or made later. */
+  view: Record<string, boolean>
 }
+
+/** The limits of `pref.uiScale`. */
+export const UI_SCALE_MIN = 0.75
+export const UI_SCALE_MAX = 3
 
 export const Prefs = {
   default(): Prefs {
@@ -146,14 +282,17 @@ export const Prefs = {
       highlight_hover: true,
       rename_duplicates: false,
       show_dimensions: false,
-      number_keys_opacity: 0.5,
+      number_keys_opacity: true,
       reduce_motion: false,
       auto_save: true,
+      start_on_home: false,
       user_name: '',
       language: 'en',
-      dark: null,
+      theme: 'system',
+      ui_scale: 1,
       panel_left: 240,
-      panel_right: 240
+      panel_right: 240,
+      view: {}
     }
   }
 }
@@ -245,6 +384,7 @@ export class Session {
   docs: DocState[] = []
   active = 0
   prefs: Prefs
+  tools: ToolState
   ui_requests: UiRequest[] = []
   journal: Array<[string, unknown]> = []
   message: string | null = null
@@ -253,6 +393,17 @@ export class Session {
   constructor(doc: Document = new Document()) {
     this.docs = [new DocState(doc)]
     this.prefs = Prefs.default()
+    this.tools = ToolState.default()
+  }
+
+  /** The active tool. */
+  tool(): ToolId {
+    return this.tools.tool
+  }
+
+  /** Select `t` as the active tool. */
+  set_tool(t: ToolId): void {
+    this.tools.tool = t
   }
 
   /** The active document state. */
@@ -313,7 +464,12 @@ export class Session {
     const ds = this.ds()
     const entry = ds.history.undo.pop()
     if (!entry) return false
-    const current: HistoryEntry = { label: '', doc: ds.doc, selection: [...ds.selection], page: ds.page }
+    const current: HistoryEntry = {
+      label: '',
+      doc: ds.doc,
+      selection: [...ds.selection],
+      page: ds.page
+    }
     ds.restoreTo(entry)
     ds.history.redo.push(current)
     return true
@@ -324,7 +480,12 @@ export class Session {
     const ds = this.ds()
     const entry = ds.history.redo.pop()
     if (!entry) return false
-    const current: HistoryEntry = { label: '', doc: ds.doc, selection: [...ds.selection], page: ds.page }
+    const current: HistoryEntry = {
+      label: '',
+      doc: ds.doc,
+      selection: [...ds.selection],
+      page: ds.page
+    }
     ds.restoreTo(entry)
     ds.history.undo.push(current)
     return true

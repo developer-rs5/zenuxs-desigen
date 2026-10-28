@@ -7,7 +7,19 @@ import { describe, expect, test } from 'bun:test'
 
 import { Vertex, type Segment, type VectorNetwork } from '@zenuxs/doc'
 
-import { Session, History, ViewState, MIN_ZOOM, MAX_ZOOM } from './lib'
+import { applyKeptToggles, PAN_STEP_PX, viewChecked } from './cmd/view'
+import {
+  Session,
+  History,
+  ViewState,
+  MIN_ZOOM,
+  MAX_ZOOM,
+  TOOL_COMMAND,
+  TOOL_IDS,
+  ToolId,
+  UI_SCALE_MAX,
+  UI_SCALE_MIN
+} from './lib'
 
 describe('engine session', () => {
   test('new_session_has_one_doc_and_page', () => {
@@ -368,5 +380,188 @@ describe('engine session', () => {
     const created = s.execute('template.create', { id: 'mobile-app' })
     expect(created.ok).toBe(true)
     expect(created.rootIds.length).toBe(4) // 4 mobile screens
+  })
+
+  test('view_zoom_steps_and_fit', () => {
+    const s = new Session()
+    s.execute('view.zoom100', {})
+    expect(s.ds().view.zoom).toBe(1)
+    s.execute('view.zoomIn', {})
+    expect(s.ds().view.zoom).toBe(2)
+    s.execute('view.zoomOut', {})
+    expect(s.ds().view.zoom).toBe(1)
+    s.execute('view.zoom50', {})
+    expect(s.ds().view.zoom).toBe(0.5)
+    s.execute('view.zoom200', {})
+    expect(s.ds().view.zoom).toBe(2)
+    s.execute('view.get', {})
+    expect(s.ds().view.zoom).toBe(2)
+
+    // A selection bigger than the viewport zooms out to fit it.
+    const id = s.execute('shape.rectangle', { x: 0, y: 0, width: 4000, height: 3000 }).id as number
+    s.ds().selection = [id]
+    const fit = s.execute('view.zoomFit', {})
+    expect(fit.zoom).toBeLessThan(1)
+    expect(fit.zoom).toBeGreaterThan(0)
+    const sel = s.execute('view.zoomSelection', {})
+    expect(sel.zoom).toBeGreaterThan(0)
+
+    // The zoom always stays inside the usable range.
+    s.execute('view.zoomIn', {})
+    s.execute('view.zoomIn', {})
+    for (let i = 0; i < 40; i++) s.execute('view.zoomOut', {})
+    expect(s.ds().view.zoom).toBe(0.02)
+    for (let i = 0; i < 40; i++) s.execute('view.zoomIn', {})
+    expect(s.ds().view.zoom).toBe(256)
+  })
+
+  test('view_toggles_reach_the_view_and_only_kept_ones_reach_prefs', () => {
+    const s = new Session()
+    expect(s.ds().view.pixel_grid).toBe(false)
+
+    const on = s.execute('view.pixelGrid', {})
+    expect(on.on).toBe(true)
+    expect(s.ds().view.pixel_grid).toBe(true)
+    expect(s.prefs.view['view.pixelGrid']).toBe(true)
+    expect(viewChecked(s, 'view.pixelGrid')).toBe(true)
+
+    // Omitting `on` flips it back.
+    expect(s.execute('view.pixelGrid', {}).on).toBe(false)
+    expect(s.ds().view.pixel_grid).toBe(false)
+
+    // An explicit value wins over the flip.
+    expect(s.execute('view.rulers', { on: false }).on).toBe(false)
+    expect(s.ds().view.rulers).toBe(false)
+
+    // Outline modes stay with the file.
+    s.execute('view.outlines', { on: true })
+    expect(s.ds().view.outlines).toBe(true)
+    expect(s.prefs.view['view.outlines']).toBeUndefined()
+
+    expect(viewChecked(s, 'command.undo')).toBeNull()
+
+    // A fresh file starts with the kept toggles.
+    s.execute('view.pixelGrid', { on: true })
+    const fresh = ViewState.default()
+    applyKeptToggles(s.prefs, fresh)
+    expect(fresh.pixel_grid).toBe(true)
+    expect(fresh.outlines).toBe(false)
+  })
+
+  test('view_get_and_set', () => {
+    const s = new Session()
+    const got = s.execute('view.get', {})
+    expect(typeof got.zoom).toBe('number')
+    expect(typeof got.cx).toBe('number')
+
+    s.execute('view.set', { zoom: 3, cx: 40, cy: -20 })
+    expect(s.ds().view.zoom).toBe(3)
+    expect(s.ds().view.cx).toBe(40)
+    expect(s.ds().view.cy).toBe(-20)
+
+    // Out-of-range values are clamped, not stored.
+    s.execute('view.set', { zoom: 10_000 })
+    expect(s.ds().view.zoom).toBe(256)
+    s.execute('view.set', { zoom: 0 })
+    expect(s.ds().view.zoom).toBe(0.02)
+  })
+
+  test('view_pan_and_regions', () => {
+    const s = new Session()
+    s.execute('view.zoom100', {})
+    s.execute('view.set', { cx: 0, cy: 0 })
+    s.execute('view.pan', { dx: 1, dy: 1 })
+    expect(s.ds().view.cx).toBe(PAN_STEP_PX)
+    expect(s.ds().view.cy).toBe(PAN_STEP_PX)
+    s.execute('view.pan', { dx: -1, dy: 0, big: true })
+    expect(s.ds().view.cx).toBe(PAN_STEP_PX - PAN_STEP_PX * 10)
+
+    // A region that isn't showing is a no-op, not a crash.
+    expect(s.execute('view.nextRegion', {}).ok).toBe(true)
+    expect(s.execute('view.previousRegion', {}).ok).toBe(true)
+  })
+
+  test('pref_toggles_and_values', () => {
+    const s = new Session()
+    expect(s.prefs.reduce_motion).toBe(false)
+    expect(s.execute('pref.reduceMotion', {}).on).toBe(true)
+    expect(s.prefs.reduce_motion).toBe(true)
+
+    s.execute('pref.highlightHover', { on: false })
+    expect(s.prefs.highlight_hover).toBe(false)
+
+    // Number keys either set opacity or jump to a zoom step, never both.
+    expect(s.prefs.number_keys_opacity).toBe(true)
+    s.execute('pref.numberKeysOpacity', {})
+    expect(s.prefs.number_keys_opacity).toBe(false)
+
+    s.execute('pref.nudge', { small: 5, big: 50 })
+    expect(s.prefs.nudge_small).toBe(5)
+    expect(s.prefs.nudge_large).toBe(50)
+    // Out of range nudges are clamped.
+    s.execute('pref.nudge', { small: 0, big: 1_000_000 })
+    expect(s.prefs.nudge_small).toBe(0.01)
+    expect(s.prefs.nudge_large).toBe(10_000)
+  })
+
+  test('pref_userName_language_and_uiScale_validate', () => {
+    const s = new Session()
+    expect(() => s.execute('pref.userName', {})).toThrow()
+    expect(s.execute('pref.userName', { name: '   ' }).name).toBe('You')
+    expect(s.execute('pref.userName', { name: 'Ada\u0007' }).name).toBe('Ada')
+    expect(s.execute('pref.userName', { name: 'x'.repeat(100) }).name).toHaveLength(64)
+
+    expect(s.execute('pref.language', { language: 'en-US' }).language).toBe('en-US')
+    expect(s.execute('pref.language', { language: 'pt_BR' }).language).toBe('pt_BR')
+    expect(() => s.execute('pref.language', { language: 'not a tag!' })).toThrow()
+    expect(() => s.execute('pref.language', { language: 'x'.repeat(40) })).toThrow()
+
+    // `auto` means "let the platform decide".
+    expect(s.execute('pref.uiScale', { scale: 'auto' }).scale).toBe(1)
+    expect(s.execute('pref.uiScale', { scale: 1.5 }).scale).toBe(1.5)
+    expect(s.execute('pref.uiScale', { scale: 99 }).scale).toBe(UI_SCALE_MAX)
+    expect(s.execute('pref.uiScale', { scale: 0 }).scale).toBe(UI_SCALE_MIN)
+  })
+
+  test('tools_set_and_anchor', () => {
+    const s = new Session()
+    expect(s.tool()).toBe('move')
+    expect(s.execute('tool.rectangle', {}).tool).toBe('rectangle')
+    expect(s.tool()).toBe('rectangle')
+    expect(s.execute('tool.set', { tool: 'pen' }).tool).toBe('pen')
+    expect(ToolId.fromId('pen')).toBe('pen')
+    expect(ToolId.fromId('nope')).toBeNull()
+    expect(() => s.execute('tool.set', { tool: 'nope' })).toThrow()
+
+    expect(s.tools.scale_anchor).toEqual([1, 1])
+    expect(s.execute('tool.scaleAnchor', { anchor: 'bl' }).anchor).toBe('bl')
+    expect(s.tools.scale_anchor).toEqual([0, 2])
+    const read = s.execute('tool.scaleAnchor', {})
+    expect(read.anchor).toBe('bl')
+    expect(() => s.execute('tool.scaleAnchor', { anchor: 'nope' })).toThrow()
+
+    // Every tool has a command, and running it selects that tool.
+    for (const id of TOOL_IDS) {
+      const r = s.execute(TOOL_COMMAND[id], {})
+      expect(r.tool).toBe(id)
+      expect(s.tool()).toBe(id)
+    }
+  })
+
+  test('tool_place_makes_the_selected_tool_shape_selected', () => {
+    const s = new Session()
+    s.execute('tool.rectangle', {})
+    const r = s.execute('tool.place', { x: 200, y: 150 })
+    expect(r.ids).toHaveLength(1)
+    expect(s.ds().selection).toEqual(r.ids)
+    const node = s.doc().node(r.ids[0] as number)
+    expect(node?.kind.type).toBe('rectangle')
+    expect(node?.transform.coeffs[4]).toBe(150)
+    expect(node?.transform.coeffs[5]).toBe(100)
+    expect(node?.width).toBe(100)
+
+    // A tool that doesn't place a shape says so.
+    s.execute('tool.hand', {})
+    expect(() => s.execute('tool.place', {})).toThrow()
   })
 })
