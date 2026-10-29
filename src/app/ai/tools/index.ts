@@ -38,6 +38,7 @@ import {
 import { registerImageSourcingServicesForSession } from '@/app/ai/image-sourcing'
 import { resolveImageGeneration, type ImageGenerationReason } from '@/app/ai/models/image'
 import { createAIGeneratedImageProvider } from '@/app/ai/tools/image-gen-provider'
+import { createZenuxsDesignTools } from '@/app/ai/tools/zenuxs-design'
 import { makeFigmaFromStore } from '@/app/automation/bridge/figma-factory'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import type { EditorStore } from '@/app/editor/active-store'
@@ -236,7 +237,7 @@ export async function createAITools(store: EditorStore) {
     ...(sourcing.available ? [sourceImage] : [])
   ]
 
-  return toolsToAI(
+  const coreTools = toolsToAI(
     toolList,
     {
       getFigma: () => makeFigmaFromStore(store),
@@ -310,5 +311,10 @@ export async function createAITools(store: EditorStore) {
     },
     { v, valibotSchema, tool }
   )
+
+  return {
+    ...coreTools,
+    ...createZenuxsDesignTools(store)
+  }
 }
 export type AITools = ReturnType<typeof createAITools>

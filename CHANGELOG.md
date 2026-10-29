@@ -8,6 +8,7 @@
 
 ### Added
 
+- Give AI bounded Zenuxs-backed tools to create screens, rectangles, text and vectors, update visual properties, make components, and add navigation.
 - Add FigCraft-style Zenuxs editor shell with left rail, pages/layers panel, prototype tab, inspect tab, and floating tool actions.
 - Source design images through a verified pipeline: each slot is routed automatically between a free image library (Openverse and Wikimedia Commons work without an API key, Pexels is used when a key is configured) and AI image generation, every candidate is inspected by the Vision model before it is applied, and custom or hard-to-find subjects skip the search and are generated directly. Attribution, license, routing decision and verification record travel with the imported asset.
 - Export prototypes to standalone HTML with `open-pencil export --format html --prototype`, covering every authored capability: fade, slide, and sampled-spring transitions, state visuals, keyframe animations, CSS hover/press triggers, and a delegated JS runtime for click, load, delay, drag, scroll, long press, release, guards with variable seeds, variable writes, screen navigation, overlays with dim backdrops, and instance variant swaps, plus a report of every exported and approximated interaction that `--json` prints.
