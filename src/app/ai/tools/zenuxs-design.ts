@@ -2,6 +2,7 @@ import { valibotSchema } from '@ai-sdk/valibot'
 import { tool } from 'ai'
 import * as v from 'valibot'
 
+import type { StepBudget, ToolLogEntry } from '@open-pencil/core/tools'
 import type { SceneNode } from '@open-pencil/scene-graph'
 
 import type { EditorStore } from '@/app/editor/active-store'
@@ -85,6 +86,26 @@ const navigationSchema = v.strictObject({
   destinationFrameId: v.pipe(v.string(), v.minLength(1), v.maxLength(256))
 })
 
+export interface ZenuxsDesignToolLifecycle {
+  onBeforeExecute?: (name: string, args: Record<string, unknown>) => void
+  onAfterExecute?: (
+    name: string,
+    args: Record<string, unknown>,
+    command: string
+  ) => void | Promise<void>
+  onFlashNodes?: (nodeIds: string[]) => void
+  onToolLog?: (entry: ToolLogEntry) => void
+  /** A prototype-writing tool ran; the caller records and validates it. */
+  onPrototypeMutation?: () => void
+  /** Any write can push siblings past a container, so layout is re-checked. */
+  onLayoutMutation?: () => void
+  onError?: () => void
+  getStepBudget?: () => StepBudget
+}
+
+/** Tools whose result can invalidate authored prototype behavior. */
+const PROTOTYPE_MUTATION_TOOLS: ReadonlySet<string> = new Set(['zenuxs_add_navigation'])
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -110,79 +131,189 @@ function settleLayout(
   }
 }
 
+function appendStepWarning(result: unknown, budget: StepBudget): unknown {
+  const remaining = budget.max - budget.current
+  if (remaining > 5) return result
+  const warning = `⚠ ${remaining} steps remaining out of ${budget.max}. Wrap up: finish critical fixes, skip polish. User can send "continue" for more steps.`
+  return result && typeof result === 'object' && !Array.isArray(result)
+    ? { ...result, _warning: warning }
+    : { result, _warning: warning }
+}
+
 function runDesignCommand(
   store: EditorStore,
+  lifecycle: ZenuxsDesignToolLifecycle,
+  toolName: string,
+  args: Record<string, unknown>,
   command: string,
-  getParams: () => Record<string, unknown>
-): { nodeIds: string[] } {
+  getParams: () => Record<string, unknown>,
+  resultFor: (nodeIds: string[]) => Record<string, unknown>
+): Promise<Record<string, unknown>> {
   const engine = getZenuxsEngine()
   const engineState = engine.ds()
   const previousDocument = engineState.doc
+  const previousSavedDocument = engineState.saved_doc
   const previousPage = engineState.page
   const previousSelection = [...engineState.selection]
+  const previousRevision = engineState.revision
+  const previousUid = engineState.uid
+  const previousUndo = [...engineState.history.undo]
+  const previousRedo = [...engineState.history.redo]
+  const previousJournal = [...engine.journal]
+  const previousMessage = engine.message
+  const previousUIRequests = [...engine.ui_requests]
   const before = store.snapshotPage()
   const activePageId = store.state.currentPageId
   const selectedIds = [...store.state.selectedIds]
   let graphWasSynced = false
+  const startedAt = Date.now()
 
-  try {
-    zenuxsBridge.syncToZenuxs(store.graph, activePageId)
-    graphWasSynced = true
-    const activePage = zenuxsBridge.toEngineId(activePageId)
-    const selection = selectedIds.map((id) => zenuxsBridge.toEngineId(id))
-    engine.ds().page = activePage
-    engine.ds().selection = selection
+  const restoreEngine = (): void => {
+    engineState.doc = previousDocument
+    engineState.saved_doc = previousSavedDocument
+    engineState.page = previousPage
+    engineState.selection = previousSelection
+    engineState.revision = previousRevision
+    engineState.uid = previousUid
+    engineState.history.undo = previousUndo
+    engineState.history.redo = previousRedo
+    engine.journal = previousJournal
+    engine.message = previousMessage
+    engine.ui_requests = previousUIRequests
+  }
 
-    const result = engine.execute(command, getParams())
-    if ('ok' in result && result.ok === false) {
-      throw new Error(`Engine command "${command}" did not complete successfully.`)
+  const undoSafeSync = (): void => {
+    const state = getZenuxsEngine().ds()
+    const priorDocument = state.doc
+    const priorPage = state.page
+    const priorSelection = [...state.selection]
+    const priorUndo = [...state.history.undo]
+    const priorRedo = [...state.history.redo]
+    try {
+      zenuxsBridge.syncToZenuxs(store.graph, store.state.currentPageId)
+      state.page = zenuxsBridge.toEngineId(store.state.currentPageId)
+      state.selection = [...store.state.selectedIds].map((id) => zenuxsBridge.toEngineId(id))
+      state.history.undo = []
+      state.history.redo = []
+    } catch (error) {
+      state.doc = priorDocument
+      state.page = priorPage
+      state.selection = priorSelection
+      state.history.undo = priorUndo
+      state.history.redo = priorRedo
+      throw error
     }
+  }
 
-    const patch = zenuxsBridge.applyEngineChanges(store.graph)
-    if (!patch.changed) throw new Error(`Engine command "${command}" did not change the document.`)
-    settleLayout(store, patch)
+  return (async () => {
+    try {
+      lifecycle.onBeforeExecute?.(toolName, args)
+      zenuxsBridge.syncToZenuxs(store.graph, activePageId)
+      graphWasSynced = true
+      const activePage = zenuxsBridge.toEngineId(activePageId)
+      const selection = selectedIds.map((id) => zenuxsBridge.toEngineId(id))
+      engineState.page = activePage
+      engineState.selection = selection
+      engineState.history.undo = []
+      engineState.history.redo = []
 
-    store.pushUndoEntry({
-      label: `AI: ${command}`,
-      forward: () => {
-        reapplyEnginePatch(store.graph, patch)
-        settleLayout(store, patch)
-        store.requestRender()
-      },
-      inverse: () => {
-        revertEnginePatch(store.graph, patch)
-        settleLayout(store, patch)
-        store.requestRender()
+      const commandResult = engine.execute(command, getParams())
+      if ('ok' in commandResult && commandResult.ok === false) {
+        throw new Error(`Engine command "${command}" did not complete successfully.`)
       }
-    })
-    store.requestRender()
 
-    engine.ds().page = activePage
-    engine.ds().selection = selection
-    return {
-      nodeIds: [
+      const patch = zenuxsBridge.applyEngineChanges(store.graph)
+      if (!patch.changed) throw new Error(`Engine command "${command}" did not change the document.`)
+      settleLayout(store, patch)
+      const nodeIds = [
         ...patch.created.map(({ node }) => node.id),
         ...patch.fieldChanges.map(({ id }) => id)
       ]
+      const result = resultFor(nodeIds)
+
+      engineState.page = activePage
+      engineState.selection = selection
+      engineState.history.undo = []
+      engineState.history.redo = []
+      store.requestRender()
+      if (PROTOTYPE_MUTATION_TOOLS.has(toolName)) lifecycle.onPrototypeMutation?.()
+      lifecycle.onLayoutMutation?.()
+      lifecycle.onFlashNodes?.(nodeIds)
+      lifecycle.onToolLog?.({
+        tool: toolName,
+        args,
+        result,
+        timestamp: startedAt,
+        durationMs: Date.now() - startedAt,
+        mutates: true
+      })
+      await lifecycle.onAfterExecute?.(toolName, args, command)
+      const budget = lifecycle.getStepBudget?.()
+      const output = budget ? appendStepWarning(result, budget) : result
+
+      store.pushUndoEntry({
+        label: `AI: ${toolName}`,
+        forward: () => {
+          const graphBefore = store.snapshotPage()
+          try {
+            reapplyEnginePatch(store.graph, patch)
+            settleLayout(store, patch)
+            undoSafeSync()
+            store.requestRender()
+          } catch (error) {
+            store.restorePageFromSnapshot(graphBefore)
+            throw error
+          }
+        },
+        inverse: () => {
+          const graphBefore = store.snapshotPage()
+          try {
+            revertEnginePatch(store.graph, patch)
+            settleLayout(store, patch)
+            undoSafeSync()
+            store.requestRender()
+          } catch (error) {
+            store.restorePageFromSnapshot(graphBefore)
+            throw error
+          }
+        }
+      })
+      return output as Record<string, unknown>
+    } catch (error) {
+      if (graphWasSynced) store.restorePageFromSnapshot(before)
+      restoreEngine()
+      const message = `Zenuxs design command "${command}" failed: ${errorMessage(error)}`
+      try {
+        lifecycle.onToolLog?.({
+          tool: toolName,
+          args,
+          result: null,
+          error: message,
+          timestamp: startedAt,
+          durationMs: Date.now() - startedAt,
+          mutates: true
+        })
+      } finally {
+        lifecycle.onError?.()
+      }
+      throw new Error(message)
     }
-  } catch (error) {
-    if (graphWasSynced) store.restorePageFromSnapshot(before)
-    engine.ds().doc = previousDocument
-    engine.ds().page = previousPage
-    engine.ds().selection = previousSelection
-    throw new Error(`Zenuxs design command "${command}" failed: ${errorMessage(error)}`)
-  }
+  })()
 }
 
-export function createZenuxsDesignTools(store: EditorStore) {
+export function createZenuxsDesignTools(
+  store: EditorStore,
+  lifecycle: ZenuxsDesignToolLifecycle = {}
+) {
   return {
     zenuxs_create_screen: tool({
       description: 'Create a screen frame on the current page.',
       inputSchema: valibotSchema(screenSchema),
       execute: async (input) => {
         const request = v.parse(screenSchema, input)
-        const { nodeIds } = runDesignCommand(store, 'shape.frame', () => request)
-        return { createdNodeIds: nodeIds }
+        return runDesignCommand(store, lifecycle, 'zenuxs_create_screen', { ...request }, 'shape.frame', () => request, (ids) => ({
+          createdNodeIds: ids
+        }))
       }
     }),
     zenuxs_create_rectangle: tool({
@@ -190,8 +321,15 @@ export function createZenuxsDesignTools(store: EditorStore) {
       inputSchema: valibotSchema(rectangleSchema),
       execute: async (input) => {
         const request = v.parse(rectangleSchema, input)
-        const { nodeIds } = runDesignCommand(store, 'shape.rectangle', () => request)
-        return { createdNodeIds: nodeIds }
+        return runDesignCommand(
+          store,
+          lifecycle,
+          'zenuxs_create_rectangle',
+          { ...request },
+          'shape.rectangle',
+          () => request,
+          (ids) => ({ createdNodeIds: ids })
+        )
       }
     }),
     zenuxs_create_text: tool({
@@ -199,8 +337,15 @@ export function createZenuxsDesignTools(store: EditorStore) {
       inputSchema: valibotSchema(textSchema),
       execute: async (input) => {
         const request = v.parse(textSchema, input)
-        const { nodeIds } = runDesignCommand(store, 'text.create', () => request)
-        return { createdNodeIds: nodeIds }
+        return runDesignCommand(
+          store,
+          lifecycle,
+          'zenuxs_create_text',
+          { ...request },
+          'text.create',
+          () => request,
+          (ids) => ({ createdNodeIds: ids })
+        )
       }
     }),
     zenuxs_create_vector: tool({
@@ -208,8 +353,15 @@ export function createZenuxsDesignTools(store: EditorStore) {
       inputSchema: valibotSchema(vectorSchema),
       execute: async (input) => {
         const request = v.parse(vectorSchema, input)
-        const { nodeIds } = runDesignCommand(store, 'shape.vector', () => request)
-        return { createdNodeIds: nodeIds }
+        return runDesignCommand(
+          store,
+          lifecycle,
+          'zenuxs_create_vector',
+          { ...request },
+          'shape.vector',
+          () => request,
+          (ids) => ({ createdNodeIds: ids })
+        )
       }
     }),
     zenuxs_set_node_properties: tool({
@@ -229,7 +381,7 @@ export function createZenuxsDesignTools(store: EditorStore) {
         ) {
           throw new Error('At least one supported visual property is required.')
         }
-        const { nodeIds } = runDesignCommand(store, 'node.set', () => {
+        return runDesignCommand(store, lifecycle, 'zenuxs_set_node_properties', { ...request }, 'node.set', () => {
           const { id, fills, ...properties } = request
           return {
             id: zenuxsBridge.toEngineId(id),
@@ -238,8 +390,7 @@ export function createZenuxsDesignTools(store: EditorStore) {
               ...(fills === undefined ? {} : { fills })
             }
           }
-        })
-        return { updatedNodeIds: nodeIds }
+        }, (ids) => ({ updatedNodeIds: ids }))
       }
     }),
     zenuxs_make_component: tool({
@@ -248,11 +399,10 @@ export function createZenuxsDesignTools(store: EditorStore) {
       execute: async (input) => {
         const request = v.parse(componentSchema, input)
         requireNode(store, request.id, 'Node')
-        const { nodeIds } = runDesignCommand(store, 'component.create', () => ({
+        return runDesignCommand(store, lifecycle, 'zenuxs_make_component', { ...request }, 'component.create', () => ({
           id: zenuxsBridge.toEngineId(request.id),
           description: request.description ?? ''
-        }))
-        return { componentNodeIds: nodeIds }
+        }), (ids) => ({ componentNodeIds: ids }))
       }
     }),
     zenuxs_add_navigation: tool({
@@ -268,14 +418,13 @@ export function createZenuxsDesignTools(store: EditorStore) {
           )
         }
 
-        const { nodeIds } = runDesignCommand(store, 'proto.interaction.add', () => ({
+        return runDesignCommand(store, lifecycle, 'zenuxs_add_navigation', { ...request }, 'proto.interaction.add', () => ({
           id: zenuxsBridge.toEngineId(request.sourceId),
           dest: zenuxsBridge.toEngineId(request.destinationFrameId),
           trigger: 'onClick',
           transition: 'instant',
           durationMs: 300
-        }))
-        return { updatedNodeIds: nodeIds }
+        }), (ids) => ({ updatedNodeIds: ids }))
       }
     })
   }

@@ -314,7 +314,54 @@ export async function createAITools(store: EditorStore) {
 
   return {
     ...coreTools,
-    ...createZenuxsDesignTools(store)
+    ...createZenuxsDesignTools(store, {
+      onBeforeExecute: (name, args) => {
+        const nodeId = typeof args.id === 'string' ? args.id : null
+        const targetBounds =
+          nodeId && store.graph.getNode(nodeId) ? store.graph.getAbsoluteBounds(nodeId) : null
+        const parentId =
+          typeof args.parentId === 'string'
+            ? args.parentId
+            : typeof args.destinationFrameId === 'string'
+              ? args.destinationFrameId
+              : null
+        const parentAbs =
+          parentId && store.graph.getNode(parentId)
+            ? store.graph.getAbsolutePosition(parentId)
+            : null
+        const rect = resolveAIWorkRect(args, targetBounds, parentAbs)
+        if (rect) setAIPendingWork({ rect, nodeId })
+        if (targetBounds && nodeId) store.aiMarkActive([nodeId])
+        void name
+      },
+      onAfterExecute: () => {
+        store.renderer?.aiClearActive()
+        clearAIPendingWork()
+        store.requestRender()
+      },
+      onError: () => {
+        store.renderer?.aiClearActive()
+        clearAIPendingWork()
+        store.requestRender()
+      },
+      onPrototypeMutation: () => {
+        runState.critic.noteMutation()
+        runState.critic.recordValidation(runPrototypeValidation(makeFigmaFromStore(store)))
+      },
+      onLayoutMutation: () => {
+        runState.layout.noteMutation()
+      },
+      onFlashNodes: (nodeIds) => {
+        if (nodeIds.length > 0) store.aiFlashDone(nodeIds)
+      },
+      onToolLog: (entry) => {
+        runState.toolLog.push(entry)
+      },
+      getStepBudget: (): StepBudget => ({
+        current: runState.currentSteps,
+        max: MAX_AGENT_STEPS
+      })
+    })
   }
 }
 export type AITools = ReturnType<typeof createAITools>

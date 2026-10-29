@@ -475,7 +475,6 @@ function engineNodeFields(
   idMap: NodeIdMap
 ): Partial<SceneNode> {
   const fields: Partial<SceneNode> = {
-    type: mapZenuxsKindToNodeType(zn.kind),
     name: zn.name,
     x: zn.transform.coeffs[4] ?? 0,
     y: zn.transform.coeffs[5] ?? 0,
@@ -495,6 +494,7 @@ function engineNodeFields(
       idMap
     )
   }
+  if (zn.kind.type === 'component' && existing?.type !== 'COMPONENT') fields.type = 'COMPONENT'
   if (zn.kind.type === 'text') {
     fields.text = zn.kind.characters
     const style = zn.kind.style

@@ -265,6 +265,145 @@ describe('Zenuxs AI design tools', () => {
     expect(getZenuxsEngine().ds().selection).toEqual([zenuxsBridge.toEngineId(selected.id)])
   })
 
+  test('preserves unsupported SceneGraph node types during a Zenuxs tool call', async () => {
+    const store = createStore()
+    const rounded = store.graph.createNode('ROUNDED_RECTANGLE', store.state.currentPageId, {
+      name: 'Rounded',
+      width: 70,
+      height: 50
+    })
+    const boolean = store.graph.createNode('BOOLEAN_OPERATION', store.state.currentPageId, {
+      name: 'Boolean',
+      width: 30,
+      height: 30
+    })
+    const connector = store.graph.createNode('CONNECTOR', store.state.currentPageId, {
+      name: 'Connector',
+      width: 20,
+      height: 20
+    })
+    const shapeWithText = store.graph.createNode('SHAPE_WITH_TEXT', store.state.currentPageId, {
+      name: 'Labeled',
+      width: 60,
+      height: 40
+    })
+    const tools = createZenuxsDesignTools(store)
+
+    await invoke(tools.zenuxs_create_rectangle, { name: 'New shape' })
+
+    expect(store.graph.getNode(rounded.id)?.type).toBe('ROUNDED_RECTANGLE')
+    expect(store.graph.getNode(boolean.id)?.type).toBe('BOOLEAN_OPERATION')
+    expect(store.graph.getNode(connector.id)?.type).toBe('CONNECTOR')
+    expect(store.graph.getNode(shapeWithText.id)?.type).toBe('SHAPE_WITH_TEXT')
+  })
+
+  test('keeps engine document canonical and history aligned through editor undo and redo', async () => {
+    const store = createStore()
+    const tools = createZenuxsDesignTools(store)
+
+    await invoke(tools.zenuxs_create_rectangle, { name: 'Undoable' })
+    expect(getZenuxsEngine().doc().nodesCount()).toBe(store.graph.nodes.size - 1)
+    expect(getZenuxsEngine().ds().history.undo).toHaveLength(0)
+    expect(getZenuxsEngine().ds().history.redo).toHaveLength(0)
+
+    store.undoAction()
+    expect(getZenuxsEngine().doc().nodesCount()).toBe(store.graph.nodes.size - 1)
+    expect(getZenuxsEngine().ds().history.undo).toHaveLength(0)
+    expect(getZenuxsEngine().ds().history.redo).toHaveLength(0)
+
+    store.redoAction()
+    expect(getZenuxsEngine().doc().nodesCount()).toBe(store.graph.nodes.size - 1)
+    expect(getZenuxsEngine().ds().history.undo).toHaveLength(0)
+    expect(getZenuxsEngine().ds().history.redo).toHaveLength(0)
+    expect(getZenuxsEngine().doc().ids().map((id) => getZenuxsEngine().doc().node(id)?.name)).toContain(
+      'Undoable'
+    )
+  })
+
+  test('restores engine document, history and journal after an executed command fails afterward', async () => {
+    const store = createStore()
+    const engine = getZenuxsEngine()
+    const previousDocument = engine.ds().doc
+    const previousUndo = [...engine.ds().history.undo]
+    const previousRedo = [...engine.ds().history.redo]
+    const previousJournal = [...engine.journal]
+    const previousGraph = snapshotGraph(store)
+    const originalExecute = engine.execute.bind(engine)
+    const execute = spyOn(engine, 'execute').mockImplementation((command, params) => {
+      const result = originalExecute(command, params)
+      throw new Error(`failure after ${String(result.ok)}`)
+    })
+    const tools = createZenuxsDesignTools(store)
+
+    await expect(invoke(tools.zenuxs_create_rectangle, { name: 'Should roll back' })).rejects.toThrow(
+      /failed/
+    )
+
+    expect(snapshotGraph(store)).toBe(previousGraph)
+    expect(engine.ds().doc).toBe(previousDocument)
+    expect(engine.ds().history.undo).toEqual(previousUndo)
+    expect(engine.ds().history.redo).toEqual(previousRedo)
+    expect(engine.journal).toEqual(previousJournal)
+    expect(store.undo.depth).toBe(0)
+  })
+
+  test('runs AI lifecycle feedback, completion, logging, flash and validation for navigation', async () => {
+    const store = createStore()
+    const source = createRectangle(store)
+    const destination = store.graph.createNode('FRAME', store.state.currentPageId, {
+      name: 'Destination',
+      width: 200,
+      height: 300
+    })
+    const lifecycle: string[] = []
+    const tools = createZenuxsDesignTools(store, {
+      onBeforeExecute: (name) => lifecycle.push(`before:${name}`),
+      onAfterExecute: (name) => lifecycle.push(`after:${name}`),
+      onFlashNodes: (ids) => lifecycle.push(`flash:${ids.join(',')}`),
+      onToolLog: (entry) => lifecycle.push(`log:${entry.tool}`),
+      onPrototypeMutation: () => lifecycle.push('prototype-validation'),
+      onLayoutMutation: () => lifecycle.push('layout-validation')
+    })
+
+    await invoke(tools.zenuxs_add_navigation, {
+      sourceId: source.id,
+      destinationFrameId: destination.id
+    })
+
+    expect(lifecycle).toEqual([
+      'before:zenuxs_add_navigation',
+      'prototype-validation',
+      'layout-validation',
+      `flash:${source.id}`,
+      'log:zenuxs_add_navigation',
+      'after:zenuxs_add_navigation'
+    ])
+  })
+
+  test('rolls back graph and engine when a post-execution lifecycle hook fails', async () => {
+    const store = createStore()
+    const engine = getZenuxsEngine()
+    const previousGraph = snapshotGraph(store)
+    const previousDocument = engine.ds().doc
+    const previousJournal = [...engine.journal]
+    const tools = createZenuxsDesignTools(store, {
+      onAfterExecute: () => {
+        throw new Error('validation hook failed')
+      }
+    })
+
+    await expect(invoke(tools.zenuxs_create_rectangle, { name: 'Should roll back' })).rejects.toThrow(
+      /validation hook failed/
+    )
+
+    expect(snapshotGraph(store)).toBe(previousGraph)
+    expect(engine.ds().doc).toBe(previousDocument)
+    expect(engine.ds().history.undo).toHaveLength(0)
+    expect(engine.ds().history.redo).toHaveLength(0)
+    expect(engine.journal).toEqual(previousJournal)
+    expect(store.undo.depth).toBe(0)
+  })
+
   test('rejects invalid parameters without changing either document or undo history', async () => {
     const store = createStore()
     const tools = createZenuxsDesignTools(store)
