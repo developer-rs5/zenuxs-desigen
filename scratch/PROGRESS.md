@@ -14,10 +14,13 @@ true and contradicted its own gap list.
 - [x] STEP 7 (2026-10-27): Plugin runs are synced back to the live canvas. `runPluginById` rebuilds the engine document from the on-screen graph, mirrors the canvas selection, then `commitEnginePatch` replays the engine diff onto the SceneGraph and pushes one undo entry per run. Covered by `tests/engine/zenuxs-bridge.test.ts` (created nodes, field changes, deleted subtrees, empty patch).
 - [ ] Remaining wire-in: retire the OpenPencil document owner. 334 files under `src/` still import `@open-pencil/*`; 4 import `@zenuxs/*`. The SceneGraph is authoritative and the Zenuxs session is bridged.
 
-## Measured package state (2026-10-27)
+## Measured package state (inventory and evidence refreshed 2026-10-29)
 - 14 `@zenuxs/*` packages + `apps/cli`; the app depends on 9 of them.
 - `bun test` across all 14 packages: 172 pass, 0 fail, 916 assertions.
-- Engine: 111 of FigCraft's 570 command specs (~19%); 29 tests.
+- FigCraft parity inventory: 569 unique registered IDs at pinned revision `92b83521afc0fc4abbcfb0c7adb169d5674647b5`. The old 570 occurrence count included one macro documentation mention.
+- Zenuxs registry: 265 rows / 243 unique IDs, 22 duplicated IDs, and 29 unmatched unique IDs. Exact-ID comparison: 214 implemented, 334 missing non-collaboration FigCraft IDs, and 21 collaboration IDs excluded (214 + 334 + 21 = 569). The previous 111/570 engine count is stale.
+- Generated report: [`docs/figcraft-parity/command-inventory.json`](../docs/figcraft-parity/command-inventory.json). Source-linked feature evidence: [`docs/figcraft-parity/capability-evidence.json`](../docs/figcraft-parity/capability-evidence.json).
+- Engine includes 48 `text.*` commands including `text.create`; this does not establish feature or command parity beyond the generated exact-ID inventory.
 - Closest to 1:1: `geom` (7 files / 1,887 LOC), `color` (12 / 2,205), `.zenuxs` format (2 / 329).
 - Partial: `doc` (18 / 4,653), `layout` (3 / 1,061), `pathops`, `engine`, `plugin`, `mcp`.
 - Replaced or narrow: `render` (2 / 470), `text` (2 / 195), `svg`, `pdf`, `collab`, `collab-net`.
@@ -30,11 +33,15 @@ true and contradicted its own gap list.
 - Desktop multi-window: `create_new_window` command, label validation, focus-existing behavior, external URL parsing without the `url` crate; browser fallback popup. Not compiled locally (no Cargo); type-checked frontend only.
 
 ## Known gaps (honest)
-- Engine command tail: ~459 of 570 specs missing, including tools/library/branch/version areas.
+- Engine command gaps: 334 non-collaboration FigCraft IDs remain missing, including library/branch/version areas; see the generated command inventory for the exact IDs and source paths.
 - Document/render/format depth: `@zenuxs/doc` is module-complete but much smaller than Rust; `.fig` read/write is OpenPencil's, not `@zenuxs/format`; CanvasKit draws the app while `@zenuxs/render` is a helper.
 - Plugin runs now land on the live canvas as one undoable step per run.
 - Multi-track motion timeline not built.
 - Native window command requires a Cargo build to verify (CI has Rust; this machine does not).
+
+## Next parity plans
+- Base each dependency-ordered domain plan on missing and blocked rows in the checked-in command inventory and capability evidence, not estimated percentages or source size.
+- Preserve the approved online-collaboration exclusion; it is recorded separately and is not a parity gap.
 
 ## Session context
 - `packages/mcp` is the old OpenPencil MCP; `@zenuxs/engine/mcp` is the engine MCP surface.

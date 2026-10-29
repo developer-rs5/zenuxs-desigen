@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { readFile } from 'node:fs/promises'
 
 import type { FigCraftCommand, ZenuxsCommand } from '../src/command-catalog'
 import { buildInventory } from '../src/inventory'
@@ -17,6 +18,48 @@ const zenuxs: ZenuxsCommand[] = [
 ]
 
 describe('buildInventory', () => {
+  test('covers_all_approved_parity_domains', async () => {
+    const manifest = JSON.parse(
+      await readFile(
+        new URL('../../../docs/figcraft-parity/capability-evidence.json', import.meta.url),
+        'utf8'
+      )
+    ) as unknown
+    const capabilities = parseCapabilityEvidence(manifest)
+    const requiredDomains = [
+      'canvas/selection',
+      'shapes/paint/effects',
+      'layout/text',
+      'components/variables',
+      'prototyping',
+      'formats/import-export',
+      'plugins',
+      'boards/templates/handoff',
+      'engine command surface',
+      'CLI/MCP/SDK/AI'
+    ]
+
+    expect(capabilities.map(({ feature }) => feature)).toEqual(
+      expect.arrayContaining(requiredDomains)
+    )
+
+    const collaboration = capabilities.filter(({ feature }) =>
+      feature.toLowerCase().includes('collaboration')
+    )
+    expect(collaboration).toHaveLength(1)
+    for (const capability of collaboration) {
+      expect(capability.feature.toLowerCase()).toContain('excluded')
+      expect(capability.status).not.toBe('missing')
+      expect(capability.note.toLowerCase()).toContain('excluded')
+    }
+    const gaps = capabilities.filter(
+      ({ status, note }) =>
+        (status === 'missing' || status === 'blocked') &&
+        !note.toLowerCase().includes('excluded from the approved figcraft parity scope')
+    )
+    expect(gaps.map(({ feature }) => feature)).not.toContain(collaboration[0]?.feature)
+  })
+
   test('matches_commands_by_exact_id', () => {
     const inventory = buildInventory(reference, zenuxs, [])
 

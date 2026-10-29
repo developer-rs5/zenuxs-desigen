@@ -1,1 +1,233 @@
-[]
+[
+  {
+    "feature": "canvas/selection",
+    "referencePaths": [
+      "crates/engine/src/cmd/arrange.rs",
+      "crates/engine/src/cmd/page.rs",
+      "crates/engine/src/cmd/structure.rs",
+      "crates/engine/src/cmd/view.rs",
+      "crates/doc/src/geometry.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": [
+        "packages/doc/src/geometry.ts",
+        "packages/engine/src/cmd/arrange.ts",
+        "packages/engine/src/cmd/view.ts"
+      ],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": ["packages/engine/src/tests.test.ts", "packages/geom/src/tests.test.ts"],
+    "status": "package-only",
+    "note": "Package: geometry and viewport/arrange commands exist. UI: no Zenuxs-owned canvas or selection surface is wired; the visible editor remains OpenPencil-owned. Automation: src/app/zenuxs-engine.ts exposes a separate headless Session. Behavior tests: package engine and geometry tests."
+  },
+  {
+    "feature": "shapes/paint/effects",
+    "referencePaths": [
+      "crates/engine/src/cmd/create.rs",
+      "crates/engine/src/cmd/edit.rs",
+      "crates/engine/src/cmd/props.rs",
+      "crates/doc/src/vector.rs",
+      "crates/doc/src/colors.rs",
+      "crates/render/src/paint.rs",
+      "crates/render/src/fx.rs",
+      "crates/render/src/shadow.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": [
+        "packages/color/src/index.ts",
+        "packages/doc/src/vector.ts",
+        "packages/engine/src/cmd/core.ts",
+        "packages/pathops/src/index.ts",
+        "packages/render/src/index.ts"
+      ],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": [
+      "packages/color/src/gradient.test.ts",
+      "packages/pathops/src/index.test.ts",
+      "packages/render/src/index.test.ts"
+    ],
+    "status": "package-only",
+    "note": "Package: shape, paint, color, path-operation, and render helpers exist with differing depth. UI: current paint/effect controls and CanvasKit renderer are OpenPencil-owned, not Zenuxs-wired. Automation: the separate Zenuxs Session is exposed by src/app/zenuxs-engine.ts. Behavior tests: color, pathops, and render package tests; they do not prove complete FigCraft parity."
+  },
+  {
+    "feature": "layout/text",
+    "referencePaths": [
+      "crates/engine/src/cmd/layout.rs",
+      "crates/engine/src/cmd/text.rs",
+      "crates/layout/src/lib.rs",
+      "crates/text/src/lib.rs",
+      "crates/doc/src/text.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": [
+        "packages/engine/src/cmd/text.ts",
+        "packages/engine/src/cmd/text-style.ts",
+        "packages/layout/src/index.ts",
+        "packages/text/src/index.ts"
+      ],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": [
+      "packages/engine/src/tests.test.ts",
+      "packages/layout/src/tests.test.ts",
+      "packages/text/src/index.test.ts"
+    ],
+    "status": "automation-wired",
+    "note": "Package: layout and text packages plus registered text commands exist; documented gaps include on-path text, preview, and font-database behavior. UI: the running editor's layout and text flows use OpenPencil packages. Automation: Zenuxs engine commands are reachable through the exposed Session, not through the editor's authoritative document. Behavior tests: engine, layout, and text package tests cover selected contracts only."
+  },
+  {
+    "feature": "components/variables",
+    "referencePaths": [
+      "crates/engine/src/cmd/component.rs",
+      "crates/engine/src/cmd/library.rs",
+      "crates/engine/src/cmd/styles.rs",
+      "crates/engine/src/cmd/variables.rs",
+      "crates/doc/src/library.rs",
+      "crates/doc/src/styles.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": [
+        "packages/doc/src/library.ts",
+        "packages/doc/src/styles.ts",
+        "packages/engine/src/cmd/advanced.ts"
+      ],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": ["packages/doc/src/tests.test.ts", "packages/engine/src/tests.test.ts"],
+    "status": "automation-wired",
+    "note": "Package: document library/style primitives and component/variable commands exist. UI: existing component and variable panels operate on the OpenPencil SceneGraph, not Zenuxs document ownership. Automation: registered Zenuxs commands are reachable through the exposed Session. Behavior tests: document and engine package suites cover selected behavior; remaining command gaps are in the generated inventory."
+  },
+  {
+    "feature": "prototyping",
+    "referencePaths": [
+      "crates/engine/src/cmd/proto.rs",
+      "crates/engine/src/cmd/proto_actions.rs",
+      "crates/doc/src/proto.rs",
+      "crates/doc/src/proto_expr.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": ["packages/doc/src/proto.ts", "packages/engine/src/cmd/advanced.ts"],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": ["packages/doc/src/tests.test.ts", "packages/engine/src/tests.test.ts"],
+    "status": "automation-wired",
+    "note": "Package: prototype document model and engine commands exist. UI: PrototypePanel.vue and PrototypePlayer.vue remain OpenPencil-owned and are not Zenuxs editor wiring. Automation: Zenuxs commands are available through the exposed Session. Behavior tests: document and engine package tests cover selected contracts; end-to-end parity is not established."
+  },
+  {
+    "feature": "formats/import-export",
+    "referencePaths": [
+      "crates/engine/src/cmd/file.rs",
+      "crates/engine/src/cmd/image.rs",
+      "crates/format/src/lib.rs",
+      "crates/format/src/fig/mod.rs",
+      "crates/format/src/fig/export.rs",
+      "crates/format/src/rest/mod.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": ["packages/format/src/index.ts"],
+      "app": ["src/app/document/io/zenuxs.ts", "src/app/zenuxs-bridge.ts"],
+      "ui": ["src/app/shell/menu/files.ts"]
+    },
+    "testEvidence": ["packages/format/src/index.test.ts", "tests/engine/zenuxs-format.test.ts"],
+    "status": "ui-wired",
+    "note": "Package: @zenuxs/format supports the native .zenuxs archive. UI: the IO adapter participates in app document I/O, but .fig import/export remains in OpenPencil packages and Zenuxs is not the document owner. Automation: direct format package APIs exist; no Zenuxs CLI workflow is evidenced. Behavior tests: package round-trip and app adapter tests."
+  },
+  {
+    "feature": "plugins",
+    "referencePaths": [
+      "crates/plugin/src/lib.rs",
+      "crates/plugin/src/manifest.rs",
+      "crates/plugin/src/sandbox.rs",
+      "crates/plugin/src/widget.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": ["packages/plugin/src/index.ts"],
+      "app": ["src/app/plugins/store.ts", "src/app/zenuxs-bridge.ts"],
+      "ui": ["src/components/plugins/PluginsDialog.vue"]
+    },
+    "testEvidence": ["packages/plugin/src/index.test.ts", "tests/engine/zenuxs-bridge.test.ts"],
+    "status": "ui-wired",
+    "note": "Package: WASM runtime and FigCraft-style ABI are present. UI: PluginsDialog and app store are wired; only the bundled sandbox self-test has a runnable artifact, catalog entries without builds remain unavailable, and widget panels are not rendered. Automation: plugin runs apply engine patches through the app bridge. Behavior tests: plugin runtime and bridge tests; app plugin UI flow lacks a dedicated integration test."
+  },
+  {
+    "feature": "boards/templates/handoff",
+    "referencePaths": [
+      "crates/engine/src/templates/mod.rs",
+      "crates/engine/src/codegen.rs",
+      "crates/engine/src/devinspect.rs",
+      "crates/engine/src/annotations.rs",
+      "crates/format/src/fig/map.rs",
+      "crates/format/src/fig/mod.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": [
+        "packages/doc/src/handoff.ts",
+        "packages/engine/src/cmd/boards.ts",
+        "packages/engine/src/cmd/codegen.ts",
+        "packages/engine/src/cmd/templates.ts"
+      ],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": ["packages/engine/src/tests.test.ts", "packages/doc/src/tests.test.ts"],
+    "status": "automation-wired",
+    "note": "Package: board, template, codegen, and handoff primitives/commands exist; FigCraft has no registered board commands and its FIG importer maps unsupported sticky-note/connector layers as stand-ins. UI: no Zenuxs-owned boards/template/handoff surface is wired. Automation: the exposed Session reaches registered Zenuxs commands. Behavior tests: engine tests exercise sticky-note, template, and codegen commands; breadth remains partial."
+  },
+  {
+    "feature": "engine command surface",
+    "referencePaths": ["crates/engine/src/cmd/mod.rs", "crates/engine/src/lib.rs"],
+    "zenuxsSurfaces": {
+      "packages": [
+        "packages/engine/src/cmd/advanced.ts",
+        "packages/engine/src/cmd/core.ts",
+        "packages/engine/src/index.ts",
+        "packages/engine/src/lib.ts"
+      ],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": ["packages/engine/src/tests.test.ts", "packages/engine/src/mcp.test.ts"],
+    "status": "automation-wired",
+    "note": "Package: command registry and Session exist. UI: no full Zenuxs-owned editor command flow is wired. Automation: app exposes the separate Session for browser automation. Inventory: FigCraft has 569 unique registered IDs; Zenuxs registry has 265 rows / 243 unique IDs, with 22 duplicated IDs and 29 unmatched unique IDs; exact-ID parity is 214 implemented and 334 missing non-collaboration IDs (214+334+21=569). The prior 570 occurrence total counted a macro documentation mention; 111/570 is stale. Behavior tests cover selected engine and MCP contracts only."
+  },
+  {
+    "feature": "CLI/MCP/SDK/AI",
+    "referencePaths": [
+      "crates/mcp/src/tools.rs",
+      "apps/figcraft-cli/src/main.rs",
+      "crates/engine/src/lib.rs"
+    ],
+    "zenuxsSurfaces": {
+      "packages": ["packages/engine/src/mcp.ts", "packages/vue/src/index.ts"],
+      "app": ["src/app/zenuxs-engine.ts"],
+      "ui": []
+    },
+    "testEvidence": [
+      "tests/engine/app/ai/context.test.ts",
+      "tests/engine/cli/eval.test.ts",
+      "tests/engine/mcp/tools.test.ts",
+      "packages/engine/src/mcp.test.ts",
+      "tests/engine/vue/editor/commands/shortcut.test.ts"
+    ],
+    "status": "automation-wired",
+    "note": "Package: engine includes an MCP protocol helper and Vue exposes SDK primitives. UI: current ChatPanel and AI tools use OpenPencil FigmaAPI, not the Zenuxs engine. Automation: engine MCP helpers and the browser-exposed Zenuxs Session are available as package/browser surfaces. The existing CLI and MCP server are OpenPencil-owned, so Zenuxs CLI/MCP/SDK/AI parity is incomplete. Behavior tests cover the MCP helper and selected SDK behavior."
+  },
+  {
+    "feature": "Online collaboration (excluded)",
+    "referencePaths": ["crates/collab/src/lib.rs", "crates/collab-net/src/lib.rs"],
+    "zenuxsSurfaces": {
+      "packages": ["packages/collab/src/index.ts", "packages/collab-net/src/index.ts"],
+      "app": ["src/app/collab"],
+      "ui": ["src/components/CollabPanel"]
+    },
+    "testEvidence": ["packages/collab/src/index.test.ts", "packages/collab-net/src/index.test.ts"],
+    "status": "ui-wired",
+    "note": "EXCLUDED from the approved FigCraft parity scope and must not be counted as a gap. This row records the separate existing Zenuxs collaboration stack only; its status does not claim FigCraft behavioral parity. Behavior tests: collaboration package tests."
+  }
+]
