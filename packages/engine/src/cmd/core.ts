@@ -4,7 +4,7 @@
  * (Converted 1:1 from FigCraft `crates/engine/src/cmd/{create,edit,arrange,structure,page,view,proto}.rs`.)
  */
 
-import { AutoLayout, Node, type NodeId } from '@zenuxs/doc'
+import { AutoLayout, Node, VectorNetwork, type NodeId } from '@zenuxs/doc'
 import {
   Affine,
   RectMath,
@@ -160,6 +160,40 @@ export const CREATE_SPECS: CommandSpec[] = [
     const w = numParam(p, 'width', 100)
     const id = createNode(s, 'Line', w, 0, { type: 'line' }, p)
     moveNode(s.ds().doc.node_mut(id)!, p)
+    return { ok: true, id }
+  }),
+  spec('shape.vector', 'Vector', '{points, closed?}', true, (s, p) => {
+    if (!Array.isArray(p.points)) throw new Error('points must be an array')
+    if (p.points.length < 2) throw new Error('a vector needs at least two points')
+
+    const points: Array<[number, number]> = []
+    for (const [index, point] of p.points.entries()) {
+      if (!Array.isArray(point) || point.length !== 2) {
+        throw new Error(`point ${index} must be a coordinate pair`)
+      }
+      const x = point[0]
+      const y = point[1]
+      if (
+        typeof x !== 'number' ||
+        !Number.isFinite(x) ||
+        typeof y !== 'number' ||
+        !Number.isFinite(y)
+      ) {
+        throw new Error(`point ${index} must contain finite coordinates`)
+      }
+      points.push([x, y])
+    }
+
+    if (p.closed !== undefined && typeof p.closed !== 'boolean') {
+      throw new Error('closed must be a boolean')
+    }
+    const closed = p.closed === true
+    if (closed && points.length < 3) {
+      throw new Error('a closed vector needs at least three points')
+    }
+
+    const network = VectorNetwork.from_points(points, closed)
+    const id = createNode(s, 'Vector', 100, 100, { type: 'vector', network }, p)
     return { ok: true, id }
   }),
   spec('text.create', 'Text', '{x?, y?, characters?, fontSize?}', true, (s, p) => {

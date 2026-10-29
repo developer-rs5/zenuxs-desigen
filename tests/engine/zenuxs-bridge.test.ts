@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
-import { SceneGraph, type SceneNode } from '@open-pencil/scene-graph'
+import type { VectorNetwork as ZenuxsVectorNetwork } from '@zenuxs/doc'
+
+import { readNodeInteractions, SceneGraph } from '@open-pencil/scene-graph'
 
 import {
   NodeIdMap,
@@ -116,6 +118,111 @@ describe('Zenuxs engine patch round-trip', () => {
     expect(node?.name).toBe('Rectangle')
     expect(node?.parentId).toBe(page.id)
     expect(graph.getNode(page.id)?.childIds).toContain(node?.id)
+  })
+
+  test('vector networks and navigation interactions round-trip through the bridge', () => {
+    const { graph, page, frame } = setup()
+    const points: Array<[number, number]> = [
+      [10, 20],
+      [80, 20],
+      [40, 90]
+    ]
+    const result = zenuxsBridge.execute('shape.vector', { points, closed: true }) as {
+      id: number
+    }
+    zenuxsBridge.execute('proto.interaction.add', {
+      id: result.id,
+      dest: zenuxsBridge.toEngineId(frame.id),
+      trigger: 'onClick',
+      transition: 'smartAnimate',
+      durationMs: 450
+    })
+
+    const patch = zenuxsBridge.applyEngineChanges(graph)
+    expect(patch.changed).toBe(true)
+    const vectorId = patch.created[0]?.node.id
+    if (!vectorId) throw new Error('vector node was not created')
+    const vector = graph.getNode(vectorId)
+    if (!vector) throw new Error('vector node is missing from the graph')
+    expect(vector?.vectorNetwork?.vertices.map(({ x, y }) => [x, y])).toEqual(points)
+    expect(vector?.vectorNetwork?.segments).toHaveLength(points.length)
+    expect(vector?.vectorNetwork?.regions).toHaveLength(1)
+    expect(readNodeInteractions(vector)).toEqual([
+      {
+        id: `${result.id}:0`,
+        trigger: 'click',
+        action: { type: 'navigate', destinationId: frame.id },
+        transition: { kind: 'smartAnimate', durationMs: 450 }
+      }
+    ])
+
+    const stableId = vector.id
+    const doc = zenuxsBridge.syncToZenuxs(graph, page.id)
+    const synced = doc.node(zenuxsBridge.toEngineId(stableId))
+    if (synced?.kind.type !== 'vector') throw new Error('not a vector')
+    const syncedNetwork = synced.kind.network as ZenuxsVectorNetwork
+    expect(syncedNetwork.vertices.map(({ x, y }) => [x, y])).toEqual(points)
+    expect(syncedNetwork.segments).toHaveLength(points.length)
+    expect(syncedNetwork.regions).toHaveLength(1)
+    expect(synced.interactions).toMatchObject([
+      {
+        trigger: { type: 'onClick' },
+        actions: [{ type: 'navigate', dest: zenuxsBridge.toEngineId(frame.id) }],
+        transition: { type: 'smartAnimate' },
+        duration_ms: 450
+      }
+    ])
+    expect(graph.getNode(stableId)?.id).toBe(stableId)
+  })
+
+  test('unsupported prototype actions produce descriptive bridge errors', () => {
+    const graph = new SceneGraph()
+    const page = graph.addPage('Page')
+    const source = graph.createNode('FRAME', page.id)
+    graph.updateNode(source.id, {
+      pluginData: [
+        {
+          pluginId: 'open-pencil',
+          key: 'interactions',
+          value: JSON.stringify([
+            {
+              id: 'back',
+              trigger: 'click',
+              action: { type: 'back' }
+            }
+          ])
+        }
+      ]
+    })
+
+    expect(() => sceneGraphToZenuxsDoc(graph)).toThrow('unsupported prototype action "back"')
+  })
+
+  test('unsupported prototype transitions produce descriptive bridge errors', () => {
+    const graph = new SceneGraph()
+    const page = graph.addPage('Page')
+    const source = graph.createNode('FRAME', page.id)
+    graph.updateNode(source.id, {
+      pluginData: [
+        {
+          pluginId: 'open-pencil',
+          key: 'interactions',
+          value: JSON.stringify([
+            {
+              id: 'spring',
+              trigger: 'click',
+              action: { type: 'navigate', destinationId: page.id },
+              transition: {
+                kind: 'spring',
+                spring: { mode: 'physics', mass: 1, stiffness: 100, damping: 15 }
+              }
+            }
+          ])
+        }
+      ]
+    })
+
+    expect(() => sceneGraphToZenuxsDoc(graph)).toThrow('unsupported prototype transition "spring"')
   })
 
   test('field changes revert and reapply', () => {

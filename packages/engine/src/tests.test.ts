@@ -39,6 +39,69 @@ describe('engine session', () => {
     expect(s.ds().selection).toContain(id)
   })
 
+  test('shape_vector_creates_open_and_closed_networks', () => {
+    const s = new Session()
+    const points: Array<[number, number]> = [
+      [0, 0],
+      [40, 20],
+      [60, 0]
+    ]
+
+    const open = s.execute('shape.vector', { points })
+    const openId = open.id as number
+    expect(open).toMatchObject({ ok: true, id: openId })
+    const openNode = s.doc().node(openId)
+    if (openNode?.kind.type !== 'vector') throw new Error('not a vector')
+    const openNetwork = openNode.kind.network as VectorNetwork
+    expect(openNetwork.vertices.map(({ x, y }) => [x, y])).toEqual(points)
+    expect(openNetwork.segments).toHaveLength(points.length - 1)
+    expect(openNetwork.regions).toHaveLength(0)
+    expect(s.ds().selection).toContain(openId)
+
+    const closed = s.execute('shape.vector', { points, closed: true })
+    const closedId = closed.id as number
+    expect(closed).toMatchObject({ ok: true, id: closedId })
+    const closedNode = s.doc().node(closedId)
+    if (closedNode?.kind.type !== 'vector') throw new Error('not a vector')
+    const closedNetwork = closedNode.kind.network as VectorNetwork
+    expect(closedNetwork.vertices.map(({ x, y }) => [x, y])).toEqual(points)
+    expect(closedNetwork.segments).toHaveLength(points.length)
+    expect(closedNetwork.segments.at(-1)).toMatchObject({
+      a: points.length - 1,
+      b: 0
+    })
+    expect(closedNetwork.regions).toHaveLength(1)
+    expect(s.ds().selection).toContain(closedId)
+  })
+
+  test('shape_vector_rejects_invalid_points', () => {
+    const s = new Session()
+    const invalidParams: Array<Record<string, unknown>> = [
+      { points: [] },
+      { points: [[0, 0]] },
+      { points: [[0, 0], [1]] },
+      {
+        points: [
+          [0, 0],
+          [Number.POSITIVE_INFINITY, 1]
+        ]
+      },
+      {
+        points: [
+          [0, 0],
+          [1, 0]
+        ],
+        closed: true
+      }
+    ]
+
+    for (const params of invalidParams) {
+      const count = s.doc().nodesCount()
+      expect(() => s.execute('shape.vector', params)).toThrow()
+      expect(s.doc().nodesCount()).toBe(count)
+    }
+  })
+
   test('undo_rollback_on_error', () => {
     const s = new Session()
     const r = s.execute('shape.rectangle', {})
