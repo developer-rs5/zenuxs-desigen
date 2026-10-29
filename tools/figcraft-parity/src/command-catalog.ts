@@ -180,29 +180,23 @@ async function sourceForRegisteredModule(
 ) {
   const isRootModule = modulePath.startsWith('crate::')
   const names = modulePath.replace(/^crate::/, '').split('::')
-  let current = join(root, engineSourcePath, ...(isRootModule ? [] : ['cmd']))
+  let base = join(root, engineSourcePath, ...(isRootModule ? [] : ['cmd']))
   let modules = isRootModule ? rootModules : commandModules
-  const pathParts = names
+  let moduleFile = ''
 
-  for (const name of pathParts) {
+  for (const name of names) {
     if (!modules.has(name)) {
       throw new Error(`Unknown registered FigCraft module: ${modulePath}`)
     }
-    const moduleFile = await findModuleFile(join(current, name))
-    if (!moduleFile) {
+    const resolvedFile = await findModuleFile(join(base, name))
+    if (!resolvedFile) {
       throw new Error(`Missing source for registered FigCraft module: ${modulePath}`)
     }
-    current = moduleFile.endsWith(`${sep}mod.rs`) ? dirname(moduleFile) : moduleFile
-    if (current.endsWith('.rs')) {
-      if (name !== pathParts.at(-1)) {
-        throw new Error(`Cannot resolve nested registered FigCraft module: ${modulePath}`)
-      }
-    } else {
-      const nestedSource = await readFile(join(current, 'mod.rs'), 'utf8')
-      modules = declaredModules(nestedSource)
-    }
+    moduleFile = resolvedFile
+    base = moduleDirectory(moduleFile)
+    modules = declaredModules(await readFile(moduleFile, 'utf8'))
   }
-  return current.endsWith('.rs') ? current : join(current, 'mod.rs')
+  return moduleFile
 }
 
 function specsBody(source: string) {

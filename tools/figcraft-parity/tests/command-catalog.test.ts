@@ -156,6 +156,30 @@ pub fn specs() {
     ])
   })
 
+  test('follows_registered_direct_child_of_file_module', async () => {
+    const root = await fixture()
+    await source(
+      root,
+      'crates/engine/src/cmd/mod.rs',
+      'fn registry() { list.extend(crate::foo::child::specs()); }\n'
+    )
+    await source(root, 'crates/engine/src/lib.rs', 'pub mod foo;\n')
+    await source(root, 'crates/engine/src/foo.rs', 'pub mod child;\n')
+    await source(
+      root,
+      'crates/engine/src/foo/child.rs',
+      'pub fn specs() { vec![spec!("file.module.child", "Child", "{}", false, run)] }\n'
+    )
+
+    await expect(extractFigCraftCommands(root)).resolves.toEqual([
+      {
+        id: 'file.module.child',
+        source: 'crates/engine/src/foo/child.rs',
+        collaboration: false
+      }
+    ])
+  })
+
   test('ignores_unregistered_and_test_only_specs', async () => {
     const root = await fixture()
     await source(
