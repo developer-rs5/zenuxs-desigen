@@ -1,0 +1,2494 @@
+{
+  "figcraftRevision": "92b83521afc0fc4abbcfb0c7adb169d5674647b5",
+  "implemented": [
+    {
+      "id": "align.bottom",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "align.hcenter",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "align.left",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "align.right",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "align.top",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "align.vcenter",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "app.actions",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "app.preferences",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "arrange.back",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.backward",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.forward",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.front",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.tidy",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "command.batch",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "comment.add",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.list",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.resolve",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "component.create",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.detach",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "edit.delete",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.duplicate",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pickColor",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "file.close",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.new",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.rename",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.save",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "fill.set",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "frame.presets",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "frame.swapOrientation",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "help.about",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "help.page",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "help.shortcuts",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "layout.add",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "layout.remove",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "libraries.open",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "node.get",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "node.set",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.convertToFrame",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.convertToGroup",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.convertToSection",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.flipH",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.flipV",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.frameSelection",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.group",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.mask",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.releaseMask",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.rename",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.resizeToFit",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.rotate180",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.toggleLock",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.toggleVisible",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.ungroup",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.wrapInSection",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "page.add",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "page.list",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "page.rename",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "page.select",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "pref.autoSave",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.highlightHover",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.keepTool",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.language",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.nudge",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.numberKeysOpacity",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.reduceMotion",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.renameDuplicates",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.showDimensions",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.startOnHome",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.uiScale",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "pref.userName",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "proto.flow.add",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.interaction.add",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.interaction.clear",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.interaction.remove",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.present",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.preview",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "select.all",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.none",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.set",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "shape.ellipse",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "shape.line",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "shape.polygon",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "shape.rectangle",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "shape.star",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "style.apply",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.create",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.delete",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.detach",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.list",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "template.list",
+      "source": "crates/engine/src/templates/mod.rs"
+    },
+    {
+      "id": "text.alignCenter",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.alignJustify",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.alignLeft",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.alignRight",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.bold",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.bulletList",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.case",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.caseLower",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.caseOriginal",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.caseSmallCaps",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.caseTitle",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.caseUpper",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.create",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "text.decoration",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.begin",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.caret",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.end",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.insert",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.key",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.preedit",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.selectLine",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.selectWord",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.edit.selection",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.italic",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.lineHeightDown",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.lineHeightUp",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.link",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.listIndent",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.listOutdent",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.listStyle",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.maxLines",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.numberList",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.paragraphIndent",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.paragraphSpacing",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.pathOptions",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.removeFromPath",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.set",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.setFeatures",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.setVariations",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.sizeDown",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.sizeUp",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.strikethrough",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.style",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.trackingDown",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.trackingUp",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.underline",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.weightDown",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.weightUp",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "tool.arrow",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.comment",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.ellipse",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.frame",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.hand",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.line",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.move",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.pen",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.pencil",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.pencilBrush",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.place",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.polygon",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.rectangle",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.scale",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.scaleAnchor",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.section",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.set",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.shapeBuilder",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.slice",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.star",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "tool.text",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "transform.move",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.resize",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "variable.bind",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.create",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.list",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "vector.deleteHeal",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "view.assets",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.comments",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.contextMenu",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.design",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.designPrototype",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.devMode",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.frameOutlines",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.fullscreen",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.get",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.layers",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.layoutGrids",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.leftSidebar",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.maskOutlines",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.multiplayerCursors",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.nextFrame",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.nextPage",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.nextRegion",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.outlines",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.outlinesHiddenLayers",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.outlinesObjectBounds",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.outlinesSelection",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.pan",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.panelWidths",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.pixelGrid",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.pixelPreview",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.prevFrame",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.prevPage",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.previousRegion",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.proofSrgb",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.prototype",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.rulers",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.set",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.slices",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.snapGeometry",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.snapObjects",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.snapPixel",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.themeDark",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.themeLight",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.themeSystem",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.toggleUi",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoom100",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoom200",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoom50",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoomAt",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoomFit",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoomIn",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoomOut",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "view.zoomSelection",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "window.focus",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "window.new",
+      "source": "crates/engine/src/cmd/view.rs"
+    }
+  ],
+  "missing": [
+    {
+      "id": "annotation.add",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.addCategory",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.categories",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.edit",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.editCategory",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.list",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.remove",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "annotation.removeCategory",
+      "source": "crates/engine/src/annotations.rs"
+    },
+    {
+      "id": "arrange.packH",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.packV",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.reorder",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.roundToPixels",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.spacing",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "bool.exclude",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "bool.flatten",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "bool.intersect",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "bool.subtract",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "bool.union",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "branch.archive",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "branch.create",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "branch.list",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "branch.merge",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "branch.open",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "branch.review",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "branch.updateFromMain",
+      "source": "crates/engine/src/branches.rs"
+    },
+    {
+      "id": "codeConnect.export",
+      "source": "crates/engine/src/code_connect.rs"
+    },
+    {
+      "id": "codeConnect.import",
+      "source": "crates/engine/src/code_connect.rs"
+    },
+    {
+      "id": "codeConnect.remove",
+      "source": "crates/engine/src/code_connect.rs"
+    },
+    {
+      "id": "codeConnect.set",
+      "source": "crates/engine/src/code_connect.rs"
+    },
+    {
+      "id": "comment.delete",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.edit",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.link",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.markRead",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.move",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.next",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.open",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.people",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.react",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.reply",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "comment.zoom",
+      "source": "crates/engine/src/cmd/comment.rs"
+    },
+    {
+      "id": "component.addProperty",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.addVariant",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.bindProperty",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.combineVariants",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.createMultiple",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.deleteProperty",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.editProperty",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.exposeInstance",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.goToMain",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.hideWhenPublishing",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.list",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.makeSlot",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.playground",
+      "source": "crates/engine/src/playground.rs"
+    },
+    {
+      "id": "component.properties",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.pushChanges",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.removeSlot",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.resetInstance",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.resetOverride",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "component.restoreMain",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "dev.compare",
+      "source": "crates/engine/src/cmd/section.rs"
+    },
+    {
+      "id": "dev.focus",
+      "source": "crates/engine/src/cmd/section.rs"
+    },
+    {
+      "id": "dev.resolveChange",
+      "source": "crates/engine/src/cmd/section.rs"
+    },
+    {
+      "id": "dev.unfocus",
+      "source": "crates/engine/src/cmd/section.rs"
+    },
+    {
+      "id": "devResource.add",
+      "source": "crates/engine/src/dev_resources.rs"
+    },
+    {
+      "id": "devResource.edit",
+      "source": "crates/engine/src/dev_resources.rs"
+    },
+    {
+      "id": "devResource.list",
+      "source": "crates/engine/src/dev_resources.rs"
+    },
+    {
+      "id": "devResource.remove",
+      "source": "crates/engine/src/dev_resources.rs"
+    },
+    {
+      "id": "distribute.horizontal",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "distribute.vertical",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "doc.home",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "doc.list",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "doc.nextTab",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "doc.previousTab",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "doc.switch",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "edit.copy",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.copyProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.cut",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.findReplace",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.paste",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteDesignLayers",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteOver",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteReplace",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.redo",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.repeat",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.setDefaultProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.undo",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "effect.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "effect.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "effect.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "effect.set",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "export.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "export.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "export.update",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "file.colorProfile",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.duplicate",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.export",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.exportFramesPdf",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.exportLayers",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.exportSvg",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.import",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.moveTab",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.newFromTemplate",
+      "source": "crates/engine/src/templates/mod.rs"
+    },
+    {
+      "id": "file.open",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.openRecent",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.placeImage",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.recover",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.revert",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.saveAs",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.saveVersion",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "file.versionHistory",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "fill.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "fill.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "fill.pattern",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "fill.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "frame.create",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "grid.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "grid.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "grid.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "guide.add",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "guide.clear",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "guide.move",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "guide.remove",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "guide.select",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "help.gettingStarted",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "image.adjust",
+      "source": "crates/engine/src/cmd/image.rs"
+    },
+    {
+      "id": "image.deletePreset",
+      "source": "crates/engine/src/cmd/image.rs"
+    },
+    {
+      "id": "image.place",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "image.presets",
+      "source": "crates/engine/src/cmd/image.rs"
+    },
+    {
+      "id": "image.savePreset",
+      "source": "crates/engine/src/cmd/image.rs"
+    },
+    {
+      "id": "inspect.assets",
+      "source": "crates/engine/src/devinspect.rs"
+    },
+    {
+      "id": "inspect.code",
+      "source": "crates/engine/src/codegen.rs"
+    },
+    {
+      "id": "inspect.componentCode",
+      "source": "crates/engine/src/component_codegen.rs"
+    },
+    {
+      "id": "inspect.properties",
+      "source": "crates/engine/src/devinspect.rs"
+    },
+    {
+      "id": "inspect.readyForDev",
+      "source": "crates/engine/src/devinspect.rs"
+    },
+    {
+      "id": "instance.create",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.exposed",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.place",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.resetSlot",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.setProperties",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.slotInsert",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.swap",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "instance.swapAt",
+      "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "layers.collapseAll",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "layout.setTrack",
+      "source": "crates/engine/src/cmd/layout.rs"
+    },
+    {
+      "id": "layout.suggest",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "libraries.publish",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.acceptUpdates",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.add",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.aliasVariable",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.applyStyle",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.bindVariable",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.extendCollection",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.import",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.importVariable",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.list",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.place",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.publish",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.publishToServer",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.remove",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.setVariableMode",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.swap",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.swapAt",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.updates",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "library.usage",
+      "source": "crates/engine/src/cmd/library.rs"
+    },
+    {
+      "id": "measure.distances",
+      "source": "crates/engine/src/distance.rs"
+    },
+    {
+      "id": "measure.padding",
+      "source": "crates/engine/src/distance.rs"
+    },
+    {
+      "id": "node.create",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "node.reorder",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "node.reparent",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.batchRename",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.hideOthers",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.moveToPage",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.opacityKeys",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.rasterize",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.removeFill",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.removeFrame",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.removeStroke",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.rotateLeft",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.rotateRight",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.setThumbnail",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.swapFillStroke",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "page.delete",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "page.duplicate",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "page.move",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "page.setBackground",
+      "source": "crates/engine/src/cmd/page.rs"
+    },
+    {
+      "id": "paint.documentColors",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "plugin.close",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugin.directory.install",
+      "source": "crates/engine/src/plugin_directory.rs"
+    },
+    {
+      "id": "plugin.directory.list",
+      "source": "crates/engine/src/plugin_directory.rs"
+    },
+    {
+      "id": "plugin.directory.publish",
+      "source": "crates/engine/src/plugin_directory.rs"
+    },
+    {
+      "id": "plugin.directory.unpublish",
+      "source": "crates/engine/src/plugin_directory.rs"
+    },
+    {
+      "id": "plugin.event",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugin.import",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugin.list",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugin.remove",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugin.run",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugin.ui",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugins.manage",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "plugins.runLast",
+      "source": "crates/engine/src/plugins.rs"
+    },
+    {
+      "id": "pref.publishServer",
+      "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "proto.action.add",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.action.move",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.action.remove",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.action.set",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.closePreview",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.conditional.addBlock",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.conditional.removeBlock",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.conditional.setCondition",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.evaluate",
+      "source": "crates/engine/src/cmd/proto_actions.rs"
+    },
+    {
+      "id": "proto.flow.remove",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.flow.rename",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.interaction.set",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.presentOptions",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "proto.settings",
+      "source": "crates/engine/src/cmd/proto.rs"
+    },
+    {
+      "id": "section.toggleContents",
+      "source": "crates/engine/src/cmd/section.rs"
+    },
+    {
+      "id": "select.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.area",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.byName",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.children",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.inverse",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.layersAt",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.matching",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.next",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.parent",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.previous",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameEffect",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameFill",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameFont",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameInstance",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameStroke",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameText",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "selection.applyColorStyle",
+      "source": "crates/engine/src/selection_colors.rs"
+    },
+    {
+      "id": "selection.colors",
+      "source": "crates/engine/src/selection_colors.rs"
+    },
+    {
+      "id": "selection.selectColor",
+      "source": "crates/engine/src/selection_colors.rs"
+    },
+    {
+      "id": "selection.setPaint",
+      "source": "crates/engine/src/selection_colors.rs"
+    },
+    {
+      "id": "shape.arrow",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "shapeBuilder.merge",
+      "source": "crates/engine/src/shapebuilder.rs"
+    },
+    {
+      "id": "shapeBuilder.mode",
+      "source": "crates/engine/src/shapebuilder.rs"
+    },
+    {
+      "id": "shapeBuilder.regions",
+      "source": "crates/engine/src/shapebuilder.rs"
+    },
+    {
+      "id": "shapeBuilder.remove",
+      "source": "crates/engine/src/shapebuilder.rs"
+    },
+    {
+      "id": "stroke.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "stroke.brush",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "stroke.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "stroke.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "stroke.set",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "stroke.widthProfile",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "style.bind",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.duplicate",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.move",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.renameFolder",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "style.update",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "text.endPreview",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.fonts",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.loadFont",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.missingFonts",
+      "source": "crates/engine/src/fonts.rs"
+    },
+    {
+      "id": "text.onPath",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.preview",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "text.refit",
+      "source": "crates/engine/src/fonts.rs"
+    },
+    {
+      "id": "text.rescanFonts",
+      "source": "crates/engine/src/cmd/text.rs"
+    },
+    {
+      "id": "transform.moveTo",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.nudge",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "transform.nudgeSize",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "transform.rotate",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.rotationOrigin",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.scale",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.setRotationOrigin",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "variable.addMode",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.createCollection",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.delete",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.deleteCollection",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.duplicate",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.export",
+      "source": "crates/engine/src/cmd/variables_io.rs"
+    },
+    {
+      "id": "variable.import",
+      "source": "crates/engine/src/cmd/variables_io.rs"
+    },
+    {
+      "id": "variable.moveMode",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.removeMode",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.renameCollection",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.renameMode",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.resetOverride",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "variable.set",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.setMode",
+      "source": "crates/engine/src/cmd/styles.rs"
+    },
+    {
+      "id": "variable.update",
+      "source": "crates/engine/src/cmd/variables.rs"
+    },
+    {
+      "id": "vector.create",
+      "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "vector.edit.addVertex",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.begin",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.bend",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.bounds",
+      "source": "crates/engine/src/vectoredit/transform.rs"
+    },
+    {
+      "id": "vector.edit.connect",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.cornerRadius",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.cut",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.delete",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.end",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.erase",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.lasso",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.mirroring",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.moveHandles",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.moveVertices",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.nudge",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.paint",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.pen",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.penEnd",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.position",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.resize",
+      "source": "crates/engine/src/vectoredit/transform.rs"
+    },
+    {
+      "id": "vector.edit.rotate",
+      "source": "crates/engine/src/vectoredit/transform.rs"
+    },
+    {
+      "id": "vector.edit.select",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.selectAll",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.setHandle",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.smooth",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.state",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.strokeCap",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.strokeJoin",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.tool",
+      "source": "crates/engine/src/vectoredit.rs"
+    },
+    {
+      "id": "vector.edit.transform",
+      "source": "crates/engine/src/vectoredit/transform.rs"
+    },
+    {
+      "id": "vector.edit.widthPoint",
+      "source": "crates/engine/src/vectoredit/width.rs"
+    },
+    {
+      "id": "vector.flatten",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "vector.join",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "vector.offset",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "vector.outlineStroke",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "vector.reverse",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "vector.simplify",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "vector.smoothJoin",
+      "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "version.autosave",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.delete",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.duplicate",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.exitPreview",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.list",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.preview",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.rename",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "version.restore",
+      "source": "crates/engine/src/cmd/file.rs"
+    },
+    {
+      "id": "widget.click",
+      "source": "crates/engine/src/widgets.rs"
+    },
+    {
+      "id": "widget.insert",
+      "source": "crates/engine/src/widgets.rs"
+    },
+    {
+      "id": "widget.list",
+      "source": "crates/engine/src/widgets.rs"
+    }
+  ],
+  "collaborationExcluded": [
+    {
+      "id": "collab.cursor",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.cursorChat",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.diff",
+      "source": "crates/engine/src/collab.rs"
+    },
+    {
+      "id": "collab.files",
+      "source": "crates/engine/src/online.rs"
+    },
+    {
+      "id": "collab.follow",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.forgetFile",
+      "source": "crates/engine/src/online.rs"
+    },
+    {
+      "id": "collab.host",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.join",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.leave",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.manageFile",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.openFile",
+      "source": "crates/engine/src/online.rs"
+    },
+    {
+      "id": "collab.peers",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.publish",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.recoverFile",
+      "source": "crates/engine/src/online.rs"
+    },
+    {
+      "id": "collab.registerLinks",
+      "source": "crates/engine/src/invite_links.rs"
+    },
+    {
+      "id": "collab.removePerson",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.report",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.serverInfo",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.share",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.spotlight",
+      "source": "crates/engine/src/live.rs"
+    },
+    {
+      "id": "collab.stop",
+      "source": "crates/engine/src/live.rs"
+    }
+  ],
+  "unmatchedZenuxs": [
+    {
+      "id": "align.distributeH",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "align.distributeV",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.connector.create",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.sticky.create",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.timer.get",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.timer.start",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.timer.stop",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.vote.cast",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "board.vote.tally",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "component.instantiate",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "dev.annotations.add",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "dev.code.css",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "dev.code.react",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "dev.code.swiftui",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "dev.code.tailwind",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "dev.inspect",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "file.info",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "file.save_as",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "object.flatten",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "object.outlineStroke",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "shape.frame",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "template.create",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "variable.collection.create",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "variable.unbind",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "vector.boolean.exclude",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "vector.boolean.intersect",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "vector.boolean.subtract",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "vector.boolean.union",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "vector.stroke.weight",
+      "source": "Session.all_commands()"
+    }
+  ],
+  "duplicateZenuxs": [
+    {
+      "id": "comment.add",
+      "count": 2
+    },
+    {
+      "id": "comment.list",
+      "count": 2
+    },
+    {
+      "id": "comment.resolve",
+      "count": 2
+    },
+    {
+      "id": "component.create",
+      "count": 2
+    },
+    {
+      "id": "component.detach",
+      "count": 2
+    },
+    {
+      "id": "component.instantiate",
+      "count": 2
+    },
+    {
+      "id": "file.close",
+      "count": 2
+    },
+    {
+      "id": "file.info",
+      "count": 2
+    },
+    {
+      "id": "file.new",
+      "count": 2
+    },
+    {
+      "id": "file.rename",
+      "count": 2
+    },
+    {
+      "id": "file.save",
+      "count": 2
+    },
+    {
+      "id": "file.save_as",
+      "count": 2
+    },
+    {
+      "id": "style.apply",
+      "count": 2
+    },
+    {
+      "id": "style.create",
+      "count": 2
+    },
+    {
+      "id": "style.delete",
+      "count": 2
+    },
+    {
+      "id": "style.detach",
+      "count": 2
+    },
+    {
+      "id": "style.list",
+      "count": 2
+    },
+    {
+      "id": "variable.bind",
+      "count": 2
+    },
+    {
+      "id": "variable.collection.create",
+      "count": 2
+    },
+    {
+      "id": "variable.create",
+      "count": 2
+    },
+    {
+      "id": "variable.list",
+      "count": 2
+    },
+    {
+      "id": "variable.unbind",
+      "count": 2
+    }
+  ],
+  "capabilities": []
+}
