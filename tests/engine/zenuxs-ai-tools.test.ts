@@ -315,9 +315,12 @@ describe('Zenuxs AI design tools', () => {
     expect(getZenuxsEngine().doc().nodesCount()).toBe(store.graph.nodes.size - 1)
     expect(getZenuxsEngine().ds().history.undo).toHaveLength(0)
     expect(getZenuxsEngine().ds().history.redo).toHaveLength(0)
-    expect(getZenuxsEngine().doc().ids().map((id) => getZenuxsEngine().doc().node(id)?.name)).toContain(
-      'Undoable'
-    )
+    expect(
+      getZenuxsEngine()
+        .doc()
+        .ids()
+        .map((id) => getZenuxsEngine().doc().node(id)?.name)
+    ).toContain('Undoable')
   })
 
   test('restores engine document, history and journal after an executed command fails afterward', async () => {
@@ -335,9 +338,9 @@ describe('Zenuxs AI design tools', () => {
     })
     const tools = createZenuxsDesignTools(store)
 
-    await expect(invoke(tools.zenuxs_create_rectangle, { name: 'Should roll back' })).rejects.toThrow(
-      /failed/
-    )
+    await expect(
+      invoke(tools.zenuxs_create_rectangle, { name: 'Should roll back' })
+    ).rejects.toThrow(/failed/)
 
     expect(snapshotGraph(store)).toBe(previousGraph)
     expect(engine.ds().doc).toBe(previousDocument)
@@ -392,9 +395,9 @@ describe('Zenuxs AI design tools', () => {
       }
     })
 
-    await expect(invoke(tools.zenuxs_create_rectangle, { name: 'Should roll back' })).rejects.toThrow(
-      /validation hook failed/
-    )
+    await expect(
+      invoke(tools.zenuxs_create_rectangle, { name: 'Should roll back' })
+    ).rejects.toThrow(/validation hook failed/)
 
     expect(snapshotGraph(store)).toBe(previousGraph)
     expect(engine.ds().doc).toBe(previousDocument)

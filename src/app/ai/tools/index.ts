@@ -32,6 +32,7 @@ import {
   createPrototypeCritic,
   isPrototypeMutation,
   runPrototypeValidation,
+  runZenuxsPrototypeValidation,
   type PrototypeCritic,
   type PrototypeCriticReport
 } from '@/app/ai/chat/prototype-critic'
@@ -346,7 +347,7 @@ export async function createAITools(store: EditorStore) {
       },
       onPrototypeMutation: () => {
         runState.critic.noteMutation()
-        runState.critic.recordValidation(runPrototypeValidation(makeFigmaFromStore(store)))
+        runState.critic.recordValidation(runZenuxsPrototypeValidation())
       },
       onLayoutMutation: () => {
         runState.layout.noteMutation()

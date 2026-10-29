@@ -1,7 +1,10 @@
+import { Action, MAX_DELAY_MS, walk } from '@zenuxs/doc'
 import type { ModelMessage } from 'ai'
 
 import type { FigmaAPI } from '@open-pencil/core/figma-api'
 import { PROTOTYPE_TOOLS, type ToolDef } from '@open-pencil/core/tools'
+
+import { getZenuxsEngine } from '@/app/zenuxs-engine'
 
 /**
  * Automatic post-generation prototype validation (audit §4.6).
@@ -66,6 +69,81 @@ export function runPrototypeValidation(figma: FigmaAPI): PrototypeValidationResu
   } catch {
     // A crashing validator must not take the tool run down with it.
     return null
+  }
+}
+
+/**
+ * Longest transition duration a prototype may declare (ms). Mirrors the core
+ * validator's `MAX_DURATION_MS`, which the `@open-pencil/core/tools` barrel does
+ * not export.
+ */
+const MAX_TRANSITION_DURATION_MS = 120_000
+
+/** Flows are schema-typed `unknown[]` on the page kind, so read them defensively. */
+function readFlows(kind: unknown): { name: string; start: number }[] {
+  if (!kind || typeof kind !== 'object' || !('flows' in kind)) return []
+  const flows: unknown = kind.flows
+  if (!Array.isArray(flows)) return []
+  return flows.flatMap((flow: unknown) => {
+    if (!flow || typeof flow !== 'object') return []
+    if (!('name' in flow) || !('start' in flow)) return []
+    if (typeof flow.name !== 'string' || typeof flow.start !== 'number') return []
+    return [{ name: flow.name, start: flow.start }]
+  })
+}
+
+/**
+ * Validate the Zenuxs document the AI tools actually write.
+ *
+ * The scene-graph projection drops page flows and narrows interactions, so the
+ * core `validate_prototype` tool cannot see what `zenuxs_add_navigation` wrote.
+ * This reads `getZenuxsEngine().doc()` directly and speaks the same message
+ * forms, so the critic's repair instruction stays uniform.
+ */
+export function runZenuxsPrototypeValidation(): PrototypeValidationResult {
+  try {
+    const doc = getZenuxsEngine().doc()
+    const errors: string[] = []
+
+    for (const id of doc.ids()) {
+      const node = doc.node(id)
+      if (!node) continue
+
+      node.interactions.forEach((interaction, index) => {
+        const where = `${node.name}: interaction ${index}`
+        if (interaction.actions.length === 0) {
+          errors.push(`${where} has no actions`)
+          return
+        }
+        walk(interaction.actions, (action) => {
+          const dest = Action.dest(action)
+          if (dest !== null && !doc.contains_id(dest)) {
+            errors.push(`${where} → missing destination "${String(dest)}"`)
+          }
+        })
+        if (
+          interaction.duration_ms !== undefined &&
+          interaction.duration_ms > MAX_TRANSITION_DURATION_MS
+        ) {
+          errors.push(`${where} → duration out of range`)
+        }
+        if (interaction.delay_ms !== undefined && interaction.delay_ms > MAX_DELAY_MS) {
+          errors.push(`${where} → delay out of range`)
+        }
+      })
+
+      for (const flow of readFlows(node.kind)) {
+        if (!doc.contains_id(flow.start)) {
+          errors.push(`Flow "${flow.name}" start "${String(flow.start)}" does not exist`)
+        }
+      }
+    }
+
+    return { ok: errors.length === 0, errors }
+  } catch (error) {
+    // A crashing validator must still produce a verdict, so the model can react.
+    const message = error instanceof Error ? error.message : String(error)
+    return { ok: false, errors: [`Zenuxs prototype validation could not run: ${message}`] }
   }
 }
 
