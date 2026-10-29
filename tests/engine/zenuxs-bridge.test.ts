@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { VectorNetwork as ZenuxsVectorNetwork } from '@zenuxs/doc'
+import type {
+  Interaction as ZenuxsInteraction,
+  VectorNetwork as ZenuxsVectorNetwork
+} from '@zenuxs/doc'
 
 import { readNodeInteractions, SceneGraph } from '@open-pencil/scene-graph'
 
@@ -223,6 +226,36 @@ describe('Zenuxs engine patch round-trip', () => {
     })
 
     expect(() => sceneGraphToZenuxsDoc(graph)).toThrow('unsupported prototype transition "spring"')
+  })
+
+  test('malformed Zenuxs vector networks produce descriptive bridge errors', () => {
+    const graph = new SceneGraph()
+    const page = graph.addPage('Page')
+    const vector = graph.createNode('VECTOR', page.id)
+    const { doc, idMap } = sceneGraphToZenuxsDoc(graph)
+    const engineNode = doc.node_mut(idMap.toNum(vector.id))
+    if (engineNode?.kind.type !== 'vector') throw new Error('not a vector')
+    engineNode.kind.network = { vertices: 'invalid', segments: [], regions: [] }
+
+    expect(() => zenuxsDocToSceneGraph(doc, idMap)).toThrow('invalid Zenuxs vector network')
+  })
+
+  test('unsupported Zenuxs transitions include their variant in bridge errors', () => {
+    const graph = new SceneGraph()
+    const page = graph.addPage('Page')
+    const vector = graph.createNode('VECTOR', page.id)
+    const { doc, idMap } = sceneGraphToZenuxsDoc(graph)
+    const engineNode = doc.node_mut(idMap.toNum(vector.id))
+    if (engineNode?.kind.type !== 'vector') throw new Error('not a vector')
+    const interaction: ZenuxsInteraction = {
+      trigger: { type: 'onClick' },
+      actions: [{ type: 'navigate', dest: idMap.toNum(page.id) }],
+      transition: { type: 'instant' }
+    }
+    Object.assign(interaction, { transition: { type: 'fade' } })
+    engineNode.interactions = [interaction]
+
+    expect(() => zenuxsDocToSceneGraph(doc, idMap)).toThrow('unsupported Zenuxs transition "fade"')
   })
 
   test('field changes revert and reapply', () => {
