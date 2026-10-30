@@ -8,7 +8,7 @@
 
 ### Added
 
-- Give AI bounded Zenuxs-backed tools to create screens, rectangles, text and vectors, update visual properties, make components, and add navigation.
+- Give AI bounded Zenuxs-backed tools to create screens, rectangles, text and vectors, update visual properties, make components, and add navigation, and prove the full prompt-to-playable-design flow with a scripted browser test that authors two screens, a component, a vector asset, and a working navigation, then undoes it.
 - Add FigCraft-style Zenuxs editor shell with left rail, pages/layers panel, prototype tab, inspect tab, and floating tool actions.
 - Source design images through a verified pipeline: each slot is routed automatically between a free image library (Openverse and Wikimedia Commons work without an API key, Pexels is used when a key is configured) and AI image generation, every candidate is inspected by the Vision model before it is applied, and custom or hard-to-find subjects skip the search and are generated directly. Attribution, license, routing decision and verification record travel with the imported asset.
 - Export prototypes to standalone HTML with `open-pencil export --format html --prototype`, covering every authored capability: fade, slide, and sampled-spring transitions, state visuals, keyframe animations, CSS hover/press triggers, and a delegated JS runtime for click, load, delay, drag, scroll, long press, release, guards with variable seeds, variable writes, screen navigation, overlays with dim backdrops, and instance variant swaps, plus a report of every exported and approximated interaction that `--json` prints.
@@ -78,6 +78,8 @@
 - Stop rejecting a good photo because its framing differs from the slot it fills: orientation and aspect ratio are now preferences judged against how the image will be cropped, not hard failures that throw the image away.
 - Read image verification verdicts as validated text instead of a structured-output response, so OpenAI-compatible relays that ignore the JSON response format no longer reject every candidate as unverified.
 - Keep the prototype camera on the current screen during Play/Present: navigating between screens now re-frames the view, so a destination authored elsewhere on the canvas is actually visible instead of the presentation appearing to do nothing.
+- Start the HTML prototype player on the first frame of the current page instead of the document root, which previously presented an empty canvas because the root container is itself a parentless frame.
+- Keep the name requested when creating a text node, so AI-authored layers show their intended label in the layer tree instead of a generic default.
 - Play presentations now animate as authored: a duplicate pointer-up per click no longer cancels an in-flight transition, so fade/slide/spring navigation plays to completion on real mouse input.
 - Keep long AI tool conversations alive when a provider re-uses tool-call ids across turns, rewriting the colliding ids on each request so history replay is no longer rejected and the chat stops failing silently after the collision.
 - Restore recovered documents to their recovery identity so the conversation saved before a reload reattaches instead of switching to the auto-bound empty storage document.

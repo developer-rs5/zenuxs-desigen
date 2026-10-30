@@ -39,7 +39,8 @@
         "packages/doc/src/vector.ts",
         "packages/engine/src/cmd/core.ts",
         "packages/pathops/src/index.ts",
-        "packages/render/src/index.ts"
+        "packages/render/src/index.ts",
+        "src/app/ai/tools/zenuxs-design.ts"
       ],
       "app": ["src/app/zenuxs-engine.ts"],
       "ui": []
@@ -47,10 +48,12 @@
     "testEvidence": [
       "packages/color/src/gradient.test.ts",
       "packages/pathops/src/index.test.ts",
-      "packages/render/src/index.test.ts"
+      "packages/render/src/index.test.ts",
+      "tests/engine/zenuxs-ai-tools.test.ts",
+      "tests/e2e/chat/zenuxs-designer.spec.ts"
     ],
     "status": "package-only",
-    "note": "Package: shape, paint, color, path-operation, and render helpers exist with differing depth. UI: current paint/effect controls and CanvasKit renderer are OpenPencil-owned, not Zenuxs-wired. Automation: the separate Zenuxs Session is exposed by src/app/zenuxs-engine.ts. Behavior tests: color, pathops, and render package tests; they do not prove complete FigCraft parity."
+    "note": "Package: shape, paint, color, path-operation, and render helpers exist with differing depth. UI: current paint/effect controls and CanvasKit renderer are OpenPencil-owned, not Zenuxs-wired. Automation: the separate Zenuxs Session is exposed by src/app/zenuxs-engine.ts, and AI tools create Zenuxs rectangles, vectors, and text with solid fills. Behavior tests: color, pathops, and render package tests plus the Zenuxs AI tool and designer browser tests; they do not prove complete FigCraft parity."
   },
   {
     "feature": "layout/text",
@@ -111,13 +114,22 @@
       "crates/doc/src/proto_expr.rs"
     ],
     "zenuxsSurfaces": {
-      "packages": ["packages/doc/src/proto.ts", "packages/engine/src/cmd/advanced.ts"],
+      "packages": [
+        "packages/doc/src/proto.ts",
+        "packages/engine/src/cmd/advanced.ts",
+        "src/app/ai/tools/zenuxs-design.ts"
+      ],
       "app": ["src/app/zenuxs-engine.ts"],
       "ui": []
     },
-    "testEvidence": ["packages/doc/src/tests.test.ts", "packages/engine/src/tests.test.ts"],
+    "testEvidence": [
+      "packages/doc/src/tests.test.ts",
+      "packages/engine/src/tests.test.ts",
+      "tests/engine/zenuxs-ai-tools.test.ts",
+      "tests/e2e/chat/zenuxs-designer.spec.ts"
+    ],
     "status": "automation-wired",
-    "note": "Package: prototype document model and engine commands exist. UI: PrototypePanel.vue and PrototypePlayer.vue remain OpenPencil-owned and are not Zenuxs editor wiring. Automation: Zenuxs commands are available through the exposed Session. Behavior tests: document and engine package tests cover selected contracts; end-to-end parity is not established."
+    "note": "Package: prototype document model and engine commands exist. UI: the HTML PrototypePlayer drives AI-authored navigation, but it remains OpenPencil-owned presentation rather than Zenuxs editor wiring. Automation: Zenuxs commands are available through the exposed Session and through the zenuxs_add_navigation AI tool. Behavior tests: document and engine package tests cover selected contracts, and the AI designer browser test walks an authored interaction from the first screen to the second; end-to-end parity is not established."
   },
   {
     "feature": "formats/import-export",
