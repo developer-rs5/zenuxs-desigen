@@ -8,6 +8,7 @@ import type {
 import { readNodeInteractions, SceneGraph } from '@open-pencil/scene-graph'
 
 import {
+  applyEngineDocToGraph,
   NodeIdMap,
   reapplyEnginePatch,
   revertEnginePatch,
@@ -32,6 +33,27 @@ describe('Zenuxs Document Bridge', () => {
 
     expect(map.toStr(id1)).toBe('1:2')
     expect(map.toStr(id2)).toBe('frame-1')
+  })
+
+  test('NodeIdMap never hands a synthetic id to a node that already claims it', () => {
+    const map = new NodeIdMap()
+    // Nodes created outside the bridge get synthetic ids such as `0:2`. The
+    // first one is allocated from a counter that starts at 100 and must not
+    // steal an engine id a graph node already claims.
+    expect(map.toNum('0:1')).toBeGreaterThan(0)
+    expect(map.toNum('102')).toBe(102)
+    expect(map.toNum('0:2')).not.toBe(102)
+
+    const strings = ['0:1', '0:2', '103', '105']
+    for (const id of strings) expect(map.toStr(map.toNum(id))).toBe(id)
+
+    const nums = strings.map((id) => map.toNum(id))
+    expect(new Set(nums).size).toBe(strings.length)
+
+    // A reserved numeric graph id still keeps its own value afterwards.
+    map.reserve(110)
+    expect(map.toNum('110')).toBe(110)
+    expect(map.toStr(110)).toBe('110')
   })
 
   test('sceneGraphToZenuxsDoc converts scene graph nodes and preserves hierarchy', () => {

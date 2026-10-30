@@ -297,6 +297,65 @@ describe('Zenuxs AI design tools', () => {
     expect(store.graph.getNode(shapeWithText.id)?.type).toBe('SHAPE_WITH_TEXT')
   })
 
+  test('a graph-native instance keeps Zenuxs tool calls from deleting real nodes', async () => {
+    const store = createStore()
+    const tools = createZenuxsDesignTools(store)
+
+    const home = (await invoke(tools.zenuxs_create_screen, {
+      name: 'Home',
+      x: 0,
+      y: 0,
+      width: 390,
+      height: 844
+    })) as { createdNodeIds: string[] }
+    const details = (await invoke(tools.zenuxs_create_screen, {
+      name: 'Details',
+      x: 420,
+      y: 0,
+      width: 390,
+      height: 844
+    })) as { createdNodeIds: string[] }
+    const card = (await invoke(tools.zenuxs_create_rectangle, {
+      name: 'Card',
+      x: 24,
+      y: 120,
+      width: 342,
+      height: 180
+    })) as { createdNodeIds: string[] }
+    const component = (await invoke(tools.zenuxs_make_component, {
+      id: card.createdNodeIds[0]
+    })) as { componentNodeIds: string[] }
+
+    // The core component tools create instances directly on the graph, which
+    // hands the node a synthetic id such as `0:3` instead of a numeric one.
+    store.graph.createInstance(component.componentNodeIds[0], store.state.currentPageId, {
+      x: 24,
+      y: 340
+    })
+
+    await invoke(tools.zenuxs_create_vector, {
+      name: 'Spark',
+      points: [
+        [0, 0],
+        [40, 0],
+        [20, 36]
+      ],
+      closed: true
+    })
+    await invoke(tools.zenuxs_add_navigation, {
+      sourceId: home.createdNodeIds[0],
+      destinationFrameId: details.createdNodeIds[0]
+    })
+
+    expect(store.graph.getNode(home.createdNodeIds[0])?.type).toBe('FRAME')
+    expect(store.graph.getNode(details.createdNodeIds[0])?.type).toBe('FRAME')
+    expect(store.graph.getNode(card.createdNodeIds[0])?.type).toBe('COMPONENT')
+    const interactions = readNodeInteractions(store.graph.getNode(home.createdNodeIds[0]))
+    expect(interactions.map((interaction) => interaction.action)).toEqual([
+      { type: 'navigate', destinationId: details.createdNodeIds[0] }
+    ])
+  })
+
   test('keeps engine document canonical and history aligned through editor undo and redo', async () => {
     const store = createStore()
     const tools = createZenuxsDesignTools(store)

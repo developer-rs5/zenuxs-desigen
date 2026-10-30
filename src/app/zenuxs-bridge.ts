@@ -44,6 +44,12 @@ export class NodeIdMap {
   private strToNum = new Map<string, NodeId>()
   private numToStr = new Map<NodeId, string>()
   private counter = 100
+  /**
+   * Ids that a numeric graph id may still claim later. Allocating a synthetic
+   * id onto one of these silently rewrites the reverse mapping, so a later
+   * round-trip maps an engine node onto the wrong node and deletes the real one.
+   */
+  private reserved = new Set<NodeId>()
 
   toNum(strId: string): NodeId {
     let num = this.strToNum.get(strId)
@@ -52,12 +58,31 @@ export class NodeIdMap {
       if (!isNaN(parsed) && parsed > 0 && !this.numToStr.has(parsed)) {
         num = parsed
       } else {
-        num = ++this.counter
+        num = this.nextFreeNum()
       }
+      this.reserved.delete(num)
       this.strToNum.set(strId, num)
       this.numToStr.set(num, strId)
     }
     return num
+  }
+
+  private nextFreeNum(): NodeId {
+    let candidate = this.counter
+    while (
+      this.numToStr.has(candidate) ||
+      this.reserved.has(candidate) ||
+      this.claimsString(candidate)
+    ) {
+      candidate += 1
+    }
+    this.counter = candidate
+    return candidate
+  }
+
+  /** Numeric graph ids that have not been mapped yet still own their value. */
+  private claimsString(numId: NodeId): boolean {
+    return this.strToNum.has(String(numId))
   }
 
   toStr(numId: NodeId): string {
@@ -75,6 +100,15 @@ export class NodeIdMap {
    * round-trip can adopt engine-owned ids (for example the document's
    * built-in root page) instead of allocating a second, phantom one.
    */
+  /**
+   * Reserves an id for a numeric graph node that has not been mapped yet, so
+   * synthetic allocations skip it instead of taking it.
+   */
+  reserve(numId: NodeId): void {
+    if (this.numToStr.has(numId)) return
+    this.reserved.add(numId)
+  }
+
   bind(strId: string, numId: NodeId): void {
     const previousStr = this.numToStr.get(numId)
     if (previousStr !== undefined && previousStr !== strId) this.strToNum.delete(previousStr)
@@ -274,6 +308,13 @@ export function sceneGraphToZenuxsDoc(
 ): { doc: ZenuxsDocument; idMap: NodeIdMap } {
   const doc = new ZenuxsDocument()
   const idMap = existingIdMap ?? new NodeIdMap()
+
+  // Claim numeric graph ids first so a synthetic allocation (for nodes created
+  // outside the bridge) can never take a value another node already owns.
+  for (const id of graph.nodes.keys()) {
+    const parsed = Number(id)
+    if (Number.isInteger(parsed) && parsed > 0) idMap.reserve(parsed)
+  }
 
   // Copy images
   for (const [hash, bytes] of graph.images.entries()) {
