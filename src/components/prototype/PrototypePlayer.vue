@@ -86,19 +86,23 @@ function initRuntime() {
   const flow = activeFlow(doc)
   currentFlowName.value = flow?.name ?? 'Flow 1'
 
-  // Pick start frame: selected frame -> flow start -> first frame
+  // Pick start frame: selected frame -> flow start -> first frame on the page.
+  // Never fall back to the root `Document` node: it is a FRAME with no parent,
+  // so a bare "any parentless frame" scan starts the player on the container.
+  const pageId = store.state.currentPageId
   let startId: string | null = null
   const selId = Array.from(store.state.selectedIds)[0]
   const selNode = selId ? store.graph.getNode(selId) : null
-  if (selNode && selNode.type === 'FRAME' && !selNode.parentId) {
+  if (selNode && selNode.type === 'FRAME' && selNode.parentId === pageId) {
     startId = selNode.id
   } else if (flow?.startNodeId && store.graph.getNode(flow.startNodeId)) {
     startId = flow.startNodeId
   } else {
-    const firstFrame = Array.from(store.graph.nodes.values()).find(
-      (n) => n.type === 'FRAME' && (!n.parentId || n.parentId === store.graph.rootId)
+    const page = store.graph.getNode(pageId)
+    const firstFrameId = page?.childIds.find(
+      (id) => store.graph.getNode(id)?.type === 'FRAME'
     )
-    startId = firstFrame?.id ?? null
+    startId = firstFrameId ?? null
   }
 
   if (!startId) return

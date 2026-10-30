@@ -129,6 +129,21 @@ describe('Zenuxs AI design tools', () => {
     expect(store.graph.getNode(text?.id ?? '')).toBeUndefined()
   })
 
+  test('keeps the requested name on the created text node', async () => {
+    const store = createStore()
+    spyOn(getZenuxsEngine(), 'execute')
+    const tools = createZenuxsDesignTools(store)
+
+    await invoke(tools.zenuxs_create_text, {
+      name: 'Headline',
+      characters: 'Welcome to Zenuxs',
+      fontSize: 28
+    })
+
+    const text = store.graph.getChildren(store.state.currentPageId)[0]
+    expect(text).toMatchObject({ type: 'TEXT', name: 'Headline', text: 'Welcome to Zenuxs' })
+  })
+
   test('creates a vector with the vector command and one undo reverts it', async () => {
     const store = createStore()
     const execute = spyOn(getZenuxsEngine(), 'execute')

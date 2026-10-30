@@ -278,7 +278,7 @@ export const CREATE_SPECS: CommandSpec[] = [
       max_lines: 0,
       features: {},
       path: null
-    })
+    }, p)
     moveNode(s.ds().doc.node_mut(id)!, p)
     return { ok: true, id }
   }),
