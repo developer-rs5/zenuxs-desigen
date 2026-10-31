@@ -3,6 +3,7 @@ import { expectDefined } from '#tests/helpers/assert'
 import { ChatHarness } from '#tests/helpers/chat/harness'
 import { propertySection } from '#tests/helpers/properties'
 import { injectPrototypeAIToolsTransport } from '#tests/helpers/prototype/ai-chat'
+import { clickNodeInPlayer, closePlayer } from '#tests/helpers/prototype/player'
 import { getSelectedNode } from '#tests/helpers/store'
 
 // §26 human-like journey: author → preview → manual edit → ask AI to modify →
@@ -60,29 +61,6 @@ async function rename(nodes: Array<{ id: string; name: string }>) {
 }
 
 type PanelCombo = 'Trigger' | 'Transition' | 'Direction'
-
-/** Node center in canvas-element pixels, using the live zoom/pan. */
-async function screenPoint(nodeId: string) {
-  return editor.page.evaluate((id) => {
-    const store = window.openPencil?.getStore?.()
-    if (!store) throw new Error('OpenPencil store not initialized')
-    const node = store.graph.getNode(id)
-    if (!node) throw new Error(`missing node ${id}`)
-    const abs = store.graph.getAbsolutePosition(id)
-    return {
-      x: (abs.x + node.width / 2) * store.state.zoom + store.state.panX,
-      y: (abs.y + node.height / 2) * store.state.zoom + store.state.panY
-    }
-  }, nodeId)
-}
-
-/** Click a node's center in the live preview viewport. */
-async function clickNode(nodeId: string) {
-  const p = await screenPoint(nodeId)
-  const box = await editor.page.getByTestId('canvas-element').boundingBox()
-  if (!box) throw new Error('canvas element has no bounding box')
-  await editor.page.mouse.click(box.x + p.x, box.y + p.y)
-}
 
 async function selectOption(name: PanelCombo, option: string) {
   const section = propertySection(editor.page, 'Prototype')
@@ -177,11 +155,7 @@ test('designer authors a splash → home onboarding flow, previews it, and re-ed
     home.id,
     { timeout: 10_000 }
   )
-  await editor.page.getByTestId('prototype-present-button').click()
-  await editor.page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(editor.page)
 
   // Manual re-edit: 500 → 800ms.
   await selectViaStore(splash.id)
@@ -360,7 +334,7 @@ test('card carousel advances with a horizontal slide transition', async () => {
     cardA.id,
     { timeout: 10_000 }
   )
-  await clickNode(cardA.id)
+  await clickNodeInPlayer(editor.page, cardA.id)
   await editor.page.waitForFunction(
     (id) => {
       const store = window.openPencil?.getStore?.()
@@ -370,11 +344,7 @@ test('card carousel advances with a horizontal slide transition', async () => {
     cardB.id,
     { timeout: 10_000 }
   )
-  await editor.page.getByTestId('prototype-present-button').click()
-  await editor.page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(editor.page)
 
   editor.canvas.assertNoErrors()
 })

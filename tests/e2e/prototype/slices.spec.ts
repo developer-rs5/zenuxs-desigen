@@ -1,6 +1,7 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 import { propertySection } from '#tests/helpers/properties'
+import { clickNodeInPlayer, closePlayer, hoverNodeInPlayer } from '#tests/helpers/prototype/player'
 import { getSelectedNode } from '#tests/helpers/store'
 
 const editor = useEditorSetupWithClear('/demo')
@@ -24,37 +25,6 @@ async function pluginValue<T>(nodeId: string, key: string): Promise<T | null> {
     },
     { nodeId, key }
   )
-}
-
-/** Node center in canvas-element pixels, using the live zoom/pan. */
-async function screenPoint(nodeId: string) {
-  return editor.page.evaluate((id) => {
-    const store = window.openPencil?.getStore?.()
-    if (!store) throw new Error('OpenPencil store not initialized')
-    const node = store.graph.getNode(id)
-    if (!node) throw new Error(`missing node ${id}`)
-    const abs = store.graph.getAbsolutePosition(id)
-    return {
-      x: (abs.x + node.width / 2) * store.state.zoom + store.state.panX,
-      y: (abs.y + node.height / 2) * store.state.zoom + store.state.panY
-    }
-  }, nodeId)
-}
-
-/** Click a node's center in the live preview viewport. */
-async function clickNode(nodeId: string) {
-  const p = await screenPoint(nodeId)
-  const box = await editor.page.getByTestId('canvas-element').boundingBox()
-  if (!box) throw new Error('canvas element has no bounding box')
-  await editor.page.mouse.click(box.x + p.x, box.y + p.y)
-}
-
-/** Hover a node's center in the live preview viewport. */
-async function hoverNode(nodeId: string) {
-  const p = await screenPoint(nodeId)
-  const box = await editor.page.getByTestId('canvas-element').boundingBox()
-  if (!box) throw new Error('canvas element has no bounding box')
-  await editor.page.mouse.move(box.x + p.x, box.y + p.y)
 }
 
 /** Draw-creation parents new nodes to the page; nest like other e2e specs do. */
@@ -282,7 +252,7 @@ test('press scales the button and release springs it back', async () => {
     return store?.state.prototypePreview != null
   })
 
-  await hoverNode(button.id)
+  await hoverNodeInPlayer(editor.page, button.id)
   await editor.page.mouse.down()
   await editor.page.waitForFunction(
     (id) => {
@@ -308,11 +278,7 @@ test('press scales the button and release springs it back', async () => {
     { timeout: 5000 }
   )
 
-  await editor.page.getByTestId('prototype-present-button').click()
-  await editor.page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(editor.page)
 
   editor.canvas.assertNoErrors()
 })
@@ -405,7 +371,7 @@ test('bottom sheet slides up as an overlay and closes again', async () => {
   )
 
   // Open: the sheet joins the draw list behind a backdrop.
-  await clickNode(openBtn.id)
+  await clickNodeInPlayer(editor.page, openBtn.id)
   await editor.page.waitForFunction(
     ({ overlayId, mainId }) => {
       const store = window.openPencil?.getStore?.()
@@ -423,7 +389,7 @@ test('bottom sheet slides up as an overlay and closes again', async () => {
   )
 
   // Close: only the main screen remains.
-  await clickNode(closeBtn.id)
+  await clickNodeInPlayer(editor.page, closeBtn.id)
   await editor.page.waitForFunction(
     (mainId) => {
       const store = window.openPencil?.getStore?.()
@@ -434,11 +400,7 @@ test('bottom sheet slides up as an overlay and closes again', async () => {
     { timeout: 5000 }
   )
 
-  await editor.page.getByTestId('prototype-present-button').click()
-  await editor.page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(editor.page)
 
   editor.canvas.assertNoErrors()
 })
@@ -486,7 +448,7 @@ test('navigating to a deleted destination fails safely in preview', async () => 
   )
 
   // Clicking must not navigate, crash, or change the screen.
-  await clickNode(start.id)
+  await clickNodeInPlayer(editor.page, start.id)
   await editor.page.waitForTimeout(300)
   expect(
     await editor.page.evaluate((id) => {
@@ -496,11 +458,7 @@ test('navigating to a deleted destination fails safely in preview', async () => 
     }, start.id)
   ).toBe(true)
 
-  await editor.page.getByTestId('prototype-present-button').click()
-  await editor.page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(editor.page)
 
   editor.canvas.assertNoErrors()
 })

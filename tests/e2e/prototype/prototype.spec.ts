@@ -1,6 +1,7 @@
 import { expect, test, useEditorSetupWithClear } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 import { propertySection } from '#tests/helpers/properties'
+import { clickNodeInPlayer, closePlayer } from '#tests/helpers/prototype/player'
 import { getSelectedNode } from '#tests/helpers/store'
 
 const editor = useEditorSetupWithClear('/demo')
@@ -213,23 +214,8 @@ test('present runs the prototype: enter, click-navigate, exit', async () => {
     })
   ).toBe(0)
 
-  // Click frame A (screen coords from the live preview viewport) → navigate to B.
-  const target = await editor.page.evaluate((id) => {
-    const store = window.openPencil?.getStore?.()
-    if (!store) throw new Error('OpenPencil store not initialized')
-    const n = store.graph.getNode(id)
-    if (!n) throw new Error(`missing node ${id}`)
-    const abs = store.graph.getAbsolutePosition(id)
-    const wx = abs.x + n.width / 2
-    const wy = abs.y + n.height / 2
-    return {
-      x: wx * store.state.zoom + store.state.panX,
-      y: wy * store.state.zoom + store.state.panY
-    }
-  }, frameA.id)
-  const elementBox = await editor.page.getByTestId('canvas-element').boundingBox()
-  if (!elementBox) throw new Error('canvas element has no bounding box')
-  await editor.page.mouse.click(elementBox.x + target.x, elementBox.y + target.y)
+  // Click frame A in the presentation surface → navigate to B.
+  await clickNodeInPlayer(editor.page, frameA.id)
 
   await editor.page.waitForFunction(
     (id) => {
@@ -242,11 +228,7 @@ test('present runs the prototype: enter, click-navigate, exit', async () => {
   )
 
   // Exit presentation.
-  await editor.page.getByTestId('prototype-present-button').click()
-  await editor.page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(editor.page)
 
   editor.canvas.assertNoErrors()
 })

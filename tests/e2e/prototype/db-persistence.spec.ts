@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 import { CanvasHelper } from '#tests/helpers/canvas'
+import { closePlayer } from '#tests/helpers/prototype/player'
 import { getSelectedNode } from '#tests/helpers/store'
 
 // §21 database chain, unmocked: frontend action → POST /api/documents →
@@ -189,11 +190,7 @@ test('prototype authoring survives a real backend save → reload → reopen →
     restoredFrameId,
     { timeout: 10_000 }
   )
-  await page.getByTestId('prototype-present-button').click()
-  await page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(page)
 
   // Cleanup through the app's own authenticated path (CSRF + session cookie).
   const deleteResult = await page.evaluate(async (id) => {

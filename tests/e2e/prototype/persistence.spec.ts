@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '#tests/e2e/fixtures'
 import { expectDefined } from '#tests/helpers/assert'
 import { CanvasHelper } from '#tests/helpers/canvas'
+import { closePlayer } from '#tests/helpers/prototype/player'
 import { getSelectedNode } from '#tests/helpers/store'
 
 // The editor home (recent files) has no canvas yet, so bring the page up
@@ -203,11 +204,7 @@ test('prototype authoring survives cloud save → refresh → reopen', async () 
     restoredFrameId,
     { timeout: 10_000 }
   )
-  await page.getByTestId('prototype-present-button').click()
-  await page.waitForFunction(() => {
-    const store = window.openPencil?.getStore?.()
-    return store?.state.prototypePreview == null
-  })
+  await closePlayer(page)
 
   canvas.assertNoErrors()
 })
