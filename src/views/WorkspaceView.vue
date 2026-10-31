@@ -7,7 +7,6 @@ import { useRoute } from 'vue-router'
 import { startMCPRuntime, stopMCPRuntime } from '@/app/automation/mcp/runtime'
 import { exposeCollaborationActions } from '@/app/browser-bridge'
 import { COLLAB_KEY, useCollab } from '@/app/collab/use'
-import { provideCollabPanel } from '@/components/CollabPanel/context'
 import { createDemoShapes } from '@/app/demo/document'
 import { appRuntimeConfig } from '@/app/runtime/config'
 import { useKeyboard } from '@/app/shell/keyboard/use'
@@ -21,6 +20,7 @@ import {
 } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
 import { exposeZenuxsEngine } from '@/app/zenuxs-engine'
+import { provideCollabPanel } from '@/components/CollabPanel/context'
 import CommandPalette from '@/components/commands/CommandPalette.vue'
 import EditorWorkspace from '@/components/editor/EditorWorkspace.vue'
 import FontStatusBanner from '@/components/font-status/FontStatusBanner.vue'
@@ -47,6 +47,19 @@ if (createdInitialTab && route.meta.demo && !appRuntimeConfig.test) {
 useHead({ title: route.meta.demo ? 'Demo' : undefined })
 useKeyboard()
 useEditorMenu()
+
+/**
+ * The player overlay owns its own close affordances (Esc and its X button), and
+ * both only clear the open flag. The core runtime keeps drawing the preview on
+ * the canvas until it is stopped explicitly, so tear it down here rather than
+ * leaving a stale `prototypePreview` behind the dismissed overlay.
+ */
+function closePrototypePlayer(open: boolean) {
+  const store = activeTab.value?.store
+  if (!store) return
+  if (!open) store.stopPrototypePreview()
+  store.state.prototypePresenterOpen = open
+}
 
 const collab = useCollab(getActiveStore)
 provide(COLLAB_KEY, collab)
@@ -117,7 +130,7 @@ onUnmounted(() => {
       <PrototypePlayer
         v-if="activeTab?.store"
         :open="activeTab.store.state.prototypePresenterOpen"
-        @update:open="activeTab.store.state.prototypePresenterOpen = $event"
+        @update:open="closePrototypePlayer"
       />
     </template>
   </div>

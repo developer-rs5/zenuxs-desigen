@@ -8,11 +8,7 @@ import {
   resolveDeviceGeometry,
   type DeviceGeometry
 } from '@open-pencil/core'
-import {
-  createPrototypeRuntime,
-  type PrototypeRenderState,
-  type PrototypeRuntime
-} from '@open-pencil/core/prototype/runtime'
+import type { PrototypeRenderState } from '@open-pencil/core/prototype/runtime'
 import {
   activeFlow,
   readNodeInteractions,
@@ -36,13 +32,39 @@ const emit = defineEmits<{
 
 const store = useEditorStore()
 
-let runtime: PrototypeRuntime | null = null
-const renderState = ref<PrototypeRenderState | null>(null)
-const currentScreenNode = ref<SceneNode | null>(null)
+/**
+ * The presenter renders whatever the shared preview runtime is drawing instead
+ * of owning a runtime of its own: one runtime means one source of truth for the
+ * current screen, the click that navigates, and anything else observing
+ * `state.prototypePreview`.
+ */
+const renderState = computed<PrototypeRenderState | null>(() => store.state.prototypePreview)
 const currentFlowName = ref('Flow 1')
 const scaleMode = ref<'fit' | 'actual'>('fit')
 const showHotspots = ref(true)
 const hotspotRipple = ref<{ x: number; y: number } | null>(null)
+
+/**
+ * `composeRenderState` appends overlays after the screens, so the last id before
+ * `overlayStartIndex` is the screen on stage — also mid-transition, where the
+ * outgoing and incoming screens are both drawn.
+ */
+const currentScreenId = computed<string | null>(() => {
+  const state = renderState.value
+  if (!state || state.overlayStartIndex < 1) return null
+  return state.drawIds[state.overlayStartIndex - 1] ?? null
+})
+
+const currentScreenNode = computed<SceneNode | null>(() => {
+  const id = currentScreenId.value
+  return id ? (store.graph.getNode(id) ?? null) : null
+})
+
+/** World-space top-left of the screen on stage; renderers draw relative to it. */
+const screenOrigin = computed(() => {
+  const id = currentScreenId.value
+  return id ? store.graph.getAbsolutePosition(id) : { x: 0, y: 0 }
+})
 
 // Physics scroll tracking per presented frame
 const scrollX = ref(0)
@@ -99,72 +121,41 @@ function initRuntime() {
     startId = flow.startNodeId
   } else {
     const page = store.graph.getNode(pageId)
-    const firstFrameId = page?.childIds.find(
-      (id) => store.graph.getNode(id)?.type === 'FRAME'
-    )
+    const firstFrameId = page?.childIds.find((id) => store.graph.getNode(id)?.type === 'FRAME')
     startId = firstFrameId ?? null
   }
 
   if (!startId) return
-
-  runtime = createPrototypeRuntime(store.graph, {
-    onMutate: () => {
-      // Instance variant swap during presentation
-      return true
-    }
-  })
-
-  runtime.start(performance.now(), startId)
-  syncState()
-  runAnimationLoop()
+  store.startPrototypePreview(startId)
 }
 
-let animFrame: number | null = null
-
-function runAnimationLoop() {
-  if (animFrame) cancelAnimationFrame(animFrame)
-  function step() {
-    if (!runtime) {
-      animFrame = null
-      return
-    }
-    const now = performance.now()
-    runtime.tick(now)
-    syncState()
-    if (runtime.hasPendingWork(now)) {
-      animFrame = requestAnimationFrame(step)
-    } else {
-      animFrame = null
-    }
+/**
+ * Player pointer coordinates are container-local; the preview actions hit test
+ * in world space against authored geometry, so translate by the screen origin.
+ */
+function toWorldPoint(e: { clientX: number; clientY: number; currentTarget: EventTarget | null }) {
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const origin = screenOrigin.value
+  return {
+    cx: e.clientX - rect.left + scrollX.value + origin.x,
+    cy: e.clientY - rect.top + scrollY.value + origin.y
   }
-  animFrame = requestAnimationFrame(step)
-}
-
-function syncState() {
-  if (!runtime) return
-  renderState.value = runtime.getRenderState()
-  const sId = runtime.getScreenId()
-  currentScreenNode.value = sId ? (store.graph.getNode(sId) ?? null) : null
-}
-
-function onNodeClicked(nodeId: string, _event?: PointerEvent) {
-  if (!runtime) return
-  const now = performance.now()
-  runtime.click(nodeId, now)
-  runAnimationLoop()
 }
 
 function restartFlow() {
   if (flingAnimFrame) cancelAnimationFrame(flingAnimFrame)
-  if (animFrame) cancelAnimationFrame(animFrame)
+  flingAnimFrame = null
   scrollX.value = 0
   scrollY.value = 0
+  hotspotRipple.value = null
+  store.stopPrototypePreview()
   initRuntime()
 }
 
 function close() {
   if (flingAnimFrame) cancelAnimationFrame(flingAnimFrame)
-  if (animFrame) cancelAnimationFrame(animFrame)
+  flingAnimFrame = null
+  store.stopPrototypePreview()
   emit('update:open', false)
 }
 
@@ -189,18 +180,16 @@ function onScreenPointerDown(e: PointerEvent) {
     flingAnimFrame = null
   }
 
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const cx = e.clientX - rect.left + scrollX.value
-  const cy = e.clientY - rect.top + scrollY.value
-
-  const hit = store.hitTestAtPoint(cx, cy)
-  if (hit && runtime) {
-    runtime.pointerDown(hit.id, performance.now())
-  }
+  const { cx, cy } = toWorldPoint(e)
+  store.previewPointerDown(cx, cy)
 }
 
 function onScreenPointerMove(e: PointerEvent) {
-  if (!pointerIsDown) return
+  if (!pointerIsDown) {
+    const hover = toWorldPoint(e)
+    store.previewHover(hover.cx, hover.cy)
+    return
+  }
 
   const now = performance.now()
   const dt = Math.max(1, now - lastPointerTime) / 1000
@@ -227,14 +216,8 @@ function onScreenPointerMove(e: PointerEvent) {
     }
   }
 
-  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const cx = e.clientX - rect.left + scrollX.value
-  const cy = e.clientY - rect.top + scrollY.value
-
-  const hit = store.hitTestAtPoint(cx, cy)
-  if (hit && runtime) {
-    runtime.pointerDown(hit.id, now)
-  }
+  const { cx, cy } = toWorldPoint(e)
+  store.previewPointerMove(cx, cy)
 }
 
 function onScreenPointerUp(e: PointerEvent) {
@@ -242,23 +225,16 @@ function onScreenPointerUp(e: PointerEvent) {
   pointerIsDown = false
 
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-  const cx = e.clientX - rect.left + scrollX.value
-  const cy = e.clientY - rect.top + scrollY.value
-
+  const { cx, cy } = toWorldPoint(e)
   const hit = store.hitTestAtPoint(cx, cy)
-  if (hit && runtime) {
-    runtime.pointerUp(hit.id, performance.now())
-    runtime.click(hit.id, performance.now())
-    runAnimationLoop()
+  store.previewPointerUp(cx, cy)
 
-    // Non-interactive click feedback (hotspot ripple)
-    const hasInteractions = readNodeInteractions(hit).length > 0
-    if (!hasInteractions && showHotspots.value) {
-      hotspotRipple.value = { x: e.clientX - rect.left, y: e.clientY - rect.top }
-      setTimeout(() => {
-        hotspotRipple.value = null
-      }, 400)
-    }
+  // Non-interactive click feedback (hotspot ripple)
+  if (hit && showHotspots.value && readNodeInteractions(hit).length === 0) {
+    hotspotRipple.value = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    setTimeout(() => {
+      hotspotRipple.value = null
+    }, 400)
   }
 
   // Fling momentum continuation
@@ -307,6 +283,9 @@ function onScreenWheel(e: WheelEvent) {
   if (range.maxY > 0) {
     scrollY.value = Math.max(0, Math.min(range.maxY, scrollY.value + e.deltaY))
   }
+
+  const { cx, cy } = toWorldPoint(e)
+  store.previewScroll(cx, cy, e.deltaY)
 }
 
 useEventListener(window, 'keydown', (e: KeyboardEvent) => {
@@ -329,7 +308,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (flingAnimFrame) cancelAnimationFrame(flingAnimFrame)
-  if (animFrame) cancelAnimationFrame(animFrame)
+  flingAnimFrame = null
+  store.previewPointerLeave()
 })
 </script>
 
@@ -457,7 +437,8 @@ onUnmounted(() => {
                 :graph="store.graph"
                 :visuals="renderState.nodeVisuals"
                 :show-hotspots="showHotspots"
-                @node-click="onNodeClicked"
+                :origin-x="screenOrigin.x"
+                :origin-y="screenOrigin.y"
               />
             </template>
             <template v-else-if="currentScreenNode">
@@ -466,7 +447,8 @@ onUnmounted(() => {
                 :graph="store.graph"
                 :visuals="renderState?.nodeVisuals"
                 :show-hotspots="showHotspots"
-                @node-click="onNodeClicked"
+                :origin-x="screenOrigin.x"
+                :origin-y="screenOrigin.y"
               />
             </template>
           </div>
@@ -518,7 +500,8 @@ onUnmounted(() => {
               :graph="store.graph"
               :visuals="renderState.nodeVisuals"
               :show-hotspots="showHotspots"
-              @node-click="onNodeClicked"
+              :origin-x="screenOrigin.x"
+              :origin-y="screenOrigin.y"
             />
           </template>
           <template v-else-if="currentScreenNode">
@@ -527,7 +510,8 @@ onUnmounted(() => {
               :graph="store.graph"
               :visuals="renderState?.nodeVisuals"
               :show-hotspots="showHotspots"
-              @node-click="onNodeClicked"
+              :origin-x="screenOrigin.x"
+              :origin-y="screenOrigin.y"
             />
           </template>
         </div>

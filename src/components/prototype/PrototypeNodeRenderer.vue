@@ -18,10 +18,13 @@ const props = defineProps<{
   graph: SceneGraph
   visuals?: ReadonlyMap<string, PrototypeNodeVisual>
   showHotspots?: boolean
-}>()
-
-const emit = defineEmits<{
-  nodeClick: [nodeId: string, event: PointerEvent]
+  /**
+   * Absolute position of the draw root. Subtracted from this node's authored
+   * position so a screen renders from its own top-left corner; nested children
+   * keep their parent-relative offsets.
+   */
+  originX?: number
+  originY?: number
 }>()
 
 const node = computed<SceneNode | undefined>(() => props.graph.getNode(props.nodeId))
@@ -104,8 +107,8 @@ const nodeStyle = computed<Record<string, string | number>>(() => {
   }
 
   const v = visual.value
-  const x = n.x + (v?.translateX ?? 0)
-  const y = n.y + (v?.translateY ?? 0)
+  const x = n.x + (v?.translateX ?? 0) - (props.originX ?? 0)
+  const y = n.y + (v?.translateY ?? 0) - (props.originY ?? 0)
   const w = v?.width ?? n.width
   const h = v?.height ?? n.height
   const opacity = (n.opacity ?? 1) * (v?.opacity ?? 1)
@@ -189,11 +192,6 @@ const nodeStyle = computed<Record<string, string | number>>(() => {
 
   return style
 })
-
-function onClick(event: PointerEvent) {
-  if (!node.value) return
-  emit('nodeClick', props.nodeId, event)
-}
 </script>
 
 <template>
@@ -207,7 +205,6 @@ function onClick(event: PointerEvent) {
       hasInteractions ? 'cursor-pointer' : '',
       showHotspots && hasInteractions ? 'ring-1 ring-blue-500/30' : ''
     ]"
-    @pointerup="onClick"
   >
     <!-- Text content for TEXT nodes -->
     <template v-if="node.type === 'TEXT'">
@@ -223,7 +220,6 @@ function onClick(event: PointerEvent) {
         :graph="graph"
         :visuals="visuals"
         :show-hotspots="showHotspots"
-        @node-click="(id, ev) => $emit('nodeClick', id, ev)"
       />
     </template>
   </div>
