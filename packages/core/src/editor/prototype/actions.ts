@@ -15,7 +15,8 @@ import {
   type PrototypeSettings,
   type PrototypeTransition,
   type PrototypeStateModel,
-  type SceneNode
+  type SceneNode,
+  type Vector
 } from '@open-pencil/scene-graph'
 
 import type { PrototypeConnectionsOverlay } from '#core/canvas/overlays/prototype-connections'
@@ -23,6 +24,7 @@ import { reapplyInstanceComponentProperties } from '#core/editor/components/prop
 import type { EditorContext } from '#core/editor/types'
 import {
   createPrototypeRuntime,
+  type PrototypeNodeVisual,
   type PrototypeRenderState,
   type PrototypeRuntime
 } from '#core/prototype/runtime'
@@ -179,10 +181,20 @@ export function createPrototypeActions(
   }
 
   /**
+   * Preview visuals apply to the draw roots: an opening/closing overlay slides
+   * its whole root (the canvas translates a root's children by its own offset,
+   * so nested interaction targets move with it). Inverting that translation
+   * here keeps a click on the painted node resolvable mid-animation.
+   */
+  function visualOffset(visual: PrototypeNodeVisual | undefined): Vector {
+    return { x: -(visual?.translateX ?? 0), y: -(visual?.translateY ?? 0) }
+  }
+
+  /**
    * Hit test restricted to what the preview draws: topmost overlay first,
    * falling back to the root itself when the point is inside its bounds.
-   * ponytail: ignores in-flight visual offsets (slide/scale), so mid-animation
-   * clicks land on authored geometry; good enough for the vertical slices.
+   * Points are remapped out of each draw root's in-flight translation, so a
+   * click lands on the node as painted rather than where it was authored.
    */
   function previewHit(cx: number, cy: number): SceneNode | null {
     const preview = runtime?.getRenderState()
@@ -190,12 +202,20 @@ export function createPrototypeActions(
     for (let i = preview.drawIds.length - 1; i >= 0; i--) {
       const rootId = preview.drawIds[i]
       if (!rootId) continue
-      const deep = ctx.graph.hitTestDeep(cx, cy, rootId)
+      const offset = visualOffset(preview.nodeVisuals.get(rootId))
+      const pointX = cx + offset.x
+      const pointY = cy + offset.y
+      const deep = ctx.graph.hitTestDeep(pointX, pointY, rootId)
       if (deep) return deep
       const root = ctx.graph.getNode(rootId)
       if (!root) continue
       const abs = ctx.graph.getAbsolutePosition(rootId)
-      if (cx >= abs.x && cx <= abs.x + root.width && cy >= abs.y && cy <= abs.y + root.height) {
+      if (
+        pointX >= abs.x &&
+        pointX <= abs.x + root.width &&
+        pointY >= abs.y &&
+        pointY <= abs.y + root.height
+      ) {
         return root
       }
     }

@@ -74,6 +74,7 @@
 
 ### Fixed
 
+- Resolve preview clicks against the node as painted, so tapping a closing bottom sheet or a mid-animation overlay triggers the control under the pointer instead of the position it was authored at.
 - Keep an AI run alive after a successful image source: tool results carrying raw bytes are converted to JSON before they reach the model, so a sourced image no longer ends the conversation with "Invalid prompt: The messages do not match the ModelMessage[] schema".
 - Stop rejecting a good photo because its framing differs from the slot it fills: orientation and aspect ratio are now preferences judged against how the image will be cropped, not hard failures that throw the image away.
 - Read image verification verdicts as validated text instead of a structured-output response, so OpenAI-compatible relays that ignore the JSON response format no longer reject every candidate as unverified.

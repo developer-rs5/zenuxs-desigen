@@ -514,3 +514,117 @@ describe('editor prototype pointer gestures', () => {
     editor.previewPointerUp(cx, cy, 700)
   })
 })
+
+describe('editor prototype overlay hit testing', () => {
+  const slideUp = {
+    kind: 'slide',
+    direction: 'up',
+    durationMs: 300,
+    easing: 'linear'
+  } as const
+
+  function setupOverlaySlide() {
+    const ctx = setup()
+    // Authored fully over the home screen so the off-canvas centering offset
+    // never kicks in: the slide translation is the only thing moving it.
+    const popup = ctx.editor.graph.createNode('FRAME', ctx.pageId, {
+      name: 'Popup',
+      x: 600,
+      y: 110,
+      width: 200,
+      height: 120
+    })
+    const closeBtn = ctx.editor.graph.createNode('RECTANGLE', popup.id, {
+      name: 'Close',
+      x: 40,
+      y: 40,
+      width: 100,
+      height: 40
+    })
+    writeInteractions(ctx.editor, ctx.button.id, [
+      {
+        id: 'open-sheet',
+        trigger: 'click',
+        action: { type: 'openOverlay', overlayId: popup.id },
+        transition: slideUp
+      }
+    ])
+    writeInteractions(ctx.editor, closeBtn.id, [
+      { id: 'close-sheet', trigger: 'click', action: { type: 'closeOverlay' } }
+    ])
+    const buttonAbs = ctx.editor.graph.getAbsolutePosition(ctx.button.id)
+    const closeAbs = ctx.editor.graph.getAbsolutePosition(closeBtn.id)
+    return {
+      ...ctx,
+      popup,
+      closeBtn,
+      tapX: buttonAbs.x + ctx.button.width / 2,
+      tapY: buttonAbs.y + ctx.button.height / 2,
+      authoredX: closeAbs.x + closeBtn.width / 2,
+      authoredY: closeAbs.y + closeBtn.height / 2
+    }
+  }
+
+  function previewOf(editor: ReturnType<typeof createEditor>) {
+    return expectDefined(editor.state.prototypePreview, 'preview')
+  }
+
+  function slideOffset(preview: ReturnType<typeof previewOf>, nodeId: string): number {
+    return expectDefined(
+      expectDefined(preview.nodeVisuals.get(nodeId), 'overlay visual').translateY,
+      'slide offset'
+    )
+  }
+
+  function tap(editor: ReturnType<typeof createEditor>, x: number, y: number, at: number) {
+    editor.previewPointerDown(x, y, at)
+    editor.previewPointerUp(x, y, at + 1)
+  }
+
+  test('mid-slide clicks follow the painted overlay, not its authored slot', () => {
+    const { editor, home, popup, tapX, tapY, authoredX, authoredY } = setupOverlaySlide()
+    expect(editor.startPrototypePreview(home.id, 0)).toBe(true)
+
+    tap(editor, tapX, tapY, 10)
+    // The slide starts fully below the screen bottom: 300 - popup.y (110) = 190.
+    // Opened at the pointer-up timestamp (11), so 131 is 40% into a 300ms
+    // linear slide and the overlay still hangs 60% of that offset below its slot.
+    editor.tickPrototypePreview(131)
+    const sliding = previewOf(editor)
+    expect(sliding.drawIds).toEqual([home.id, popup.id])
+    expect(slideOffset(sliding, popup.id)).toBeCloseTo(114)
+
+    // Authored slot: nothing is painted there, so the close button is missed.
+    tap(editor, authoredX, authoredY, 131)
+    const missed = slideOffset(previewOf(editor), popup.id)
+    expect(missed).toBeGreaterThan(100)
+
+    // Painted slot: hit testing inverts the same offset the renderer paints,
+    // so the same button resolves wherever the slide currently puts it.
+    tap(editor, authoredX, authoredY + missed, 132)
+    // The close slides out from the authored slot, so the offset resets to
+    // identity and the overlay stops drawing once the 300ms window elapses.
+    expect(previewOf(editor).nodeVisuals.get(popup.id)).toBeUndefined()
+    editor.tickPrototypePreview(600)
+    const closed = previewOf(editor)
+    expect(closed.drawIds).toEqual([home.id])
+    expect(closed.nodeVisuals.get(popup.id)).toBeUndefined()
+  })
+
+  test('a settled slide hit tests against the authored overlay slot again', () => {
+    const { editor, home, popup, tapX, tapY, authoredX, authoredY } = setupOverlaySlide()
+    expect(editor.startPrototypePreview(home.id, 0)).toBe(true)
+
+    tap(editor, tapX, tapY, 10)
+    editor.tickPrototypePreview(400)
+    const settled = previewOf(editor)
+    expect(settled.drawIds).toEqual([home.id, popup.id])
+    expect(settled.nodeVisuals.get(popup.id)).toBeUndefined()
+
+    tap(editor, authoredX, authoredY, 410)
+    // Closing keeps the overlay drawable until its slide window elapses.
+    expect(previewOf(editor).drawIds).toEqual([home.id, popup.id])
+    editor.tickPrototypePreview(750)
+    expect(previewOf(editor).drawIds).toEqual([home.id])
+  })
+})
