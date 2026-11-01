@@ -649,9 +649,7 @@ export function registry(): Registry {
     // Lazy: the cmd modules import this file, so the specs are pulled in on
     // first use rather than at module init (same semantics as OnceLock).
     const { allCoreSpecs } = require('./cmd/core') as typeof import('./cmd/core')
-    const built: Registry = { list: allCoreSpecs(), index: new Map() }
-    for (const c of built.list) built.index.set(c.id, c)
-    REGISTRY = built
+    REGISTRY = registerRegistry(allCoreSpecs())
   }
   return REGISTRY
 }

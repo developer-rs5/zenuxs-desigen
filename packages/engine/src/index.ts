@@ -2,11 +2,9 @@ export * from './lib'
 export * from './cmd/core'
 export * from './cmd/advanced'
 export * from './mcp'
-import { registerRegistry, registryReady } from './lib'
 import { allCoreSpecs } from './cmd/core'
-import { allAdvancedSpecs } from './cmd/advanced'
+import { registerRegistry, registryReady } from './lib'
 
 // Initialise the command registry on first import (mirrors FigCraft's OnceLock).
-if (!registryReady()) {
-  registerRegistry([...allCoreSpecs(), ...allAdvancedSpecs()])
-}
+// `allCoreSpecs()` already ends with the advanced specs, so they are not added twice.
+if (!registryReady()) registerRegistry(allCoreSpecs())

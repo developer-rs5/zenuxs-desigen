@@ -12,14 +12,13 @@ import {
   registerRegistry,
   registryReady,
   allCoreSpecs,
-  allAdvancedSpecs,
   type Session as ZenuxsSession
 } from '@zenuxs/engine'
 
 import { zenuxsBridge, type ZenuxsBridge } from '@/app/zenuxs-bridge'
 import { IS_BROWSER } from '@/constants'
 
-if (!registryReady()) registerRegistry([...allCoreSpecs(), ...allAdvancedSpecs()])
+if (!registryReady()) registerRegistry(allCoreSpecs())
 
 let engine: ZenuxsSession | null = null
 
