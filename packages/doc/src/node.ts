@@ -6,9 +6,22 @@
  */
 
 import type { Color, Paint, BlendMode } from '@zenuxs/color'
-import type { Affine } from '@zenuxs/geom'
-import { ChildLayout, type StrokeProps, type Corners, type Constraints, type AutoLayout, type LayoutGrid, type ExportSetting } from './props'
+import { RectMath, transform_rect_bbox, type Affine, type Rect as GeomRect } from '@zenuxs/geom'
+
+import {
+  ChildLayout,
+  Effect,
+  SPREAD_MITER_LIMIT,
+  StrokeCap,
+  StrokeProps,
+  type Corners,
+  type Constraints,
+  type AutoLayout,
+  type LayoutGrid,
+  type ExportSetting
+} from './props'
 import type { Interaction, Overflow, ScrollPosition } from './proto'
+import { TextData, textOf, type TextKind } from './text'
 
 export type { Overflow, ScrollPosition }
 import type { NodeId } from './ids'
@@ -19,7 +32,13 @@ export type BoolOp = 'union' | 'subtract' | 'intersect' | 'exclude'
 
 export const BoolOp = {
   label(op: BoolOp): string {
-    return op === 'union' ? 'Union' : op === 'subtract' ? 'Subtract' : op === 'intersect' ? 'Intersect' : 'Exclude'
+    return op === 'union'
+      ? 'Union'
+      : op === 'subtract'
+        ? 'Subtract'
+        : op === 'intersect'
+          ? 'Intersect'
+          : 'Exclude'
   },
   default(): BoolOp {
     return 'union'
@@ -171,8 +190,7 @@ export interface Node {
 export const Node = {
   /** A node with Figma's defaults for its kind. */
   new(id: NodeId, kind: NodeKind, name: string, width: number, height: number): Node {
-    const fills: Paint[] =
-      kind.type === 'frame' || kind.type === 'component' ? [] : []
+    const fills: Paint[] = kind.type === 'frame' || kind.type === 'component' ? [] : []
     return {
       id,
       name,
@@ -201,7 +219,21 @@ export const Node = {
       corners: { radii: [0, 0, 0, 0], smoothing: 0 },
       constraints: { horizontal: 'left', vertical: 'top' },
       layout: null,
-      child_layout: { sizing_h: 'fixed', sizing_v: 'fixed', absolute: false, min_w: null, max_w: null, min_h: null, max_h: null, grid_column: null, grid_row: null, grid_column_span: 0, grid_row_span: 0, grid_align_h: null, grid_align_v: null },
+      child_layout: {
+        sizing_h: 'fixed',
+        sizing_v: 'fixed',
+        absolute: false,
+        min_w: null,
+        max_w: null,
+        min_h: null,
+        max_h: null,
+        grid_column: null,
+        grid_row: null,
+        grid_column_span: 0,
+        grid_row_span: 0,
+        grid_align_h: null,
+        grid_align_v: null
+      },
       clip: false,
       is_mask: false,
       mask_type: 'alpha',
@@ -235,7 +267,12 @@ export const Node = {
   },
 
   is_frame_like(kind: NodeKind): boolean {
-    return kind.type === 'frame' || kind.type === 'component' || kind.type === 'componentSet' || kind.type === 'instance'
+    return (
+      kind.type === 'frame' ||
+      kind.type === 'component' ||
+      kind.type === 'componentSet' ||
+      kind.type === 'instance'
+    )
   },
 
   is_container(kind: NodeKind): boolean {
@@ -274,8 +311,132 @@ export const Node = {
   },
 
   has_independent_corners(kind: NodeKind): boolean {
-    return Node.has_corner_radius(kind) && !(kind.type === 'polygon' || kind.type === 'star' || kind.type === 'vector')
+    return (
+      Node.has_corner_radius(kind) &&
+      !(kind.type === 'polygon' || kind.type === 'star' || kind.type === 'vector')
+    )
+  },
+
+  is_page(n: Node): boolean {
+    return n.kind.type === 'page'
+  },
+
+  /** Whether painted strokes are present. */
+  has_visible_stroke(n: Node): boolean {
+    return n.strokes.some((p) => p.visible) && n.stroke.weight > 0
+  },
+
+  /** Maximum distance (in local units) painting can reach outside the node box. */
+  paint_reach(n: Node): number {
+    let fx = 0
+    for (const e of effectsOf(n)) fx = Math.max(fx, Effect.reach(e))
+    return Node.outline_reach(n) + fx + Node.spread_miter_reach(n)
+  },
+
+  /**
+   * The page-space area this node paints itself under `world` (its children
+   * aside): its box grown by its strokes and glyphs, then by its effects.
+   */
+  own_paint_bounds(n: Node, world: Affine): GeomRect {
+    const o = Node.outline_reach(n)
+    const box = RectMath.new(0, 0, n.width, n.height)
+    return Node.grow_by_effects(n, transform_rect_bbox(world, RectMath.inflate(box, o, o)))
+  },
+
+  /**
+   * Page-space area `b` grown by what this node's visible effects paint around
+   * it: blurs all round, drop shadows towards their offset.
+   */
+  grow_by_effects(n: Node, b: GeomRect): GeomRect {
+    const miter = Node.spread_miter_reach(n)
+    let r = b
+    for (const e of effectsOf(n)) {
+      if (!e.visible) continue
+      if (e.kind.type === 'dropShadow') {
+        const s = e.kind.shadow
+        const g = Math.abs(s.radius) * 1.5 + Math.max(0, s.spread) + miter
+        const [dx, dy] = s.offset
+        if (Number.isFinite(g) && Number.isFinite(dx) && Number.isFinite(dy)) {
+          r = RectMath.union(
+            r,
+            RectMath.inflate(RectMath.new(b.x0 + dx, b.y0 + dy, b.x1 + dx, b.y1 + dy), g, g)
+          )
+        }
+      } else {
+        const g = Effect.reach(e)
+        if (Number.isFinite(g) && g > 0) r = RectMath.union(r, RectMath.inflate(b, g, g))
+      }
+    }
+    return r
+  },
+
+  /** How far (local units) strokes and glyphs reach outside the box. */
+  outline_reach(n: Node): number {
+    let stroke = 0
+    if (Node.has_visible_stroke(n)) {
+      const sides = n.stroke.sides
+      const w = sides ? sides.reduce((a, b) => Math.max(a, b), 0) : StrokeProps.maxWeight(n.stroke)
+      const base = n.stroke.align === 'inside' ? 0 : n.stroke.align === 'center' ? w / 2 : w
+      // Arrowheads are sized by the weight, whatever a width profile does.
+      const pointArrows =
+        n.kind.type === 'vector' &&
+        (
+          n.kind.network as { vertices?: Array<{ cap?: StrokeCap | null }> } | undefined
+        )?.vertices?.some(
+          (v) => v.cap !== null && v.cap !== undefined && StrokeCap.isArrow(v.cap)
+        ) === true
+      const caps =
+        StrokeCap.isArrow(n.stroke.cap_start) || StrokeCap.isArrow(n.stroke.cap_end) || pointArrows
+          ? Math.max(w, n.stroke.weight) * 3
+          : w
+      // Right-angled or smooth outlines (boxes, ellipses) end their mitres on the grown box.
+      const boxy =
+        n.kind.type === 'rectangle' ||
+        n.kind.type === 'ellipse' ||
+        n.kind.type === 'section' ||
+        Node.is_frame_like(n.kind)
+      const miter = boxy ? 1 : Math.min(4, Math.max(1, n.stroke.miter_limit))
+      const lineLike = n.kind.type === 'line' || n.kind.type === 'vector'
+      stroke = Math.max(base, lineLike ? caps : 0) * miter
+    }
+    const glyphs = textReach(n)
+    return stroke + glyphs
+  },
+
+  /**
+   * How much further than its spread a drop shadow can reach at the outline's
+   * sharp corners. Rectangles, frames and ellipses grow by exactly the spread.
+   */
+  spread_miter_reach(n: Node): number {
+    if (
+      n.kind.type === 'rectangle' ||
+      n.kind.type === 'ellipse' ||
+      n.kind.type === 'section' ||
+      Node.is_frame_like(n.kind)
+    ) {
+      return 0
+    }
+    let max = 0
+    for (const e of effectsOf(n)) {
+      if (!e.visible) continue
+      if (e.kind.type === 'dropShadow' && Number.isFinite(e.kind.shadow.spread)) {
+        max = Math.max(max, Math.max(0, e.kind.shadow.spread) * (SPREAD_MITER_LIMIT - 1))
+      }
+    }
+    return max
   }
+}
+
+/** A node's effects as `Effect[]` (the model stores them loosely). */
+function effectsOf(n: Node): Effect[] {
+  return n.effects as Effect[]
+}
+
+/** How far a text layer's glyphs paint past its box. */
+function textReach(n: Node): number {
+  if (n.kind.type !== 'text') return 0
+  const t = textOf(n.kind as TextKind)
+  return TextData.pathReach(t) + TextData.trimReach(t)
 }
 
 /** Fields at their default value are left out of the JSON (serde parity). */
@@ -295,10 +456,12 @@ export function omitNodeDefaults(n: Node): Record<string, unknown> {
   if (n.height !== 0) out.height = n.height
   if (n.fills.length > 0) out.fills = n.fills
   if (n.strokes.length > 0) out.strokes = n.strokes
-  if (JSON.stringify(n.stroke) !== JSON.stringify(Node.new(0, n.kind, '', 0, 0).stroke)) out.stroke = n.stroke
+  if (JSON.stringify(n.stroke) !== JSON.stringify(Node.new(0, n.kind, '', 0, 0).stroke))
+    out.stroke = n.stroke
   if (n.effects.length > 0) out.effects = n.effects
   if (n.corners.radii.some((r) => r !== 0) || n.corners.smoothing !== 0) out.corners = n.corners
-  if (n.constraints.horizontal !== 'left' || n.constraints.vertical !== 'top') out.constraints = n.constraints
+  if (n.constraints.horizontal !== 'left' || n.constraints.vertical !== 'top')
+    out.constraints = n.constraints
   if (n.layout !== null) out.layout = n.layout
   if (!ChildLayout.isDefault(n.child_layout)) out.child_layout = n.child_layout
   if (n.clip) out.clip = n.clip

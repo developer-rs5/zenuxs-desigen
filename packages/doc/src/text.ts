@@ -6,7 +6,10 @@
 import type { Paint } from '@zenuxs/color'
 
 /** Line height: auto (the font's natural ratio), pixels or percent. */
-export type LineHeight = { unit: 'auto' } | { unit: 'pixels'; value: number } | { unit: 'percent'; value: number }
+export type LineHeight =
+  | { unit: 'auto' }
+  | { unit: 'pixels'; value: number }
+  | { unit: 'percent'; value: number }
 
 export const LineHeight = {
   AUTO: { unit: 'auto' } as LineHeight,
@@ -83,7 +86,13 @@ export interface DecorationLook {
 
 export const DecorationLook = {
   default(): DecorationLook {
-    return { style: 'solid', offset: LineHeight.AUTO, thickness: LineHeight.AUTO, skip_ink: false, color: null }
+    return {
+      style: 'solid',
+      offset: LineHeight.AUTO,
+      thickness: LineHeight.AUTO,
+      skip_ink: false,
+      color: null
+    }
   },
 
   /** Structural equality (the look holds only plain data). */
@@ -257,7 +266,12 @@ export interface TextData {
 }
 
 /** A text node's kind: the loose record the node model stores text data in. */
-export type TextKind = { type: 'text'; characters: string; style: unknown; runs: unknown[] } & Record<string, unknown>
+export type TextKind = {
+  type: 'text'
+  characters: string
+  style: unknown
+  runs: unknown[]
+} & Record<string, unknown>
 
 export const TextData = {
   default(): TextData {
@@ -366,12 +380,33 @@ export const TextData = {
     return run ? run.style : t.style
   },
 
+  /**
+   * How far text on a path paints past its path's box: about one and a half
+   * of the largest size per line; 0 off a path.
+   */
+  pathReach(t: TextData): number {
+    if (t.path === null) return 0
+    const lines = Math.min(10_000, Math.max(1, t.characters.split('\n').length))
+    return TextData.maxSize(t) * 1.5 * lines
+  },
+
+  /**
+   * How far vertically trimmed text paints past its box (descenders below the
+   * last baseline, accents above the first cap height): half the largest size;
+   * 0 untrimmed.
+   */
+  trimReach(t: TextData): number {
+    return t.leading_trim === 'none' ? 0 : TextData.maxSize(t) * 0.5
+  },
+
   /** Spans of uniform style covering the whole text: `[start, end, style]`. */
   spans(t: TextData): Array<[number, number, TextStyle]> {
     const n = t.characters.length
     const out: Array<[number, number, TextStyle]> = []
     let pos = 0
-    const runs = t.runs.filter((r) => r.start < r.end && r.start < n).sort((a, b) => a.start - b.start)
+    const runs = t.runs
+      .filter((r) => r.start < r.end && r.start < n)
+      .sort((a, b) => a.start - b.start)
     for (const run of runs) {
       const start = Math.max(run.start, pos)
       const end = Math.min(run.end, n)
@@ -424,7 +459,8 @@ export const TextData = {
     const merged: StyleRun[] = []
     for (const run of t.runs) {
       const prev = merged[merged.length - 1]
-      if (prev && prev.end === run.start && textStyleEqual(prev.style, run.style)) prev.end = run.end
+      if (prev && prev.end === run.start && textStyleEqual(prev.style, run.style))
+        prev.end = run.end
       else merged.push(run)
     }
     t.runs = merged
@@ -481,7 +517,11 @@ export const TextData = {
       entry.indent = Math.min(entry.indent, MAX_LIST_INDENT)
     }
     const first = t.paragraphs[0]
-    if (first && first.indent === 0 && t.paragraphs.every((p) => p.kind === first.kind && p.indent === 0)) {
+    if (
+      first &&
+      first.indent === 0 &&
+      t.paragraphs.every((p) => p.kind === first.kind && p.indent === 0)
+    ) {
       t.list = first.kind
       t.paragraphs = []
     }
@@ -537,7 +577,9 @@ export function weightName(weight: number): string {
 export function setLook(style: TextStyle, f: (look: DecorationLook) => void): void {
   const look = { ...style.decoration_look }
   f(look)
-  style.decoration_look = DecorationLook.equal(look, DecorationLook.default()) ? DecorationLook.default() : look
+  style.decoration_look = DecorationLook.equal(look, DecorationLook.default())
+    ? DecorationLook.default()
+    : look
 }
 
 /** Switch to the named style, dropping custom values of the axes the name implies. */
@@ -548,7 +590,9 @@ export function setFontStyle(style: TextStyle, name: string): void {
 
 /** Whether `tag` is a valid OpenType feature tag (four printable ASCII chars). */
 export function validFeatureTag(tag: string): boolean {
-  return tag.length === 4 && [...tag].every((c) => c.charCodeAt(0) >= 0x20 && c.charCodeAt(0) < 0x7f)
+  return (
+    tag.length === 4 && [...tag].every((c) => c.charCodeAt(0) >= 0x20 && c.charCodeAt(0) < 0x7f)
+  )
 }
 
 /** Whether `tag` is a valid OpenType variation axis tag (same shape as a feature tag). */
@@ -563,7 +607,9 @@ export function textOf(kind: TextKind): TextData {
     characters: kind.characters,
     style: isTextStyle(kind.style) ? coerceStyle(kind.style) : base.style,
     runs: Array.isArray(kind.runs)
-      ? (kind.runs.filter(isStyleRun).map((r) => ({ start: r.start, end: r.end, style: coerceStyle(r.style) })) as StyleRun[])
+      ? (kind.runs
+          .filter(isStyleRun)
+          .map((r) => ({ start: r.start, end: r.end, style: coerceStyle(r.style) })) as StyleRun[])
       : [],
     auto_resize: isValue(kind.auto_resize, AUTORESIZE) ?? base.auto_resize,
     align_h: isValue(kind.align_h, ALIGN_H) ?? base.align_h,
@@ -589,7 +635,9 @@ function coerceStyle(raw: TextStyle & { links?: Record<string, string> }): TextS
     font_family: typeof raw.font_family === 'string' ? raw.font_family : base.font_family,
     font_style: typeof raw.font_style === 'string' ? raw.font_style : base.font_style,
     font_features: isFeatureMap(raw.font_features) ? { ...raw.font_features } : {},
-    variation_axes: isFeatureMap(raw.variation_axes) ? { ...(raw.variation_axes as Record<string, number>) } : {},
+    variation_axes: isFeatureMap(raw.variation_axes)
+      ? { ...(raw.variation_axes as Record<string, number>) }
+      : {},
     font_size: isNumber(raw.font_size) ?? base.font_size,
     line_height: isLineHeight(raw.line_height) ? raw.line_height : base.line_height,
     letter_spacing: isLetterSpacing(raw.letter_spacing) ? raw.letter_spacing : base.letter_spacing,
@@ -605,7 +653,9 @@ function coerceStyle(raw: TextStyle & { links?: Record<string, string> }): TextS
 /** Legacy styles kept `links` (char index → URL); the first entry is the single link. */
 function firstLink(links: unknown): string | null {
   if (typeof links !== 'object' || links === null) return null
-  const values = Object.values(links as Record<string, unknown>).filter((v): v is string => typeof v === 'string')
+  const values = Object.values(links as Record<string, unknown>).filter(
+    (v): v is string => typeof v === 'string'
+  )
   return values[0] ?? null
 }
 
@@ -646,7 +696,11 @@ export function setTextOf(kind: TextKind, data: TextData): void {
 }
 
 function isTextStyle(value: unknown): value is TextStyle {
-  return typeof value === 'object' && value !== null && typeof (value as TextStyle).font_family === 'string'
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as TextStyle).font_family === 'string'
+  )
 }
 
 function isStyleRun(value: unknown): value is StyleRun {
@@ -669,7 +723,9 @@ function isNumber(value: unknown): number | null {
 }
 
 function isValue<T extends string>(value: unknown, allowed: readonly T[]): T | null {
-  return typeof value === 'string' && (allowed as readonly string[]).includes(value) ? (value as T) : null
+  return typeof value === 'string' && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : null
 }
 
 function isFeatureMap(value: unknown): value is Record<string, boolean> {

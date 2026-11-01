@@ -6,11 +6,20 @@
  */
 
 import type { Color } from '@zenuxs/color'
-import { Affine, RectMath, transform_rect_bbox, type Affine as AffineT, type Rect as GeomRect } from '@zenuxs/geom'
-import { Node, type NodeKind, type Node as NodeT } from './node'
+import {
+  Affine,
+  RectMath,
+  transform_rect_bbox,
+  type Affine as AffineT,
+  type Rect as GeomRect
+} from '@zenuxs/geom'
+
 import type { Comment } from './comments'
-import type { Variables, Style } from './styles'
 import { parseNodeId, type NodeId } from './ids'
+import { Node, type NodeKind, type Node as NodeT } from './node'
+import type { Interaction, Action } from './proto'
+import { walk_mut } from './proto'
+import type { Variables, Style } from './styles'
 
 /** Document errors (Rust `DocError` variants). */
 export type DocErrorCode = 'no_node' | 'not_container' | 'cycle' | 'invalid'
@@ -66,6 +75,16 @@ export class IdAlloc {
     this.next += 1
     return id
   }
+
+  /** Never hand out `id` (or anything below it in this space) again. */
+  reserve(id: NodeId): void {
+    if (this.client === 0) {
+      if (id >= this.next) this.next = id + 1
+      return
+    }
+    const local = id - Math.floor(id / 2 ** 32) * 2 ** 32
+    if (Math.floor(id / 2 ** 32) === this.client && local >= this.next) this.next = local + 1
+  }
 }
 
 /** Image bytes by content hash (saved separately by the format layer). */
@@ -115,7 +134,19 @@ export class Document {
   /** The root page node every document starts with (id 1). */
   private init_root(): void {
     const id = this.next_id.alloc()
-    const root = Node.new(id, { type: 'page', background: { r: 0.9608, g: 0.9608, b: 0.9608, a: 1 }, flows: [], prototype: {}, guides: [] }, 'Page 1', 0, 0)
+    const root = Node.new(
+      id,
+      {
+        type: 'page',
+        background: { r: 0.9608, g: 0.9608, b: 0.9608, a: 1 },
+        flows: [],
+        prototype: {},
+        guides: []
+      },
+      'Page 1',
+      0,
+      0
+    )
     this.nodes.set(id, root)
     this.pages.push(id)
     this.current_page = id
@@ -452,15 +483,20 @@ export class Document {
    * position.
    */
   reparent(id: NodeId, new_parent: NodeId, index: number | null): void {
-    if (this.is_ancestor(id, new_parent)) throw new DocError('cycle', `${id} cannot go inside itself`)
+    if (this.is_ancestor(id, new_parent))
+      throw new DocError('cycle', `${id} cannot go inside itself`)
     const np = this.nodes.get(new_parent)
     if (!np) throw new DocError('no_node', `no node ${new_parent}`)
-    if (!Node.is_container(np.kind)) throw new DocError('not_container', `${new_parent} takes no children`)
+    if (!Node.is_container(np.kind))
+      throw new DocError('not_container', `${new_parent} takes no children`)
     const node = this.nodes.get(id)
     if (!node) throw new DocError('no_node', `no node ${id}`)
     if (node.kind.type === 'page') throw new DocError('invalid', "pages can't be moved into nodes")
     if (node.kind.type === 'section' && !this.takes_sections(new_parent)) {
-      throw new DocError('invalid', 'sections go on the page or in other sections, not in frames or groups')
+      throw new DocError(
+        'invalid',
+        'sections go on the page or in other sections, not in frames or groups'
+      )
     }
     const world = this.world_transform(id)
     const old_parent = node.parent ?? null
@@ -485,8 +521,369 @@ export class Document {
   }
 
   /**
-   * Resize a group/boolean so its box tightly wraps its children (children keep
-   * world position).
+   * Move `id` under `parent` at `index` (clamped) keeping its local transform,
+   * unlike `reparent`, which keeps its place on the page.
+   */
+  place(id: NodeId, parent: NodeId, index: number): void {
+    const node = this.nodes.get(id)
+    if (!node) throw new DocError('no_node', `no node ${id}`)
+    if (node.kind.type === 'page') throw new DocError('invalid', "pages can't be moved into nodes")
+    const p = this.nodes.get(parent)
+    if (!p) throw new DocError('no_node', `no node ${parent}`)
+    if (!Node.is_container(p.kind))
+      throw new DocError('not_container', `${parent} takes no children`)
+    if (this.is_ancestor(id, parent)) throw new DocError('cycle', `${id} cannot go inside itself`)
+    const old = node.parent
+    if (old !== null && old !== undefined) {
+      const op = this.node_mut(old)
+      if (op) op.children = op.children.filter((c) => c !== id)
+    }
+    const target = this.node_mut(parent)
+    if (!target) throw new DocError('no_node', `no node ${parent}`)
+    const at = Math.min(Math.max(0, index), target.children.length)
+    target.children.splice(at, 0, id)
+    const moved = this.node_mut(id)
+    if (moved) moved.parent = parent
+  }
+
+  /** Reorder `id` within its parent to `index`. */
+  reorder(id: NodeId, index: number): void {
+    const node = this.nodes.get(id)
+    if (!node) throw new DocError('no_node', `no node ${id}`)
+    const parent = node.parent
+    if (parent === null || parent === undefined) throw new DocError('invalid', 'page')
+    const p = this.node_mut(parent)
+    if (!p) throw new DocError('no_node', `no node ${parent}`)
+    p.children = p.children.filter((c) => c !== id)
+    const at = Math.min(Math.max(0, index), p.children.length)
+    p.children.splice(at, 0, id)
+  }
+
+  /** Set `id`'s transform so that its world transform becomes `world`. */
+  set_world_transform(id: NodeId, world: AffineT): void {
+    const node = this.nodes.get(id)
+    if (!node) throw new DocError('no_node', `no node ${id}`)
+    const parent = node.parent
+    const pw =
+      parent !== null && parent !== undefined ? this.world_transform(parent) : Affine.IDENTITY
+    const inv = inverseOrIdentity(pw)
+    const n = this.node_mut(id)
+    if (n) n.transform = Affine.mul(inv, world)
+  }
+
+  /** Axis-aligned bounds of the node's box in page coordinates. */
+  world_bounds(id: NodeId): GeomRect | null {
+    const n = this.nodes.get(id)
+    if (!n) return null
+    if (n.kind.type === 'page') return this.page_content_bounds(id)
+    return transform_rect_bbox(this.world_transform(id), RectMath.new(0, 0, n.width, n.height))
+  }
+
+  /**
+   * Bounds of everything painted by a node, effects and strokes included (page
+   * coordinates): a clipping frame's own area, else that and what its visible
+   * children show (masked children only within their mask). A group is what its
+   * children show, grown by its effects.
+   */
+  world_render_bounds(id: NodeId): GeomRect | null {
+    const n = this.nodes.get(id)
+    if (!n) return null
+    const own = Node.own_paint_bounds(n, this.world_transform(id))
+    if (n.clip && Node.is_frame_like(n.kind) && !Node.bounds_follow_children(n.kind)) return own
+    const kids = this.children_render_bounds(n)
+    if (kids === null) return own
+    return n.kind.type === 'group' ? Node.grow_by_effects(n, kids) : RectMath.union(own, kids)
+  }
+
+  /** What `n`'s visible children show, together: each mask's run within the mask's bounds. */
+  private children_render_bounds(n: NodeT): GeomRect | null {
+    let out: GeomRect | null = null
+    for (const run of this.paint_runs(n)) {
+      const ids = n.children.slice(run.start, run.end)
+      const first = ids[0]
+      const firstNode = first === undefined ? null : (this.nodes.get(first) ?? null)
+      const mask = firstNode && firstNode.is_mask && firstNode.visible ? first : null
+      let r: GeomRect | null = null
+      for (const i of ids) {
+        const c = this.nodes.get(i)
+        if (!c || !c.visible || c.is_mask) continue
+        const b = this.world_render_bounds(i)
+        if (b !== null) r = r === null ? b : RectMath.union(r, b)
+      }
+      if (mask !== null) {
+        const mb = this.world_render_bounds(mask)
+        const cut = r !== null && mb !== null ? RectMath.intersect(r, mb) : null
+        r = cut !== null && RectMath.width(cut) > 0 && RectMath.height(cut) > 0 ? cut : null
+      }
+      out = out === null ? r : r === null ? out : RectMath.union(out, r)
+    }
+    return out
+  }
+
+  /** Union of the top-level nodes' bounds on a page. */
+  page_content_bounds(page: NodeId): GeomRect | null {
+    const p = this.nodes.get(page)
+    if (!p) return null
+    let out: GeomRect | null = null
+    for (const c of p.children) {
+      const b = this.world_bounds(c)
+      if (b !== null) out = out === null ? b : RectMath.union(out, b)
+    }
+    return out
+  }
+
+  /** Union of several nodes' world bounds. */
+  bounds_of(ids: NodeId[]): GeomRect | null {
+    let out: GeomRect | null = null
+    for (const id of ids) {
+      const b = this.world_bounds(id)
+      if (b !== null) out = out === null ? b : RectMath.union(out, b)
+    }
+    return out
+  }
+
+  /**
+   * Deep-copy `id`'s subtree under `parent` (at `index`), returning the new root
+   * id. The copy keeps the original's local transform; ids are fresh.
+   */
+  duplicate_into(id: NodeId, parent: NodeId, index: number | null): NodeId {
+    const map = new Map<NodeId, NodeId>()
+    const src = this.subtreeNodes(id)
+    for (const n of src) map.set(n.id, this.alloc_id())
+    return this.paste_nodes(src, map, id, parent, index)
+  }
+
+  /**
+   * Deep-copy each of `ids`' subtrees to the end of `parent`, in order. One id
+   * map covers every copy, so references between the copies resolve.
+   */
+  duplicate_all_into(ids: NodeId[], parent: NodeId): NodeId[] {
+    const map = new Map<NodeId, NodeId>()
+    const trees: Array<{ id: NodeId; nodes: NodeT[] }> = []
+    for (const id of ids) {
+      const src = this.subtreeNodes(id)
+      for (const n of src) map.set(n.id, this.alloc_id())
+      trees.push({ id, nodes: src })
+    }
+    return trees.map((t) => this.paste_nodes(t.nodes, map, t.id, parent, null))
+  }
+
+  /** `id`'s subtree as detached node copies (the source of a duplicate or a copy). */
+  subtreeNodes(id: NodeId): NodeT[] {
+    const out: NodeT[] = []
+    for (const i of this.subtree(id)) {
+      const n = this.nodes.get(i)
+      if (n) out.push(structuredCloneNode(n))
+    }
+    return out
+  }
+
+  /**
+   * Insert copies of `nodes` (a subtree rooted at `root`, from this or another
+   * document) with ids remapped by `map`. Interactions, instance references and
+   * pattern sources pointing inside the subtree are remapped too.
+   */
+  paste_nodes(
+    nodes: NodeT[],
+    map: Map<NodeId, NodeId>,
+    root: NodeId,
+    parent: NodeId,
+    index: number | null
+  ): NodeId {
+    const p = this.nodes.get(parent)
+    if (!p) throw new DocError('no_node', `no node ${parent}`)
+    if (!Node.is_container(p.kind))
+      throw new DocError('not_container', `${parent} takes no children`)
+    const new_root = map.get(root)
+    if (new_root === undefined) throw new DocError('no_node', `no node ${root}`)
+    for (const n of nodes) {
+      const new_id = map.get(n.id)
+      if (new_id === undefined) continue
+      const c = structuredCloneNode(n)
+      c.id = new_id
+      c.children = n.children.map((k) => map.get(k)).filter((k): k is NodeId => k !== undefined)
+      if (n.id === root) {
+        c.parent = parent
+      } else {
+        const mapped = n.parent === null || n.parent === undefined ? undefined : map.get(n.parent)
+        c.parent = mapped ?? null
+      }
+      for (const it of c.interactions) {
+        walkMutActions(it, (a) => remapAction(a, map))
+      }
+      if (c.kind.type === 'instance') {
+        const m = map.get(c.kind.component)
+        if (m !== undefined) c.kind = { ...c.kind, component: m }
+      }
+      // A pattern tiling a layer of the copy tiles the copy's layer.
+      for (const paint of [...c.fills, ...c.strokes]) {
+        if (paint.kind.type === 'pattern') {
+          const m = map.get(paint.kind.source)
+          if (m !== undefined) paint.kind = { ...paint.kind, source: m }
+        }
+      }
+      this.reserve_ids(new_id)
+      this.nodes.set(new_id, c)
+      this.dirty.add(new_id)
+    }
+    const target = this.node_mut(parent)
+    if (!target) throw new DocError('no_node', `no node ${parent}`)
+    const at = Math.min(index ?? target.children.length, target.children.length)
+    target.children.splice(at, 0, new_root)
+    return new_root
+  }
+
+  /** Keep the id allocator ahead of `id` (ids adopted from another document). */
+  reserve_ids(id: NodeId): void {
+    this.next_id.reserve(id)
+  }
+
+  /** Find nodes on `page` (or all pages) whose name contains `query` (case-insensitive). */
+  find_by_name(query: string, page: NodeId | null): NodeId[] {
+    const q = query.toLowerCase()
+    const roots = page === null ? [...this.pages] : [page]
+    const out: NodeId[] = []
+    for (const r of roots) {
+      for (const i of this.subtree(r)) {
+        const n = this.nodes.get(i)
+        if (n && n.kind.type !== 'page' && n.name.toLowerCase().includes(q)) out.push(i)
+      }
+    }
+    return out
+  }
+
+  /** The nearest frame-like ancestor (excluding `id` itself). */
+  containing_frame(id: NodeId): NodeId | null {
+    for (const a of this.ancestors(id)) {
+      const n = this.nodes.get(a)
+      if (n && (Node.is_frame_like(n.kind) || n.kind.type === 'section')) return a
+    }
+    return null
+  }
+
+  /**
+   * The top-level frame containing `id` (or `id` if it is one): the outermost
+   * frame, on the page or in a section (sections nest and hold top-level frames).
+   */
+  top_level_frame(id: NodeId): NodeId | null {
+    const chain = [id, ...this.ancestors(id)]
+    // The chain ends with the page; below it, past any sections, is the top-level node.
+    const page_pos = chain.findIndex((c) => this.nodes.get(c)?.kind.type === 'page')
+    if (page_pos < 0) return null
+    let top: NodeId | null = null
+    for (let i = page_pos - 1; i >= 0; i--) {
+      const c = chain[i]
+      if (c !== undefined && this.nodes.get(c)?.kind.type !== 'section') {
+        top = c
+        break
+      }
+    }
+    if (top === null) return null
+    const n = this.nodes.get(top)
+    return n && Node.is_frame_like(n.kind) ? top : null
+  }
+
+  /** Top-level frames of a page (also those in sections), in reading order. */
+  top_frames(page: NodeId): NodeId[] {
+    return this.frames_in(page)
+  }
+
+  /**
+   * The top-level frames inside page or section `container` (and its sections,
+   * at any depth), in reading order.
+   */
+  frames_in(container: NodeId): NodeId[] {
+    const found: Array<{ id: NodeId; b: GeomRect }> = []
+    const walk = (id: NodeId, depth: number): void => {
+      const n = this.nodes.get(id)
+      if (!n) return
+      for (const c of n.children) {
+        const cn = this.nodes.get(c)
+        if (!cn) continue
+        if (Node.is_frame_like(cn.kind)) {
+          const b = this.world_bounds(c)
+          if (b !== null) found.push({ id: c, b })
+        } else if (cn.kind.type === 'section' && depth < 64) {
+          walk(c, depth + 1)
+        }
+      }
+    }
+    walk(container, 0)
+    found.sort((a, b) => (a.b.y0 !== b.b.y0 ? a.b.y0 - b.b.y0 : a.b.x0 - b.b.x0))
+    return found.map((f) => f.id)
+  }
+
+  /** The sections on page `page` (nested ones after their section), in layer order. */
+  sections_in(page: NodeId): NodeId[] {
+    const out: NodeId[] = []
+    const walk = (id: NodeId, depth: number): void => {
+      const n = this.nodes.get(id)
+      if (!n) return
+      for (const c of n.children) {
+        if (this.nodes.get(c)?.kind.type === 'section' && depth < 64) {
+          out.push(c)
+          walk(c, depth + 1)
+        }
+      }
+    }
+    walk(page, 0)
+    return out
+  }
+
+  /** A unique name like "Frame 3" for a new node of a kind. */
+  next_name(base: string): string {
+    let max = 0
+    const taken = new Set<number>()
+    for (const id of this.nodes.keys()) {
+      const n = this.nodes.get(id)
+      if (!n || !n.name.startsWith(base)) continue
+      const rest = n.name.slice(base.length)
+      if (!rest.startsWith(' ')) continue
+      const num = rest.slice(1)
+      if (!/^\d+$/.test(num)) continue
+      const k = Number(num)
+      if (!Number.isSafeInteger(k)) continue
+      max = Math.max(max, k)
+      taken.add(k)
+    }
+    let next = max + 1
+    if (!Number.isSafeInteger(next)) {
+      next = 1
+      while (taken.has(next)) next += 1
+    }
+    return `${base} ${next}`
+  }
+
+  /**
+   * `n`'s children as paint runs (index ranges into `n.children`), bottom to
+   * top: a visible mask with the layers above it up to the next mask, or a
+   * single layer. An auto layout frame whose first child paints on top paints
+   * the runs in reverse.
+   */
+  paint_runs(n: NodeT): Array<{ start: number; end: number }> {
+    const runs: Array<{ start: number; end: number }> = []
+    const len = n.children.length
+    let i = 0
+    while (i < len) {
+      let j = i + 1
+      const first = this.nodes.get(n.children[i] ?? 0)
+      if (first && first.is_mask && first.visible) {
+        while (j < len) {
+          const next = this.nodes.get(n.children[j] ?? 0)
+          if (next && next.is_mask) break
+          j += 1
+        }
+      }
+      runs.push({ start: i, end: j })
+      i = j
+    }
+    if (n.layout?.reverse_z === true) runs.reverse()
+    return runs
+  }
+
+  /**
+   * Bounds of a group/boolean so its box tightly wraps its children (children
+   * keep world position).
    */
   fit_to_children(id: NodeId): void {
     const n = this.nodes.get(id)
@@ -497,7 +894,10 @@ export class Document {
     for (const c of n.children) {
       const cn = this.nodes.get(c)
       if (!cn) continue
-      const r = transform_rect_bbox(Affine.mul(inv, this.world_transform(c)), RectMath.new(0, 0, cn.width, cn.height))
+      const r = transform_rect_bbox(
+        Affine.mul(inv, this.world_transform(c)),
+        RectMath.new(0, 0, cn.width, cn.height)
+      )
       local = local === null ? r : RectMath.union(local, r)
     }
     if (local === null) return
@@ -604,6 +1004,35 @@ function nodesEqual(a: NodeT, b: NodeT): boolean {
 function kindData(kind: NodeKind): unknown {
   const { type: _type, ...rest } = kind
   return rest
+}
+
+/** `xf`'s inverse, or the identity when it is singular (a flattened parent). */
+function inverseOrIdentity(xf: AffineT): AffineT {
+  const det = Affine.determinant(xf)
+  if (!Number.isFinite(det) || Math.abs(det) < 1e-12) return Affine.IDENTITY
+  return Affine.inverse(xf)
+}
+
+/** Point `dest` of the actions that navigate somewhere at the copy's node. */
+function remapAction(a: Action, map: Map<NodeId, NodeId>): void {
+  switch (a.type) {
+    case 'navigate':
+    case 'scrollTo':
+    case 'openOverlay':
+    case 'swapOverlay':
+    case 'changeTo': {
+      const m = map.get(a.dest)
+      if (m !== undefined) a.dest = m
+      break
+    }
+    default:
+      break
+  }
+}
+
+/** Call `f` on every action, descending into conditional blocks. */
+function walkMutActions(i: Interaction, f: (a: Action) => void): void {
+  walk_mut(i.actions, f)
 }
 
 export { Node }
