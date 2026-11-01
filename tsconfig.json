@@ -130,6 +130,12 @@
       "@zenuxs/layout/*": [
         "./packages/layout/src/*"
       ],
+      "@zenuxs/text": [
+        "./packages/text/src/index.ts"
+      ],
+      "@zenuxs/text/*": [
+        "./packages/text/src/*"
+      ],
       "@zenuxs/pathops": [
         "./packages/pathops/src/index.ts"
       ],

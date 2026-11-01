@@ -4,20 +4,18 @@
  */
 
 import { Affine } from '@zenuxs/geom'
-import { ok, spec, type CommandSpec, type Session } from '../lib'
 
-function reqTargets(s: Session, p: Record<string, unknown>): number[] {
-  if (Array.isArray(p.ids)) return p.ids.map(Number).filter(Number.isFinite)
-  if (typeof p.id === 'number') return [p.id]
-  return s.ds().selection
-}
+import { ok, spec, type CommandSpec } from '../lib'
+import { reqTargets } from './params'
 
 export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   spec('align.distributeH', 'Distribute horizontal spacing', '{ids?, spacing?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('align.distributeH', s, p)
     const doc = s.doc()
     if (ids.length < 3) return ok()
-    const nodes = ids.map((id) => doc.node(id)).filter((n): n is NonNullable<typeof n> => Boolean(n))
+    const nodes = ids
+      .map((id) => doc.node(id))
+      .filter((n): n is NonNullable<typeof n> => Boolean(n))
     nodes.sort((a, b) => a.transform.coeffs[4] - b.transform.coeffs[4])
     const first = nodes[0]!
     const last = nodes[nodes.length - 1]!
@@ -25,7 +23,8 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
     const lastX = last.transform.coeffs[4]
     const totalW = nodes.reduce((sum, n) => sum + n.width, 0)
     const span = lastX + last.width - firstX
-    const gap = typeof p.spacing === 'number' ? p.spacing : Math.max(0, (span - totalW) / (nodes.length - 1))
+    const gap =
+      typeof p.spacing === 'number' ? p.spacing : Math.max(0, (span - totalW) / (nodes.length - 1))
     let curX = firstX
     for (const n of nodes) {
       const mut = s.doc().node_mut(n.id)
@@ -39,10 +38,12 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('align.distributeV', 'Distribute vertical spacing', '{ids?, spacing?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('align.distributeV', s, p)
     const doc = s.doc()
     if (ids.length < 3) return ok()
-    const nodes = ids.map((id) => doc.node(id)).filter((n): n is NonNullable<typeof n> => Boolean(n))
+    const nodes = ids
+      .map((id) => doc.node(id))
+      .filter((n): n is NonNullable<typeof n> => Boolean(n))
     nodes.sort((a, b) => a.transform.coeffs[5] - b.transform.coeffs[5])
     const first = nodes[0]!
     const last = nodes[nodes.length - 1]!
@@ -50,7 +51,8 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
     const lastY = last.transform.coeffs[5]
     const totalH = nodes.reduce((sum, n) => sum + n.height, 0)
     const span = lastY + last.height - firstY
-    const gap = typeof p.spacing === 'number' ? p.spacing : Math.max(0, (span - totalH) / (nodes.length - 1))
+    const gap =
+      typeof p.spacing === 'number' ? p.spacing : Math.max(0, (span - totalH) / (nodes.length - 1))
     let curY = firstY
     for (const n of nodes) {
       const mut = s.doc().node_mut(n.id)
@@ -64,7 +66,7 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('arrange.forward', 'Bring forward', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('arrange.forward', s, p)
     const ds = s.ds()
     const page = ds.doc.node_mut(ds.page)
     if (!page) return ok()
@@ -79,7 +81,7 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('arrange.backward', 'Send backward', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('arrange.backward', s, p)
     const ds = s.ds()
     const page = ds.doc.node_mut(ds.page)
     if (!page) return ok()
@@ -94,7 +96,7 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('arrange.tidy', 'Tidy up', '{ids?, spacing?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('arrange.tidy', s, p)
     const spacing = typeof p.spacing === 'number' ? p.spacing : 16
     const doc = s.doc()
     let curX = 0
@@ -110,7 +112,7 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('object.flipH', 'Flip horizontal', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('object.flipH', s, p)
     for (const id of ids) {
       const n = s.doc().node_mut(id)
       if (!n) continue
@@ -121,7 +123,7 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('object.flipV', 'Flip vertical', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('object.flipV', s, p)
     for (const id of ids) {
       const n = s.doc().node_mut(id)
       if (!n) continue
@@ -132,7 +134,7 @@ export const ARRANGE_EXTENDED_SPECS: CommandSpec[] = [
   }),
 
   spec('object.rotate180', 'Rotate 180°', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('object.rotate180', s, p)
     for (const id of ids) {
       const n = s.doc().node_mut(id)
       if (!n) continue

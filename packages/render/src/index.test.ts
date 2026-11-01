@@ -102,7 +102,7 @@ describe('render', () => {
     const t = Node.new(tid, {
       type: 'text',
       characters: 'Hello\nWorld',
-      style: { font_family: 'Inter', font_style: 'Regular', font_features: {}, variation_axes: {}, font_size: 16, line_height: { unit: 'auto' }, letter_spacing: { unit: 'percent', value: 0 }, decoration: 'none', decoration_look: { style: 'solid', offset: 0, thickness: 1, color: null }, text_case: 'original', links: {} },
+      style: { font_family: 'Inter', font_style: 'Regular', font_features: {}, variation_axes: {}, font_size: 16, line_height: { unit: 'auto' }, letter_spacing: { unit: 'percent', value: 0 }, decoration: 'none', decoration_look: { style: 'solid', offset: { unit: 'auto' }, thickness: { unit: 'auto' }, skip_ink: false, color: null }, text_case: 'original', link: null, fills: null, style_id: null },
       runs: [],
       auto_resize: 'widthAndHeight',
       align_h: 'left',

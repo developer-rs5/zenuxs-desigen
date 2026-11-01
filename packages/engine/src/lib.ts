@@ -10,6 +10,36 @@
 
 import { Document, type NodeId } from '@zenuxs/doc'
 
+import { normalize } from './normalize'
+
+/** The commands that show or end a live text preview (they don't end the showing one). */
+export const PREVIEW_COMMANDS: readonly string[] = ['text.preview', 'text.endPreview']
+
+/**
+ * Parameters as a plain object. Callers hand over whatever they parsed, so a
+ * `null`, an array or a bare value reads as "no parameters" rather than
+ * blowing up on the first property read.
+ */
+function toParams(params: unknown): Record<string, unknown> {
+  if (typeof params !== 'object' || params === null || Array.isArray(params)) return {}
+  return params as Record<string, unknown>
+}
+
+/**
+ * End the live text preview, if any: the document is back as it was before it.
+ * Returns whether one was showing. (Lives here so `execute` can end a preview
+ * without importing the text modules.)
+ */
+export function endTextPreview(session: Session): boolean {
+  const ds = session.ds()
+  const base = ds.text_preview
+  if (base === null) return false
+  ds.text_preview = null
+  ds.doc = base
+  ds.bump()
+  return true
+}
+
 /** One undo entry: the document as it was, its selection and page. */
 export interface HistoryEntry {
   label: string
@@ -299,8 +329,18 @@ export const Prefs = {
 
 /** A text edit in progress. */
 export interface TextEdit {
+  /** The text layer being edited. */
   node: NodeId
+  /** The caret's character index. */
   caret: number
+  /** The anchor of a selection's other end; equal to `caret` for a collapsed selection. */
+  anchor: number
+  /** The IME composition shown at the caret, not yet part of the text. */
+  preedit: string
+  /** Where in `preedit` the composition's cursor sits. */
+  preedit_cursor: number
+  /** Whether this edit started the layer (an empty layer goes away when editing stops). */
+  created: boolean
 }
 
 /** An in-progress gesture (drag, marquee…): the state to preview from. */
@@ -323,6 +363,8 @@ export class DocState {
   view: ViewState
   interaction: Interaction | null = null
   text_edit: TextEdit | null = null
+  /** The document as it was before `text.preview`, or null when nothing is previewed. */
+  text_preview: Document | null = null
   hover: NodeId | null = null
   uid = 1
   versions: Array<{ id: string; label: string; created: number }> = []
@@ -432,22 +474,30 @@ export class Session {
   execute(id: string, params: Record<string, unknown> = {}): Record<string, unknown> {
     const spec = this.find_command(id)
     if (!spec) {
-      throw new EngineError(`unknown command: ${id}`)
+      throw new EngineError(`unknown command \`${id}\``)
     }
+    // Anything that isn't an object reads as "no parameters": a caller sending
+    // `null` or an array gets a refusal from the command, never a crash.
+    const args = toParams(params)
     const ds = this.ds()
+    // A preview never outlives the command that follows it (`text.preview`/`text.endPreview` manage it themselves).
+    if (!PREVIEW_COMMANDS.includes(id)) endTextPreview(this)
     const before = ds.snapshot()
     try {
-      const result = spec.run(this, params)
+      const result = spec.run(this, args)
       // Post-checks: the document must stay valid.
       const warnings = ds.doc.validate()
       if (warnings.length > 0) {
         console.warn(`[engine] ${id} repaired:`, warnings.join('; '))
       }
+      // Derived state follows every edit (FigCraft's `after_command`): text
+      // auto-size, group fit and auto-layout reflow.
+      normalize(ds.doc, before.doc)
       ds.bump()
       if (spec.history) {
         ds.history.record(spec.label, before)
       }
-      this.journal.push([id, params])
+      this.journal.push([id, args])
       if (this.journal.length > 5000) this.journal.shift()
       this.message = null
       return result
@@ -494,6 +544,52 @@ export class Session {
   /** Request a dialog or toast from the UI. */
   request_ui(kind: string, params?: Record<string, unknown>): void {
     this.ui_requests.push({ kind, params })
+  }
+
+  /** Start a gesture: snapshot the state the UI previews from (nested calls keep the first). */
+  begin_interaction(label: string): void {
+    const ds = this.ds()
+    if (ds.interaction) return
+    ds.interaction = {
+      label,
+      doc: ds.doc.clone(),
+      selection: [...ds.selection],
+      page: ds.page
+    }
+  }
+
+  /** Replace the document for a live preview during a gesture (`f` mutates the snapshot copy). */
+  preview(f: (doc: Document, selection: NodeId[]) => void): void {
+    const ds = this.ds()
+    const interaction = ds.interaction
+    if (!interaction) throw new EngineError('no gesture in progress')
+    const doc = interaction.doc.clone()
+    const selection = [...interaction.selection]
+    f(doc, selection)
+    ds.doc = doc
+    ds.selection = selection
+    ds.bump()
+  }
+
+  /** Finish a gesture: its whole change becomes one undo step. */
+  commit_interaction(): void {
+    const ds = this.ds()
+    const interaction = ds.interaction
+    if (!interaction) return
+    ds.interaction = null
+    ds.bump()
+    if (interaction.doc !== ds.doc) {
+      ds.history.record(interaction.label, interaction)
+    }
+  }
+
+  /** Abandon a gesture, restoring the document. */
+  cancel_interaction(): void {
+    const ds = this.ds()
+    const interaction = ds.interaction
+    if (!interaction) return
+    ds.interaction = null
+    ds.restoreTo(interaction)
   }
 
   registerCommands(cmds: CommandSpec[]): void {

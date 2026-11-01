@@ -289,9 +289,12 @@ describe('engine session', () => {
 
   test('structure_convert_and_wrap', () => {
     const s = new Session()
-    const frameId = s.execute('shape.frame', { width: 120, height: 80 }).id as number
-    s.execute('object.convertToGroup', { ids: [frameId] })
+    const frameId = s.execute('shape.frame', { width: 120, height: 80, name: 'Card' }).id as number
+    s.execute('shape.rectangle', { parent: frameId, x: 10, y: 10, width: 40, height: 20 })
+    const converted = s.execute('object.convertToGroup', { ids: [frameId] })
+    expect(converted.ids).toEqual([frameId])
     expect(s.doc().node(frameId)?.kind.type).toBe('group')
+    expect(s.doc().node(frameId)?.name).toBe('Card')
 
     s.execute('object.convertToFrame', { ids: [frameId] })
     expect(s.doc().node(frameId)?.kind.type).toBe('frame')

@@ -4,7 +4,7 @@
  * (Converted 1:1 from FigCraft `crates/engine/src/cmd/{create,edit,arrange,structure,page,view,proto}.rs`.)
  */
 
-import { AutoLayout, Node, VectorNetwork, type NodeId } from '@zenuxs/doc'
+import { AutoLayout, Node, TextData, VectorNetwork, type NodeId } from '@zenuxs/doc'
 import {
   Affine,
   RectMath,
@@ -16,21 +16,29 @@ import {
   type Radii
 } from '@zenuxs/geom'
 
+import { FONT_SPECS } from '../fonts'
 import { ok, spec, type CommandSpec, type Session } from '../lib'
+import { PREVIEW_SPECS } from '../textpreview'
 import { allAdvancedSpecs } from './advanced'
 import { ARRANGE_EXTENDED_SPECS } from './arrange'
 import { BOARD_SPECS } from './boards'
 import { CODEGEN_SPECS } from './codegen'
+import { bad, optId, optIndex } from './params'
 import { STRUCTURE_EXTENDED_SPECS } from './structure'
 import { TEMPLATE_SPECS } from './templates'
+import { TEXT_SPECS } from './text'
 import { VECTOREDIT_SPECS } from './vectoredit'
 import { VIEW_TOOL_SPECS } from './view'
 
 // ------------------------------ create.rs ------------------------------
 
-/** Insert a shape of `kind` built by `make` into the current page. */
+/**
+ * Insert a shape of `kind` built by `make` into `parent` (the page by default),
+ * at `index` (the end by default), and select it unless `select` is false.
+ */
 function createNode(
   session: Session,
+  cmd: string,
   name: string,
   w: number,
   h: number,
@@ -38,7 +46,17 @@ function createNode(
   params?: Record<string, unknown>
 ): NodeId {
   const ds = session.ds()
-  const id = ds.doc.alloc_id()
+  const doc = ds.doc
+  const page = ds.page
+  const parent = optId(cmd, params ?? {}, 'parent') ?? page
+  const pn = doc.node(parent)
+  if (!pn) throw bad(cmd, `no such parent ${parent}`)
+  if (!Node.is_container(pn.kind)) throw bad(cmd, `${parent} can't contain layers`)
+  if (kind.type === 'section' && !doc.takes_sections(parent)) {
+    throw bad(cmd, 'sections go on the page or in other sections')
+  }
+  const index = optIndex(cmd, params ?? {}, 'index')
+  const id = doc.alloc_id()
   const node = Node.new(
     id,
     kind,
@@ -46,12 +64,29 @@ function createNode(
     w,
     h
   )
-  node.parent = ds.page
-  ds.doc.insert(node)
-  const page = ds.doc.node_mut(ds.page)
-  if (page) page.children.push(id)
-  ds.selection = [id]
+  node.parent = parent
+  doc.insert(node)
+  const target = doc.node_mut(parent)
+  if (target) {
+    const at = index === null ? target.children.length : Math.min(index, target.children.length)
+    target.children.splice(at, 0, id)
+  }
+  if (params?.select !== false) ds.selection = [id]
   return id
+}
+
+/**
+ * A shape's `x`/`y` are in the frame's space: a group parent has none of its
+ * own, so the placement folds the groups above it in.
+ */
+function placeNode(s: Session, id: NodeId, p: Record<string, unknown>): void {
+  const n = s.ds().doc.node_mut(id)
+  if (!n) return
+  const local = Affine.new([1, 0, 0, 1, numParam(p, 'x', 0), numParam(p, 'y', 0)])
+  const parent = n.parent
+  const pn = parent === null || parent === undefined ? null : s.doc().node(parent)
+  const folded = pn && Node.bounds_follow_children(pn.kind) ? s.doc().frame_relative(pn.id) : null
+  n.transform = folded ? Affine.mul(Affine.inverse(folded), local) : local
 }
 
 function numParam(params: Record<string, unknown>, key: string, d: number): number {
@@ -116,7 +151,7 @@ export const CREATE_SPECS: CommandSpec[] = [
   spec('shape.frame', 'Frame', '{x?, y?, width?, height?, cornerRadius?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
-    const id = createNode(s, 'Frame', w, h, { type: 'frame' }, p)
+    const id = createNode(s, 'shape.frame', 'Frame', w, h, { type: 'frame' }, p)
     const n = s.ds().doc.node_mut(id)!
     n.fills = [
       {
@@ -127,13 +162,13 @@ export const CREATE_SPECS: CommandSpec[] = [
       }
     ]
     n.corners = { radii: radiiFrom(p), smoothing: 0 }
-    moveNode(n, p)
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec('shape.rectangle', 'Rectangle', '{x?, y?, width?, height?, cornerRadius?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
     const h = numParam(p, 'height', 100)
-    const id = createNode(s, 'Rectangle', w, h, { type: 'rectangle' }, p)
+    const id = createNode(s, 'shape.rectangle', 'Rectangle', w, h, { type: 'rectangle' }, p)
     const n = s.ds().doc.node_mut(id)!
     n.fills = [
       {
@@ -144,7 +179,7 @@ export const CREATE_SPECS: CommandSpec[] = [
       }
     ]
     n.corners = { radii: radiiFrom(p), smoothing: 0 }
-    moveNode(n, p)
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec('shape.ellipse', 'Ellipse', '{x?, y?, width?, height?}', true, (s, p) => {
@@ -152,6 +187,7 @@ export const CREATE_SPECS: CommandSpec[] = [
     const h = numParam(p, 'height', 100)
     const id = createNode(
       s,
+      'shape.ellipse',
       'Ellipse',
       w,
       h,
@@ -167,7 +203,7 @@ export const CREATE_SPECS: CommandSpec[] = [
         blend: 'normal'
       }
     ]
-    moveNode(n, p)
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec(
@@ -179,10 +215,10 @@ export const CREATE_SPECS: CommandSpec[] = [
       const w = numParam(p, 'width', 100)
       const h = numParam(p, 'height', 100)
       const count = Math.min(120, Math.max(3, numParam(p, 'count', 3)))
-      const id = createNode(s, 'Polygon', w, h, { type: 'polygon', count }, p)
+      const id = createNode(s, 'shape.polygon', 'Polygon', w, h, { type: 'polygon', count }, p)
       const n = s.ds().doc.node_mut(id)!
       n.corners = { radii: radiiFrom(p), smoothing: 0 }
-      moveNode(n, p)
+      placeNode(s, id, p)
       return { ok: true, id }
     }
   ),
@@ -191,6 +227,7 @@ export const CREATE_SPECS: CommandSpec[] = [
     const h = numParam(p, 'height', 100)
     const id = createNode(
       s,
+      'shape.star',
       'Star',
       w,
       h,
@@ -201,13 +238,13 @@ export const CREATE_SPECS: CommandSpec[] = [
       },
       p
     )
-    moveNode(s.ds().doc.node_mut(id)!, p)
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec('shape.line', 'Line', '{x?, y?, width?}', true, (s, p) => {
     const w = numParam(p, 'width', 100)
-    const id = createNode(s, 'Line', w, 0, { type: 'line' }, p)
-    moveNode(s.ds().doc.node_mut(id)!, p)
+    const id = createNode(s, 'shape.line', 'Line', w, 0, { type: 'line' }, p)
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec('shape.vector', 'Vector', '{points, closed?}', true, (s, p) => {
@@ -241,45 +278,25 @@ export const CREATE_SPECS: CommandSpec[] = [
     }
 
     const network = VectorNetwork.from_points(points, closed)
-    const id = createNode(s, 'Vector', 100, 100, { type: 'vector', network }, p)
+    const id = createNode(s, 'shape.vector', 'Vector', 100, 100, { type: 'vector', network }, p)
     return { ok: true, id }
   }),
   spec('text.create', 'Text', '{x?, y?, characters?, fontSize?}', true, (s, p) => {
     const characters = typeof p.characters === 'string' ? p.characters : 'Text'
     const fontSize = numParam(p, 'fontSize', 16)
-    const id = createNode(s, characters.slice(0, 20) || 'Text', 200, fontSize * 1.4, {
-      type: 'text',
-      characters,
-      style: {
-        font_family: 'Inter',
-        font_style: 'Regular',
-        font_features: {},
-        variation_axes: {},
-        font_size: fontSize,
-        line_height: { unit: 'auto' },
-        letter_spacing: { unit: 'percent', value: 0 },
-        decoration: 'none',
-        decoration_look: { style: 'solid', offset: 0, thickness: 1, color: null },
-        text_case: 'original',
-        links: {}
-      },
-      runs: [],
-      auto_resize: 'widthAndHeight',
-      align_h: 'left',
-      align_v: 'top',
-      paragraph_spacing: 0,
-      paragraph_indent: 0,
-      list: 'none',
-      paragraphs: [],
-      list_spacing: 0,
-      hanging_punctuation: false,
-      hanging_list: false,
-      leading_trim: 'none',
-      max_lines: 0,
-      features: {},
-      path: null
-    }, p)
-    moveNode(s.ds().doc.node_mut(id)!, p)
+    const data = TextData.default()
+    data.characters = characters
+    data.style.font_size = fontSize
+    const id = createNode(
+      s,
+      'text.create',
+      characters.slice(0, 20) || 'Text',
+      200,
+      fontSize * 1.4,
+      { type: 'text', ...data },
+      p
+    )
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec('frame.presets', 'Frame presets', '{preset?, x?, y?}', true, (s, p) => {
@@ -289,8 +306,8 @@ export const CREATE_SPECS: CommandSpec[] = [
       tablet: [834, 1112]
     }
     const size = presets[typeof p.preset === 'string' ? p.preset : 'phone'] ?? [100, 100]
-    const id = createNode(s, 'Frame', size[0], size[1], { type: 'frame' })
-    moveNode(s.ds().doc.node_mut(id)!, p)
+    const id = createNode(s, 'frame.presets', 'Frame', size[0], size[1], { type: 'frame' }, p)
+    placeNode(s, id, p)
     return { ok: true, id }
   }),
   spec('frame.swapOrientation', 'Swap frame orientation', '{}', true, (s) => {
@@ -304,12 +321,6 @@ export const CREATE_SPECS: CommandSpec[] = [
     return ok()
   })
 ]
-
-function moveNode(n: Node, p: Record<string, unknown>): void {
-  const x = typeof p.x === 'number' ? p.x : 0
-  const y = typeof p.y === 'number' ? p.y : 0
-  n.transform = Affine.new([1, 0, 0, 1, x, y])
-}
 
 function setSizeKeepTransform(n: Node, w: number, h: number): void {
   n.width = w
@@ -940,6 +951,9 @@ export function allCoreSpecs(): CommandSpec[] {
     ...VECTOREDIT_SPECS,
     ...CODEGEN_SPECS,
     ...TEMPLATE_SPECS,
+    ...TEXT_SPECS,
+    ...FONT_SPECS,
+    ...PREVIEW_SPECS,
     ...allAdvancedSpecs()
   ]
 }

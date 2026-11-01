@@ -3,20 +3,15 @@
  * (Converted 1:1 from FigCraft `crates/engine/src/vectoredit.rs` and `shapebuilder.rs`.)
  */
 
-import { Node, type NodeId, type VectorNetwork } from '@zenuxs/doc'
+import { Node, type VectorNetwork } from '@zenuxs/doc'
 
-import { ok, spec, type CommandSpec, type Session } from '../lib'
+import { ok, spec, type CommandSpec } from '../lib'
+import { reqTargets } from './params'
 import { deleteVertices, redundantVertices } from './vectoredit-ops'
-
-function reqTargets(s: Session, p: Record<string, unknown>): NodeId[] {
-  if (Array.isArray(p.ids)) return p.ids.map(Number).filter(Number.isFinite)
-  if (typeof p.id === 'number') return [p.id]
-  return s.ds().selection
-}
 
 export const VECTOREDIT_SPECS: CommandSpec[] = [
   spec('vector.boolean.union', 'Boolean union', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('vector.boolean.union', s, p)
     if (ids.length < 2) throw new Error('need at least two shapes for boolean operation')
     const ds = s.ds()
     const id = ds.doc.alloc_id()
@@ -35,7 +30,7 @@ export const VECTOREDIT_SPECS: CommandSpec[] = [
   }),
 
   spec('vector.boolean.subtract', 'Boolean subtract', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('vector.boolean.subtract', s, p)
     if (ids.length < 2) throw new Error('need at least two shapes for boolean operation')
     const ds = s.ds()
     const id = ds.doc.alloc_id()
@@ -54,7 +49,7 @@ export const VECTOREDIT_SPECS: CommandSpec[] = [
   }),
 
   spec('vector.boolean.intersect', 'Boolean intersect', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('vector.boolean.intersect', s, p)
     if (ids.length < 2) throw new Error('need at least two shapes for boolean operation')
     const ds = s.ds()
     const id = ds.doc.alloc_id()
@@ -73,7 +68,7 @@ export const VECTOREDIT_SPECS: CommandSpec[] = [
   }),
 
   spec('vector.boolean.exclude', 'Boolean exclude', '{ids?}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('vector.boolean.exclude', s, p)
     if (ids.length < 2) throw new Error('need at least two shapes for boolean operation')
     const ds = s.ds()
     const id = ds.doc.alloc_id()
@@ -92,7 +87,7 @@ export const VECTOREDIT_SPECS: CommandSpec[] = [
   }),
 
   spec('vector.stroke.weight', 'Set stroke weight', '{ids?, weight}', true, (s, p) => {
-    const ids = reqTargets(s, p)
+    const ids = reqTargets('vector.stroke.weight', s, p)
     const weight = Math.max(0, typeof p.weight === 'number' ? p.weight : 1)
     for (const id of ids) {
       const n = s.doc().node_mut(id)
@@ -107,7 +102,7 @@ export const VECTOREDIT_SPECS: CommandSpec[] = [
     '{ids?, vertices?} (default: redundant points of every target layer)',
     true,
     (s, p) => {
-      const ids = reqTargets(s, p)
+      const ids = reqTargets('vector.deleteHeal', s, p)
       const requested = Array.isArray(p.vertices)
         ? p.vertices.map(Number).filter((index) => Number.isInteger(index) && index >= 0)
         : null

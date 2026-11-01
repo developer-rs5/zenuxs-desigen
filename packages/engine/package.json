@@ -31,6 +31,7 @@
     "@zenuxs/doc": "workspace:*",
     "@zenuxs/geom": "workspace:*",
     "@zenuxs/layout": "workspace:*",
-    "@zenuxs/pathops": "workspace:*"
+    "@zenuxs/pathops": "workspace:*",
+    "@zenuxs/text": "workspace:*"
   }
 }
