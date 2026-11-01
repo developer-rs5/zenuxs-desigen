@@ -55,6 +55,8 @@
 - Ship `impeccable` as a default design skill next to `ui-ux-pro-max` and `taste`, so the model's craft floor, anti-default calibration, and anti-repetition rules are active in every session and listed under Settings → Skills.
 - Install, run, and uninstall WASM plugins from a marketplace dialog backed by the real sandboxed runtime: host-call budgets, log and message limits, persisted installs, and per-run output and logs, while catalog-only entries state why they cannot run instead of pretending to execute. What a plugin changes now lands on the canvas as a single undoable step, so one Undo removes the whole run instead of leaving a half-applied document.
 - Open another editor window from the left rail in the desktop app, focusing an existing window instead of rebuilding it when its label is reused.
+- Drive text entirely from Zenuxs engine commands: create and edit text with a caret and selection session, set family, style, casing, alignment, decoration, links, lists, indentation, line height, tracking, and per-axis size or weight steps, load and rescan fonts, report missing fonts, place text on a path with its path options, retype it, and preview it without committing, all as undoable steps.
+- Convert containers in place with the Zenuxs engine: turn a frame into a group and back, turn a frame into a section and back, and wrap layers in a new section, keeping layer positions, rotation, appearance, and auto-layout intent intact while refusing conversions that would break a component, an instance, or an empty container and explaining why.
 
 ### Changed
 
@@ -74,6 +76,8 @@
 
 ### Fixed
 
+- Restore earlier states correctly when a layer changes type in place: document cloning now deep-copies nested node data, so undo no longer brings back a stale frame or group with the converted layer's contents.
+- Report an engine command that receives parameters of the wrong shape as a readable refusal naming the command, instead of failing with an internal type error.
 - Resolve preview clicks against the node as painted, so tapping a closing bottom sheet or a mid-animation overlay triggers the control under the pointer instead of the position it was authored at.
 - Keep an AI run alive after a successful image source: tool results carrying raw bytes are converted to JSON before they reach the model, so a sourced image no longer ends the conversation with "Invalid prompt: The messages do not match the ModelMessage[] schema".
 - Stop rejecting a good photo because its framing differs from the slot it fills: orientation and aspect ratio are now preferences judged against how the image will be cropped, not hard failures that throw the image away.

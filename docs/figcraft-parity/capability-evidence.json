@@ -12,14 +12,19 @@
       "packages": [
         "packages/doc/src/geometry.ts",
         "packages/engine/src/cmd/arrange.ts",
+        "packages/engine/src/cmd/structure.ts",
         "packages/engine/src/cmd/view.ts"
       ],
       "app": ["src/app/zenuxs-engine.ts"],
       "ui": []
     },
-    "testEvidence": ["packages/engine/src/tests.test.ts", "packages/geom/src/tests.test.ts"],
+    "testEvidence": [
+      "packages/engine/src/structure.test.ts",
+      "packages/engine/src/tests.test.ts",
+      "packages/geom/src/tests.test.ts"
+    ],
     "status": "package-only",
-    "note": "Package: geometry and viewport/arrange commands exist. UI: no Zenuxs-owned canvas or selection surface is wired; the visible editor remains OpenPencil-owned. Automation: src/app/zenuxs-engine.ts exposes a separate headless Session. Behavior tests: package engine and geometry tests."
+    "note": "Package: geometry and viewport/arrange commands exist, and frame/group/section conversion lives in packages/engine/src/cmd/structure.ts. UI: no Zenuxs-owned canvas or selection surface is wired; the visible editor remains OpenPencil-owned. Automation: src/app/zenuxs-engine.ts exposes a separate headless Session. Behavior tests: package engine and geometry tests, including container-conversion coverage that pins layout, rotation, section restrictions, and refusals."
   },
   {
     "feature": "shapes/paint/effects",
@@ -66,8 +71,12 @@
     ],
     "zenuxsSurfaces": {
       "packages": [
+        "packages/engine/src/cmd/params.ts",
         "packages/engine/src/cmd/text.ts",
-        "packages/engine/src/cmd/text-style.ts",
+        "packages/engine/src/fonts.ts",
+        "packages/engine/src/normalize.ts",
+        "packages/engine/src/textedit.ts",
+        "packages/engine/src/textpreview.ts",
         "packages/layout/src/index.ts",
         "packages/text/src/index.ts"
       ],
@@ -76,11 +85,12 @@
     },
     "testEvidence": [
       "packages/engine/src/tests.test.ts",
+      "packages/engine/src/text.test.ts",
       "packages/layout/src/tests.test.ts",
       "packages/text/src/index.test.ts"
     ],
     "status": "automation-wired",
-    "note": "Package: layout and text packages plus registered text commands exist; documented gaps include on-path text, preview, and font-database behavior. UI: the running editor's layout and text flows use OpenPencil packages. Automation: Zenuxs engine commands are reachable through the exposed Session, not through the editor's authoritative document. Behavior tests: engine, layout, and text package tests cover selected contracts only."
+    "note": "Package: layout and text packages plus registered text commands exist, and all 56 FigCraft text.* IDs are implemented, including on-path text, preview, font loading, and the editing session. Text-only parameters, font registry, normalization, and preview state live in dedicated engine modules. UI: the running editor's layout and text flows use OpenPencil packages. Automation: Zenuxs engine commands are reachable through the exposed Session, not through the editor's authoritative document. Behavior tests: engine, layout, and text package tests cover selected contracts, with a dedicated text suite for editing, styling, fonts, and preview."
   },
   {
     "feature": "components/variables",
@@ -198,15 +208,22 @@
       "packages": [
         "packages/engine/src/cmd/advanced.ts",
         "packages/engine/src/cmd/core.ts",
+        "packages/engine/src/cmd/params.ts",
+        "packages/engine/src/components.ts",
         "packages/engine/src/index.ts",
         "packages/engine/src/lib.ts"
       ],
       "app": ["src/app/zenuxs-engine.ts"],
       "ui": []
     },
-    "testEvidence": ["packages/engine/src/tests.test.ts", "packages/engine/src/mcp.test.ts"],
+    "testEvidence": [
+      "packages/engine/src/mcp.test.ts",
+      "packages/engine/src/structure.test.ts",
+      "packages/engine/src/tests.test.ts",
+      "packages/engine/src/text.test.ts"
+    ],
     "status": "automation-wired",
-    "note": "Package: command registry and Session exist. UI: no full Zenuxs-owned editor command flow is wired. Automation: app exposes the separate Session for browser automation. Inventory: FigCraft has 569 unique registered IDs; Zenuxs registry has 265 rows / 243 unique IDs, with 22 duplicated IDs and 29 unmatched unique IDs; exact-ID parity is 214 implemented and 334 missing non-collaboration IDs (214+334+21=569). The prior 570 occurrence total counted a macro documentation mention; 111/570 is stale. Behavior tests cover selected engine and MCP contracts only."
+    "note": "Package: command registry and Session exist. UI: no full Zenuxs-owned editor command flow is wired. Automation: app exposes the separate Session for browser automation. Inventory: FigCraft has 569 unique registered IDs; Zenuxs registry has 274 rows / 252 unique IDs, with 22 duplicated IDs and 30 unmatched unique IDs; exact-ID parity is 222 implemented and 326 missing non-collaboration IDs (222+326+21=569). Behavior tests cover selected engine and MCP contracts only."
   },
   {
     "feature": "CLI/MCP/SDK/AI",
