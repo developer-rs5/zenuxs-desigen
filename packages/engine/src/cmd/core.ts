@@ -22,8 +22,14 @@ import { PREVIEW_SPECS } from '../textpreview'
 import { allAdvancedSpecs } from './advanced'
 import { ARRANGE_EXTENDED_SPECS } from './arrange'
 import { BOARD_SPECS } from './boards'
+import { CLIPBOARD_SPECS } from './clipboard'
 import { CODEGEN_SPECS } from './codegen'
+import { EDIT_SPECS as EDIT_MODULE_SPECS } from './edit'
+import { LIST_SPECS } from './lists'
+import { NODE_SPECS } from './node'
+import { PAINT_SPECS } from './paint'
 import { bad, optId, optIndex } from './params'
+import { SELECT_SPECS } from './select'
 import { STRUCTURE_EXTENDED_SPECS } from './structure'
 import { TEMPLATE_SPECS } from './templates'
 import { TEXT_SPECS } from './text'
@@ -97,54 +103,6 @@ function numParam(params: Record<string, unknown>, key: string, d: number): numb
 function radiiFrom(params: Record<string, unknown>): Radii {
   const r = numParam(params, 'cornerRadius', 0)
   return [r, r, r, r]
-}
-
-function solidFillsParam(value: unknown): Node['fills'] | null {
-  if (!Array.isArray(value)) return null
-  const fills: Node['fills'] = []
-  for (const fill of value) {
-    if (!fill || typeof fill !== 'object' || Array.isArray(fill)) return null
-    const record = fill as Record<string, unknown>
-    const color = record.color
-    if (!color || typeof color !== 'object' || Array.isArray(color)) return null
-    const channels = color as Record<string, unknown>
-    const { r, g, b, a } = channels
-    if (
-      record.type !== 'SOLID' ||
-      typeof r !== 'number' ||
-      !Number.isFinite(r) ||
-      r < 0 ||
-      r > 1 ||
-      typeof g !== 'number' ||
-      !Number.isFinite(g) ||
-      g < 0 ||
-      g > 1 ||
-      typeof b !== 'number' ||
-      !Number.isFinite(b) ||
-      b < 0 ||
-      b > 1 ||
-      (a !== undefined && (typeof a !== 'number' || !Number.isFinite(a) || a < 0 || a > 1)) ||
-      (record.opacity !== undefined &&
-        (typeof record.opacity !== 'number' ||
-          !Number.isFinite(record.opacity) ||
-          record.opacity < 0 ||
-          record.opacity > 1)) ||
-      (record.visible !== undefined && typeof record.visible !== 'boolean')
-    ) {
-      return null
-    }
-
-    fills.push({
-      kind: {
-        type: 'solid',
-        color: { r, g, b, a: typeof a === 'number' ? a : 1 }
-      },
-      opacity: typeof record.opacity === 'number' ? record.opacity : 1,
-      visible: typeof record.visible === 'boolean' ? record.visible : true,
-      blend: 'normal'
-    })
-  }
-  return fills
 }
 
 export const CREATE_SPECS: CommandSpec[] = [
@@ -328,164 +286,6 @@ function setSizeKeepTransform(n: Node, w: number, h: number): void {
 }
 
 // ------------------------------ edit.rs ------------------------------
-
-export const EDIT_SPECS: CommandSpec[] = [
-  spec('edit.delete', 'Delete', '{}', true, (s) => {
-    const ds = s.ds()
-    for (const id of [...ds.selection]) {
-      const n = ds.doc.node(id)
-      if (!n) continue
-      // A page's direct children are removed from the page list too.
-      ds.doc.delete(id)
-    }
-    ds.selection = []
-    return ok()
-  }),
-  spec('edit.duplicate', 'Duplicate', '{dx?, dy?}', true, (s, p) => {
-    const ds = s.ds()
-    const dx = numParam(p, 'dx', 10)
-    const dy = numParam(p, 'dy', 10)
-    const copies: NodeId[] = []
-    for (const id of ds.selection) {
-      const src = ds.doc.node(id)
-      if (!src) continue
-      const copy = structuredClone(src)
-      copy.id = ds.doc.alloc_id()
-      copy.name = `${src.name} copy`
-      const c = copy.transform.coeffs
-      copy.transform = Affine.new([c[0], c[1], c[2], c[3], c[4] + dx, c[5] + dy])
-      ds.doc.insert(copy)
-      if (copy.parent !== null && copy.parent !== undefined) {
-        const parent = ds.doc.node_mut(copy.parent)
-        if (parent) parent.children.push(copy.id)
-      }
-      copies.push(copy.id)
-    }
-    ds.selection = copies
-    return { ok: true, ids: copies }
-  }),
-  spec('object.rename', 'Rename', '{name}', true, (s, p) => {
-    const name = typeof p.name === 'string' ? p.name : ''
-    for (const id of s.ds().selection) {
-      const n = s.ds().doc.node_mut(id)
-      if (n) n.name = name
-    }
-    return ok()
-  }),
-  spec('object.toggleVisible', 'Toggle visibility', '{}', true, (s) => {
-    for (const id of s.ds().selection) {
-      const n = s.ds().doc.node_mut(id)
-      if (n) n.visible = !n.visible
-    }
-    return ok()
-  }),
-  spec('object.toggleLock', 'Toggle lock', '{}', true, (s) => {
-    for (const id of s.ds().selection) {
-      const n = s.ds().doc.node_mut(id)
-      if (n) n.locked = !n.locked
-    }
-    return ok()
-  }),
-  spec('node.set', 'Set node properties', '{id?, props}', true, (s, p) => {
-    const ds = s.ds()
-    const ids = nodeIdsParam(p.id) ?? ds.selection
-    const props = (p.props ?? {}) as Record<string, unknown>
-    const fills = props.fills === undefined ? undefined : solidFillsParam(props.fills)
-    if (fills === null) throw new Error('fills must be an array of solid fills')
-    for (const id of ids) {
-      const n = ds.doc.node_mut(id)
-      if (!n) continue
-      if (typeof props.name === 'string') n.name = props.name
-      if (typeof props.width === 'number') n.width = props.width
-      if (typeof props.height === 'number') n.height = props.height
-      if (typeof props.cornerRadius === 'number' && Number.isFinite(props.cornerRadius)) {
-        const radius = props.cornerRadius
-        n.corners = { ...n.corners, radii: [radius, radius, radius, radius] }
-      }
-      if (fills !== undefined) n.fills = fills
-      if (typeof props.opacity === 'number') n.opacity = Math.min(1, Math.max(0, props.opacity))
-      if (typeof props.visible === 'boolean') n.visible = props.visible
-      if (typeof props.locked === 'boolean') n.locked = props.locked
-      if (typeof props.clip === 'boolean') n.clip = props.clip
-      if (typeof props.x === 'number' || typeof props.y === 'number') {
-        const c = [...n.transform.coeffs] as [number, number, number, number, number, number]
-        if (typeof props.x === 'number') c[4] = props.x
-        if (typeof props.y === 'number') c[5] = props.y
-        n.transform = Affine.new(c)
-      }
-    }
-    return ok()
-  }),
-  spec('node.get', 'Get node properties', '{id}', false, (s, p) => {
-    const ds = s.ds()
-    const id = nodeIdParam(p.id) ?? ds.selection[0]
-    const n = ds.doc.node(id)
-    if (!n) throw new Error('no such node')
-    const c = n.transform.coeffs
-    return {
-      id: n.id,
-      name: n.name,
-      type: n.kind.type,
-      x: c[4],
-      y: c[5],
-      width: n.width,
-      height: n.height,
-      visible: n.visible,
-      locked: n.locked,
-      opacity: n.opacity
-    }
-  }),
-  spec('select.set', 'Set selection', '{ids?}', false, (s, p) => {
-    s.ds().selection = idList(p.ids) ?? []
-    return ok()
-  }),
-  spec('select.all', 'Select all', '{}', false, (s) => {
-    const ds = s.ds()
-    ds.selection = [...(ds.doc.node(ds.page)?.children ?? [])]
-    return ok()
-  }),
-  spec('select.none', 'Deselect', '{}', false, (s) => {
-    s.ds().selection = []
-    return ok()
-  }),
-  spec('command.batch', 'Batch commands', '{commands}', true, (s, p) => {
-    const commands = Array.isArray(p.commands)
-      ? (p.commands as Array<{ id: string; params?: Record<string, unknown> }>)
-      : []
-    const results: unknown[] = []
-    for (const c of commands) {
-      results.push(s.execute(c.id, c.params ?? {}))
-    }
-    return { ok: true, results }
-  }),
-  spec('fill.set', 'Set fill', '{id?, fill}', true, (s, p) => {
-    const ds = s.ds()
-    const ids = nodeIdsParam(p.id) ?? ds.selection
-    const fill = p.fill as
-      | { type?: string; color?: { r: number; g: number; b: number; a?: number } }
-      | undefined
-    for (const id of ids) {
-      const n = ds.doc.node_mut(id)
-      if (!n) continue
-      if (fill && fill.color) {
-        n.fills = [
-          {
-            kind: {
-              type: 'solid',
-              color: { r: fill.color.r, g: fill.color.g, b: fill.color.b, a: fill.color.a ?? 1 }
-            },
-            opacity: 1,
-            visible: true,
-            blend: 'normal'
-          }
-        ]
-      } else if (fill === null) {
-        n.fills = []
-      }
-    }
-    return ok()
-  })
-]
 
 function idList(v: unknown): NodeId[] | null {
   if (!Array.isArray(v)) return null
@@ -939,7 +739,10 @@ export function starPath(
 export function allCoreSpecs(): CommandSpec[] {
   return [
     ...CREATE_SPECS,
-    ...EDIT_SPECS,
+    ...EDIT_MODULE_SPECS,
+    ...CLIPBOARD_SPECS,
+    ...PAINT_SPECS,
+    ...NODE_SPECS,
     ...ARRANGE_SPECS,
     ...ARRANGE_EXTENDED_SPECS,
     ...STRUCTURE_SPECS,
@@ -954,6 +757,8 @@ export function allCoreSpecs(): CommandSpec[] {
     ...TEXT_SPECS,
     ...FONT_SPECS,
     ...PREVIEW_SPECS,
+    ...SELECT_SPECS,
+    ...LIST_SPECS,
     ...allAdvancedSpecs()
   ]
 }

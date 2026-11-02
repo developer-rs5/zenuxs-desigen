@@ -195,11 +195,11 @@ describe('engine session', () => {
     const s = new Session()
     const r = s.execute('command.batch', {
       commands: [
-        { id: 'shape.rectangle', params: { width: 10 } },
-        { id: 'shape.ellipse', params: { width: 20 } }
+        { command: 'shape.rectangle', params: { width: 10 } },
+        { command: 'shape.ellipse', params: { width: 20 } }
       ]
     })
-    expect((r.results as unknown[]).length).toBe(2)
+    expect((r.steps as unknown[]).length).toBe(2)
   })
 
   test('style_create_apply_detach_delete', () => {
@@ -629,5 +629,187 @@ describe('engine session', () => {
     // A tool that doesn't place a shape says so.
     s.execute('tool.hand', {})
     expect(() => s.execute('tool.place', {})).toThrow()
+  })
+})
+
+describe('clipboard and duplicate', () => {
+  test('duplicate_places_a_top_level_frame_to_the_right', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { x: 0, y: 0, width: 100, height: 50 }).id as number
+    s.execute('select.set', { ids: [id] })
+    const r = s.execute('edit.duplicate', {})
+    const copy = (r.ids as number[])[0] as number
+    expect(copy).not.toBe(id)
+    expect(s.doc().node(copy)?.transform.coeffs[4]).toBe(0)
+    expect(s.ds().selection).toEqual([copy])
+  })
+
+  test('duplicate_uses_an_explicit_offset', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { x: 100, y: 200, width: 100, height: 50 }).id as number
+    s.execute('select.set', { ids: [id] })
+    const r = s.execute('edit.duplicate', { dx: 30, dy: 40 })
+    const copy = (r.ids as number[])[0] as number
+    expect(s.doc().node(copy)?.transform.coeffs[4]).toBe(130)
+    expect(s.doc().node(copy)?.transform.coeffs[5]).toBe(240)
+  })
+
+  test('duplicate_repeats_the_last_offset_while_the_copies_are_selected', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { x: 0, y: 0, width: 100, height: 50 }).id as number
+    s.execute('select.set', { ids: [id] })
+    const first = (s.execute('edit.duplicate', { dx: 20, dy: 5 }).ids as number[])[0] as number
+    // The copies are the selection, so the next one steps by the same offset again.
+    const second = (s.execute('edit.duplicate', {}).ids as number[])[0] as number
+    expect(s.doc().node(second)?.transform.coeffs[4]).toBe(40)
+    expect(s.doc().node(second)?.transform.coeffs[5]).toBe(10)
+    expect(first).not.toBe(second)
+  })
+
+  test('copy_and_paste_keeps_the_page_position', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { x: 40, y: 60, width: 100, height: 50 }).id as number
+    s.execute('select.set', { ids: [id] })
+    expect(s.execute('edit.copy', {}).copied).toBe(1)
+    const ids = s.execute('edit.paste', {}).ids as number[]
+    expect(ids).toHaveLength(1)
+    const pasted = s.doc().node(ids[0] as number)
+    expect(pasted?.transform.coeffs[4]).toBe(40)
+    expect(pasted?.transform.coeffs[5]).toBe(60)
+    expect(s.ds().selection).toEqual(ids)
+  })
+
+  test('paste_lands_at_the_given_page_point', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { x: 0, y: 0, width: 100, height: 50 }).id as number
+    s.execute('select.set', { ids: [id] })
+    s.execute('edit.copy', {})
+    const ids = s.execute('edit.paste', { x: 500, y: 300 }).ids as number[]
+    const pasted = s.doc().node(ids[0] as number)
+    expect(pasted?.transform.coeffs[4]).toBe(500)
+    expect(pasted?.transform.coeffs[5]).toBe(300)
+  })
+
+  test('paste_into_a_selected_frame_keeps_the_layer_inside_it', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { x: 0, y: 0, width: 400, height: 300 }).id as number
+    const inner = s.execute('shape.rectangle', { x: 10, y: 10, width: 50, height: 50 }).id as number
+    s.execute('select.set', { ids: [inner] })
+    s.execute('edit.copy', {})
+    s.execute('select.set', { ids: [frame] })
+    const ids = s.execute('edit.paste', {}).ids as number[]
+    expect(s.doc().node(ids[0] as number)?.parent).toBe(frame)
+  })
+
+  test('cut_removes_the_layer_and_keeps_it_on_the_clipboard', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', { x: 0, y: 0, width: 100, height: 50 }).id as number
+    s.execute('select.set', { ids: [id] })
+    s.execute('edit.cut', {})
+    expect(s.doc().node(id)).toBeNull()
+    expect(s.ds().selection).toEqual([])
+    const ids = s.execute('edit.paste', {}).ids as number[]
+    expect(s.doc().node(ids[0] as number)).not.toBeNull()
+  })
+
+  test('paste_over_places_the_copy_where_the_selection_is', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 0, y: 0, width: 50, height: 50 }).id as number
+    s.execute('select.set', { ids: [a] })
+    s.execute('edit.copy', {})
+    const b = s.execute('shape.rectangle', { x: 200, y: 100, width: 50, height: 50 }).id as number
+    s.execute('select.set', { ids: [b] })
+    const ids = s.execute('edit.pasteOver', {}).ids as number[]
+    const pasted = s.doc().node(ids[0] as number)
+    expect(pasted?.transform.coeffs[4]).toBe(200)
+    expect(pasted?.transform.coeffs[5]).toBe(100)
+  })
+
+  test('paste_replace_swaps_the_target_for_the_copy', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 0, y: 0, width: 10, height: 10 }).id as number
+    s.execute('select.set', { ids: [a] })
+    s.execute('edit.copy', {})
+    const b = s.execute('shape.rectangle', { x: 200, y: 100, width: 50, height: 50 }).id as number
+    s.execute('select.set', { ids: [b] })
+    const ids = s.execute('edit.pasteReplace', {}).ids as number[]
+    expect(s.doc().node(b)).toBeNull()
+    expect(s.doc().node(ids[0] as number)).not.toBeNull()
+    expect(s.doc().node(ids[0] as number)?.width).toBe(10)
+  })
+
+  test('copy_and_paste_properties', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { width: 50, height: 50 }).id as number
+    const b = s.execute('shape.rectangle', { width: 50, height: 50 }).id as number
+    s.execute('node.set', { ids: [a], opacity: 0.42, cornerRadius: 8 })
+    s.execute('select.set', { ids: [a] })
+    s.execute('edit.copyProperties', {})
+    s.execute('select.set', { ids: [b] })
+    s.execute('edit.pasteProperties', {})
+    expect(s.doc().node(b)?.opacity).toBe(0.42)
+    expect(s.doc().node(b)?.corners.radii).toEqual([8, 8, 8, 8])
+  })
+
+  test('paste_properties_without_a_copy_is_disabled', () => {
+    const s = new Session()
+    const id = s.execute('shape.rectangle', {}).id as number
+    expect(() => s.execute('edit.pasteProperties', { ids: [id] })).toThrow()
+  })
+
+  test('duplicate_of_a_page_is_refused', () => {
+    const s = new Session()
+    s.execute('select.set', { ids: [s.page()] })
+    expect(() => s.execute('edit.duplicate', {})).toThrow()
+  })
+})
+
+describe('clipboard — components', () => {
+  test('duplicating_a_main_component_makes_an_instance_of_it', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { width: 200, height: 150, name: 'Card' }).id as number
+    s.execute('component.create', { id: frame })
+    s.execute('select.set', { ids: [frame] })
+    const ids = s.execute('edit.duplicate', { dx: 300 }).ids as number[]
+    const copy = s.doc().node(ids[0] as number)
+    expect(copy?.kind.type).toBe('instance')
+    if (copy?.kind.type === 'instance') expect(copy.kind.component).toBe(frame)
+  })
+
+  test('a_variant_duplicated_into_its_set_stays_a_component', () => {
+    const s = new Session()
+    const set = s.execute('shape.frame', { width: 100, height: 100, name: 'Set' }).id as number
+    const frame = s.execute('shape.frame', { width: 100, height: 100, name: 'V' }).id as number
+    // A component set holds its variants; its kind is the set, not a frame.
+    const setNode = s.doc().node_mut(set)
+    if (setNode) setNode.kind = { type: 'componentSet' }
+    s.doc().reparent(frame, set, null)
+    s.execute('component.create', { id: frame })
+    s.execute('select.set', { ids: [frame] })
+    const ids = s.execute('edit.duplicate', {}).ids as number[]
+    // A variant stays a new variant in its set, so it is still a component.
+    expect(s.doc().node(ids[0] as number)?.kind.type).toBe('component')
+  })
+
+  test('pasting_a_copied_main_component_makes_an_instance', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { width: 200, height: 150, name: 'Chip' }).id as number
+    s.execute('component.create', { id: frame })
+    s.execute('select.set', { ids: [frame] })
+    s.execute('edit.copy', {})
+    const ids = s.execute('edit.paste', {}).ids as number[]
+    expect(s.doc().node(ids[0] as number)?.kind.type).toBe('instance')
+  })
+
+  test('an_instance_copy_stays_an_instance', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { width: 200, height: 150, name: 'Tile' }).id as number
+    s.execute('component.create', { id: frame })
+    const inst = s.execute('component.instantiate', { componentId: frame, x: 500 }).id as number
+    s.execute('select.set', { ids: [inst] })
+    const ids = s.execute('edit.duplicate', { dx: 20 }).ids as number[]
+    const copy = s.doc().node(ids[0] as number)
+    expect(copy?.kind.type).toBe('instance')
+    if (copy?.kind.type === 'instance') expect(copy.kind.component).toBe(frame)
   })
 })
