@@ -8,9 +8,70 @@
  * cheap to clone). (Converted 1:1 from FigCraft `crates/engine/src/lib.rs`.)
  */
 
-import { Document, type NodeId } from '@zenuxs/doc'
+import { Document, type ImageData, type Node as NodeT, type NodeId } from '@zenuxs/doc'
+import type { Rect as GeomRect } from '@zenuxs/geom'
 
 import { normalize } from './normalize'
+
+/** Deepest params nesting `resolveStepRefs` walks before giving up. */
+const STEP_REF_MAX_DEPTH = 64
+
+/**
+ * Replace every `{"$step": n}` / `{"$step": n, "field": "…"}` in `value` with
+ * that field (default `id`) of `results[n]`, the result of an earlier batch
+ * step.
+ */
+export function resolveStepRefs(
+  value: unknown,
+  results: unknown[],
+  step: number,
+  depth: number
+): Record<string, unknown> {
+  if (depth > STEP_REF_MAX_DEPTH) {
+    throw new EngineError(
+      `command.batch: step ${step}: params nest deeper than ${STEP_REF_MAX_DEPTH} levels`
+    )
+  }
+  if (Array.isArray(value)) {
+    return value.map((x) => resolveStepRefs(x, results, step, depth + 1)) as never
+  }
+  if (typeof value !== 'object' || value === null) return value as Record<string, unknown>
+  const obj = value as Record<string, unknown>
+  if (!('$step' in obj)) {
+    const out: Record<string, unknown> = {}
+    for (const k of Object.keys(obj)) out[k] = resolveStepRefs(obj[k], results, step, depth + 1)
+    return out
+  }
+  const extra = Object.keys(obj).find((k) => k !== '$step' && k !== 'field')
+  if (extra !== undefined) {
+    throw new EngineError(
+      `command.batch: step ${step}: a \`$step\` reference takes only \`field\`, not \`${extra}\``
+    )
+  }
+  const raw = obj.$step
+  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 0) {
+    throw new EngineError(`command.batch: step ${step}: \`$step\` must be a step index (0, 1, …)`)
+  }
+  const field = obj.field === undefined ? 'id' : obj.field
+  if (typeof field !== 'string') {
+    throw new EngineError(`command.batch: step ${step}: \`field\` must be a string`)
+  }
+  const result = results[raw]
+  if (result === undefined) {
+    const range = step === 0 ? 'there is none before step 0' : `0 to ${step - 1}`
+    throw new EngineError(
+      `command.batch: step ${step}: \`$step\` ${raw} must be an earlier step (${range})`
+    )
+  }
+  const picked =
+    typeof result === 'object' && result !== null
+      ? (result as Record<string, unknown>)[field]
+      : undefined
+  if (picked === undefined) {
+    throw new EngineError(`command.batch: step ${step}: step ${raw}'s result has no \`${field}\``)
+  }
+  return picked as Record<string, unknown>
+}
 
 /** The commands that show or end a live text preview (they don't end the showing one). */
 export const PREVIEW_COMMANDS: readonly string[] = ['text.preview', 'text.endPreview']
@@ -343,6 +404,70 @@ export interface TextEdit {
   created: boolean
 }
 
+/**
+ * The selection's rotation origin, when moved or shown (not saved).
+ */
+export interface RotationOrigin {
+  /** The selection it belongs to. */
+  ids: NodeId[]
+  /** Where it was moved, in the first selected layer's own coordinates (so it
+   * follows the layer); `null`: the centre. */
+  at: { x: number; y: number } | null
+  /** The handle shows and can be dragged (Alt+R toggles it, Escape hides it). */
+  editing: boolean
+}
+
+/**
+ * An in-progress vector edit: the layer being edited plus any others edited
+ * with it (the full model lives in the vector-edit domain).
+ */
+export interface VectorEditState {
+  id: NodeId
+  others: Array<{ id: NodeId }>
+  /** Re-clamp the edited vertices to their layers; false when a layer is gone. */
+  clamp_doc(doc: Document): boolean
+}
+
+/** Layers duplicated last, and their copies, in the same order. */
+export interface Duplicated {
+  sources: NodeId[]
+  copies: NodeId[]
+}
+
+export const Duplicated = {
+  /** Whether the copies are exactly `selection`. */
+  is_selection(d: Duplicated, selection: NodeId[]): boolean {
+    if (d.copies.length === 0 || d.copies.length !== selection.length) return false
+    const a = new Set(d.copies)
+    for (const id of selection) if (!a.has(id)) return false
+    return true
+  },
+
+  /**
+   * The page offset from the sources to the copies, if both are still there
+   * and the copies move freely (an auto layout places its own).
+   */
+  offset(d: Duplicated, doc: Document): [number, number] | null {
+    const free = d.copies.every((c) => {
+      const n = doc.node(c)
+      if (!n) return false
+      if (n.child_layout.absolute) return true
+      const p = n.parent === null || n.parent === undefined ? null : doc.node(n.parent)
+      return p === null || p.layout === null
+    })
+    if (!free) return null
+    if ([...d.sources, ...d.copies].some((id) => !doc.contains(id))) return null
+    const a = doc.bounds_of(d.sources)
+    const b = doc.bounds_of(d.copies)
+    if (!a || !b) return null
+    const dx = b.x0 - a.x0
+    const dy = b.y0 - a.y0
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null
+    if (dx === 0 && dy === 0) return null
+    return [dx, dy]
+  }
+}
+
 /** An in-progress gesture (drag, marquee…): the state to preview from. */
 export interface Interaction {
   label: string
@@ -350,6 +475,9 @@ export interface Interaction {
   selection: NodeId[]
   page: NodeId
 }
+
+/** The next document id a {@link DocState} gets (it identifies the file within the session). */
+let NEXT_UID = 1
 
 /** The state of one open document tab. */
 export class DocState {
@@ -366,7 +494,14 @@ export class DocState {
   /** The document as it was before `text.preview`, or null when nothing is previewed. */
   text_preview: Document | null = null
   hover: NodeId | null = null
-  uid = 1
+  /** Identifies this document within the session (stable: clipboard pastes compare it). */
+  uid: number
+  /** An in-progress vector edit, if any. */
+  vector_edit: VectorEditState | null = null
+  /** The selection's rotation origin, when moved or shown. */
+  rotation_origin: RotationOrigin | null = null
+  /** The layers duplicated last and their copies (Alt-drag and Duplicate set it). */
+  last_duplicate: Duplicated | null = null
   versions: Array<{ id: string; label: string; created: number }> = []
   branches: Array<{ id: string; name: string }> = []
   versions_changed = false
@@ -377,6 +512,7 @@ export class DocState {
     this.page = doc.pages[0]
     this.saved_doc = doc
     this.view = ViewState.default()
+    this.uid = NEXT_UID++
   }
 
   /** Whether the document differs from the last save (Arc::ptr_eq in Rust). */
@@ -393,7 +529,6 @@ export class DocState {
   /** Bump the revision (the UI invalidates caches on it). */
   bump(): void {
     this.revision += 1
-    this.uid += 1
   }
 
   /** Snapshot `(doc, selection, page)` before a command runs (a COW doc copy). */
@@ -413,6 +548,82 @@ export class DocState {
     this.page = entry.page
     this.bump()
   }
+
+  /** The layer the focus view shows, while it exists on the current page. */
+  focused(): NodeId | null {
+    const f = this.focus
+    return f !== null && this.doc.page_of(f) === this.page ? f : null
+  }
+
+  /** Drop selected ids that no longer exist or aren't on the current page. */
+  clean_selection(): void {
+    const doc = this.doc
+    const page = this.page
+    this.selection = this.selection.filter(
+      (id) => doc.contains(id) && doc.page_of(id) === page && id !== page
+    )
+    const seen = new Set<NodeId>()
+    this.selection = this.selection.filter((id) => {
+      if (seen.has(id)) return false
+      seen.add(id)
+      return true
+    })
+    if (this.text_edit !== null && !doc.contains(this.text_edit.node)) this.text_edit = null
+    // Vector edit mode ends when its layer is gone (or no longer a vector, e.g. undone).
+    const ve = this.vector_edit
+    if (ve !== null && (doc.page_of(ve.id) !== page || !ve.clamp_doc(doc))) this.vector_edit = null
+    // A moved rotation origin lasts as long as its selection.
+    if (this.rotation_origin !== null && !sameIds(this.rotation_origin.ids, this.selection)) {
+      this.rotation_origin = null
+    }
+    // So does the last duplicate (undo reuses ids: a new layer could take a copy's).
+    if (
+      this.last_duplicate !== null &&
+      !Duplicated.is_selection(this.last_duplicate, this.selection)
+    ) {
+      this.last_duplicate = null
+    }
+  }
+}
+
+/** Whether two id lists hold the same ids (order matters, as in the reference). */
+function sameIds(a: NodeId[], b: NodeId[]): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
+  return true
+}
+
+/** Clipboard contents (internal; the UI mirrors to the system clipboard). */
+export interface Clipboard {
+  /** Copied subtrees: (root, nodes) in z-order. */
+  nodes: Array<{ root: NodeId; nodes: NodeT[] }>
+  images: Map<string, ImageData>
+  /** Copied properties (Copy properties / Paste properties). */
+  props: Record<string, unknown> | null
+  /** The page-space bounds of the copied selection. */
+  bounds: GeomRect | null
+  /** The document id the copy came from. */
+  source_doc: number
+  /** Copied component/set roots, excluding cuts and originals discarded by undo (ids are reused). */
+  copied_components: Set<NodeId>
+  /** The document copied from (pastes into other files follow its mains). */
+  source: Document | null
+  source_path: string | null
+}
+
+export const Clipboard = {
+  empty(): Clipboard {
+    return {
+      nodes: [],
+      images: new Map(),
+      props: null,
+      bounds: null,
+      source_doc: 0,
+      copied_components: new Set(),
+      source: null,
+      source_path: null
+    }
+  }
 }
 
 /** A request the engine makes of the UI (a dialog, a toast…). */
@@ -427,8 +638,11 @@ export class Session {
   active = 0
   prefs: Prefs
   tools: ToolState
+  clipboard: Clipboard = Clipboard.empty()
   ui_requests: UiRequest[] = []
   journal: Array<[string, unknown]> = []
+  /** The last undoable command executed through {@link Session.execute}, excluding "Repeat". */
+  last_command: { id: string; params: Record<string, unknown> } | null = null
   message: string | null = null
   private commands: Map<string, CommandSpec> | null = null
 
@@ -456,6 +670,24 @@ export class Session {
   /** The active document. */
   doc(): Document {
     return this.ds().doc
+  }
+
+  /** The active document's selection (empty when no document is open). */
+  selection(): NodeId[] {
+    return [...this.ds().selection]
+  }
+
+  /** Replace the selection, dropping ids that no longer belong to the page. */
+  set_selection(ids: NodeId[]): void {
+    const ds = this.ds()
+    ds.selection = [...ids]
+    ds.clean_selection()
+    ds.revision += 1
+  }
+
+  /** The current page of the active document. */
+  page(): NodeId {
+    return this.ds().page
   }
 
   /** All registered commands, built once. */
@@ -493,12 +725,15 @@ export class Session {
       // Derived state follows every edit (FigCraft's `after_command`): text
       // auto-size, group fit and auto-layout reflow.
       normalize(ds.doc, before.doc)
+      // Derived selection state follows the document (FigCraft's `after_command`).
+      ds.clean_selection()
       ds.bump()
       if (spec.history) {
         ds.history.record(spec.label, before)
       }
+      if (spec.history && id !== 'edit.repeat') this.last_command = { id, params: args }
       this.journal.push([id, args])
-      if (this.journal.length > 5000) this.journal.shift()
+      if (this.journal.length > 5000) this.journal.splice(0, 1000)
       this.message = null
       return result
     } catch (error) {
@@ -590,6 +825,117 @@ export class Session {
     if (!interaction) return
     ds.interaction = null
     ds.restoreTo(interaction)
+  }
+
+  /**
+   * Run several commands as one undo step. A param value `{"$step": n}` is
+   * replaced by the `id` in the result of the earlier step `n`
+   * (`{"$step": n, "field": "…"}` picks another field), so a step can target a
+   * layer that an earlier step of the same batch created. Any object with a
+   * `$step` key in a step's params is such a reference, except inside a nested
+   * `command.batch` step: its references are to its own steps.
+   */
+  batch(label: string, cmds: Array<{ id: string; params: Record<string, unknown> }>): unknown[] {
+    return this.grouped(label, () => {
+      const results: unknown[] = []
+      cmds.forEach((c, step) => {
+        results.push(this.batch_step(results, step, c.id, c.params ?? {}))
+      })
+      return results
+    })
+  }
+
+  /**
+   * One step of a batch: `{"$step": n}` in `params` resolves against `results`
+   * (the results of the steps before it), then the command runs.
+   * {@link Session.batch} runs a list of these as one undo step; a caller with
+   * its own list (the CLI's script runner) uses this so its steps resolve
+   * `$step` the same way, inside its own {@link Session.grouped}.
+   */
+  batch_step(
+    results: unknown[],
+    step: number,
+    id: string,
+    params: Record<string, unknown>
+  ): Record<string, unknown> {
+    const resolved = id === 'command.batch' ? params : resolveStepRefs(params, results, step, 0)
+    return this.execute(id, resolved)
+  }
+
+  /**
+   * Run `f` as one undo step called `label`: the commands it executes push no
+   * steps of their own, and when it fails the documents stay at their
+   * group-start state.
+   */
+  /**
+   * Run `f` as one undo step called `label`: the commands it executes push no
+   * steps of their own, and when it fails the documents stay at their
+   * group-start state.
+   */
+  grouped<T>(label: string, f: () => T): T {
+    type Before = {
+      uid: number
+      doc: Document
+      selection: NodeId[]
+      page: NodeId
+      undo: number
+      limit: number
+    }
+    const before: Before[] = this.docs.map((ds) => ({
+      uid: ds.uid,
+      doc: ds.doc.clone(),
+      selection: [...ds.selection],
+      page: ds.page,
+      undo: ds.history.undo.length,
+      limit: ds.history.limit
+    }))
+    // An edit inside clears the redo steps; a failed group has to bring them back.
+    const redoBefore = this.docs.map((ds) => ds.history.redo)
+    const active = this.active
+    const journalLen = this.journal.length
+    // The steps inside are dropped again below, so they mustn't push the oldest ones out.
+    for (const ds of this.docs) ds.history.limit = Number.MAX_SAFE_INTEGER
+    let failed: unknown = null
+    let result: T | null = null
+    try {
+      result = f()
+    } catch (error) {
+      failed = error ?? new Error('grouped: unknown failure')
+    }
+    if (failed !== null) {
+      const keep = new Set(before.map((b) => b.uid))
+      this.docs = this.docs.filter((ds) => keep.has(ds.uid))
+      before.forEach((b, i) => {
+        const ds = this.docs.find((d) => d.uid === b.uid)
+        if (!ds) return
+        ds.history.redo = redoBefore[i] ?? []
+        ds.doc = b.doc
+        ds.selection = [...b.selection]
+        ds.page = b.page
+        ds.history.undo.length = b.undo
+        ds.history.limit = b.limit
+      })
+      this.active = active
+      this.journal.length = journalLen
+      throw failed
+    }
+    // A step that pushed an undo entry changed the document (the nested
+    // `execute` calls already decided that).
+    const changed = before.filter((b) => {
+      const ds = this.docs.find((d) => d.uid === b.uid)
+      return ds !== undefined && ds.interaction === null && ds.history.undo.length > b.undo
+    })
+    for (const ds of this.docs) {
+      const b = before.find((x) => x.uid === ds.uid)
+      if (!b) continue
+      ds.history.limit = b.limit
+      ds.history.undo.length = b.undo
+    }
+    for (const b of changed) {
+      const ds = this.docs.find((d) => d.uid === b.uid)
+      if (ds) ds.history.record(label, { label, doc: b.doc, selection: b.selection, page: b.page })
+    }
+    return result as T
   }
 
   registerCommands(cmds: CommandSpec[]): void {
