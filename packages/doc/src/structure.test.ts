@@ -9,6 +9,7 @@ import { describe, expect, test } from 'bun:test'
 import type { Paint } from '@zenuxs/color'
 import { RectMath, transform_rect_bbox } from '@zenuxs/geom'
 
+import { enter_target, marquee_deep, marquee_select, select_target, snap_points } from './geometry'
 import type { NodeId } from './ids'
 import { Document } from './lib'
 import { Node, type NodeKind } from './node'
@@ -323,5 +324,148 @@ describe('doc structure — text reach', () => {
     const own = d.world_render_bounds(t)
     // No path and no leading trim: the box is the bounds.
     expect(own).toEqual(transform_rect_bbox(d.world_transform(t), RectMath.new(0, 0, 100, 50)))
+  })
+})
+
+describe('doc geometry — click and marquee selection', () => {
+  /**
+   * Page holds frame `f` (100×100 at 0,0) with children `a` (10×10 at 0,0) and
+   * `b` (10×10 at 50,50), plus page-level `r` (20×20 at 200,0), a locked `lk`,
+   * and a hidden `hid`.
+   */
+  function scene(): {
+    d: Document
+    page: NodeId
+    f: NodeId
+    a: NodeId
+    b: NodeId
+    r: NodeId
+    lk: NodeId
+    hid: NodeId
+  } {
+    const d = new Document()
+    const page = d.pages[0] as NodeId
+    const f = d.alloc_id()
+    d.insert(Node.new(f, { type: 'frame' }, 'Frame', 100, 100))
+    d.place(f, page, 0)
+    const a = d.alloc_id()
+    d.insert(Node.new(a, { type: 'rectangle' }, 'A', 10, 10))
+    d.place(a, f, 0)
+    const b = d.alloc_id()
+    d.insert(Node.new(b, { type: 'rectangle' }, 'B', 10, 10))
+    d.place(b, f, 1)
+    const r = d.alloc_id()
+    d.insert(Node.new(r, { type: 'rectangle' }, 'R', 20, 20))
+    d.place(r, page, 1)
+    const lk = d.alloc_id()
+    d.insert(Node.new(lk, { type: 'rectangle' }, 'LK', 20, 20))
+    d.place(lk, page, 2)
+    const lkn = d.node_mut(lk)
+    if (lkn) {
+      lkn.locked = true
+      lkn.transform = { coeffs: [1, 0, 0, 1, 400, 0] }
+    }
+    const hid = d.alloc_id()
+    d.insert(Node.new(hid, { type: 'rectangle' }, 'HID', 20, 20))
+    d.place(hid, page, 3)
+    const hidn = d.node_mut(hid)
+    if (hidn) {
+      hidn.visible = false
+      hidn.transform = { coeffs: [1, 0, 0, 1, 400, 40] }
+    }
+    return { d, page, f, a, b, r, lk, hid }
+  }
+
+  function at(d: Document, id: NodeId, x: number, y: number): void {
+    const n = d.node_mut(id)
+    if (n) n.transform = { coeffs: [1, 0, 0, 1, x, y] }
+  }
+
+  test('select_target_returns_the_top_level_layer', () => {
+    const { d, a, r, f } = scene()
+    // Inside a top-level frame the click selects the layer itself (frames hold
+    // their layers like the canvas); a page child selects itself.
+    expect(select_target(d, a, [], false)).toBe(a)
+    expect(select_target(d, r, [], false)).toBe(r)
+    void f
+  })
+
+  test('select_target_deep_returns_the_leaf', () => {
+    const { d, a } = scene()
+    expect(select_target(d, a, [], true)).toBe(a)
+  })
+
+  test('select_target_follows_the_selection_context', () => {
+    const { d, f, a } = scene()
+    // `a`'s parent is the frame; with `f` selected a click resolves one deeper.
+    expect(select_target(d, a, [f], false)).toBe(a)
+  })
+
+  test('enter_target_goes_one_level_into_the_selection', () => {
+    const { d, f, a } = scene()
+    expect(enter_target(d, a, [f])).toBe(a)
+    expect(enter_target(d, a, [])).toBe(a)
+  })
+
+  test('marquee_selects_the_children_of_the_starting_frame', () => {
+    const { d, page, f, a, b } = scene()
+    at(d, a, 5, 5)
+    at(d, b, 50, 50)
+    const hit = marquee_select(d, page, RectMath.new(0, 0, 60, 60), f)
+    expect(hit.sort()).toEqual([a, b].sort())
+  })
+
+  test('marquee_from_the_canvas_selects_top_level_layers', () => {
+    const { d, page, f, r } = scene()
+    at(d, r, 200, 0)
+    const hit = marquee_select(d, page, RectMath.new(-10, -10, 130, 130), null)
+    expect(hit).toEqual([f])
+    // Wide enough to reach `r` too, in page z-order.
+    expect(marquee_select(d, page, RectMath.new(-10, -10, 240, 130), null)).toEqual([f, r])
+  })
+
+  test('marquee_skips_hidden_and_locked_layers', () => {
+    const { d, page, r, lk, hid } = scene()
+    at(d, r, 200, 0)
+    at(d, lk, 200, 40)
+    at(d, hid, 200, 80)
+    // Touching all three at once.
+    const hit = marquee_select(d, page, RectMath.new(190, -10, 240, 110), null)
+    expect(hit).toEqual([r])
+  })
+
+  test('marquee_deep_finds_the_innermost_layers', () => {
+    const { d, page, a, b, r } = scene()
+    at(d, a, 5, 5)
+    at(d, b, 50, 50)
+    at(d, r, 200, 0)
+    const hit = marquee_deep(d, page, RectMath.new(0, 0, 60, 60))
+    expect(hit.sort()).toEqual([a, b].sort())
+  })
+
+  test('marquee_deep_counts_a_container_none_of_whose_children_touch', () => {
+    const { d, page, f, a, b } = scene()
+    at(d, a, 5, 5)
+    at(d, b, 50, 50)
+    // Inside the frame's bounds but touching neither child.
+    const hit = marquee_deep(d, page, RectMath.new(80, 80, 99, 99))
+    expect(hit).toEqual([f])
+  })
+
+  test('snap_points_are_the_world_bounds_handles', () => {
+    const { d, r } = scene()
+    at(d, r, 200, 0)
+    const pts = snap_points(d, r)
+    expect(pts).toEqual([
+      { x: 200, y: 0 },
+      { x: 220, y: 0 },
+      { x: 220, y: 20 },
+      { x: 200, y: 20 },
+      { x: 210, y: 10 },
+      { x: 210, y: 0 },
+      { x: 210, y: 20 },
+      { x: 200, y: 10 },
+      { x: 220, y: 10 }
+    ])
   })
 })
