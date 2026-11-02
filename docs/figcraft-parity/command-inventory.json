@@ -78,6 +78,18 @@
       "source": "crates/engine/src/cmd/component.rs"
     },
     {
+      "id": "edit.copy",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.copyProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.cut",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "edit.delete",
       "source": "crates/engine/src/cmd/edit.rs"
     },
@@ -86,8 +98,60 @@
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
+      "id": "edit.findReplace",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.paste",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteDesignLayers",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteOver",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.pasteReplace",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "edit.pickColor",
       "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "edit.redo",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.repeat",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.setDefaultProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "edit.undo",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "effect.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "effect.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "export.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "file.close",
@@ -106,6 +170,18 @@
       "source": "crates/engine/src/cmd/file.rs"
     },
     {
+      "id": "fill.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "fill.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "fill.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "fill.set",
       "source": "crates/engine/src/cmd/edit.rs"
     },
@@ -118,6 +194,14 @@
       "source": "crates/engine/src/cmd/create.rs"
     },
     {
+      "id": "grid.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "grid.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "help.about",
       "source": "crates/engine/src/cmd/view.rs"
     },
@@ -128,6 +212,10 @@
     {
       "id": "help.shortcuts",
       "source": "crates/engine/src/cmd/view.rs"
+    },
+    {
+      "id": "layers.collapseAll",
+      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "layout.add",
@@ -146,7 +234,19 @@
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
+      "id": "node.reorder",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "node.reparent",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "node.set",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.batchRename",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -178,12 +278,28 @@
       "source": "crates/engine/src/cmd/structure.rs"
     },
     {
+      "id": "object.hideOthers",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "object.mask",
       "source": "crates/engine/src/cmd/structure.rs"
     },
     {
+      "id": "object.opacityKeys",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "object.releaseMask",
       "source": "crates/engine/src/cmd/structure.rs"
+    },
+    {
+      "id": "object.removeFill",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "object.removeStroke",
+      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "object.rename",
@@ -196,6 +312,10 @@
     {
       "id": "object.rotate180",
       "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.swapFillStroke",
+      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "object.toggleLock",
@@ -302,11 +422,83 @@
       "source": "crates/engine/src/cmd/proto.rs"
     },
     {
+      "id": "select.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "select.all",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
+      "id": "select.area",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.byName",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.children",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.inverse",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.layersAt",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.matching",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.next",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
       "id": "select.none",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.parent",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.previous",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameEffect",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameFill",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameFont",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameInstance",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameProperties",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameStroke",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "select.sameText",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -332,6 +524,22 @@
     {
       "id": "shape.star",
       "source": "crates/engine/src/cmd/create.rs"
+    },
+    {
+      "id": "stroke.add",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "stroke.move",
+      "source": "crates/engine/src/cmd/lists.rs"
+    },
+    {
+      "id": "stroke.remove",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "stroke.set",
+      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "style.apply",
@@ -668,6 +876,14 @@
     {
       "id": "transform.move",
       "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.nudge",
+      "source": "crates/engine/src/cmd/edit.rs"
+    },
+    {
+      "id": "transform.nudgeSize",
+      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "transform.resize",
@@ -1188,67 +1404,7 @@
       "source": "crates/engine/src/cmd/file.rs"
     },
     {
-      "id": "edit.copy",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.copyProperties",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.cut",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.findReplace",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.paste",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.pasteDesignLayers",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.pasteOver",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.pasteProperties",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.pasteReplace",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.redo",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.repeat",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.setDefaultProperties",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "edit.undo",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
       "id": "effect.add",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "effect.move",
-      "source": "crates/engine/src/cmd/lists.rs"
-    },
-    {
-      "id": "effect.remove",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -1257,10 +1413,6 @@
     },
     {
       "id": "export.add",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "export.remove",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -1336,19 +1488,7 @@
       "source": "crates/engine/src/cmd/file.rs"
     },
     {
-      "id": "fill.add",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "fill.move",
-      "source": "crates/engine/src/cmd/lists.rs"
-    },
-    {
       "id": "fill.pattern",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "fill.remove",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -1357,14 +1497,6 @@
     },
     {
       "id": "grid.add",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "grid.move",
-      "source": "crates/engine/src/cmd/lists.rs"
-    },
-    {
-      "id": "grid.remove",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -1464,10 +1596,6 @@
       "source": "crates/engine/src/cmd/component.rs"
     },
     {
-      "id": "layers.collapseAll",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
       "id": "layout.setTrack",
       "source": "crates/engine/src/cmd/layout.rs"
     },
@@ -1564,44 +1692,16 @@
       "source": "crates/engine/src/cmd/create.rs"
     },
     {
-      "id": "node.reorder",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "node.reparent",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "object.batchRename",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "object.hideOthers",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
       "id": "object.moveToPage",
       "source": "crates/engine/src/cmd/structure.rs"
-    },
-    {
-      "id": "object.opacityKeys",
-      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "object.rasterize",
       "source": "crates/engine/src/cmd/structure.rs"
     },
     {
-      "id": "object.removeFill",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
       "id": "object.removeFrame",
       "source": "crates/engine/src/cmd/structure.rs"
-    },
-    {
-      "id": "object.removeStroke",
-      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "object.rotateLeft",
@@ -1614,10 +1714,6 @@
     {
       "id": "object.setThumbnail",
       "source": "crates/engine/src/cmd/structure.rs"
-    },
-    {
-      "id": "object.swapFillStroke",
-      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "page.delete",
@@ -1756,78 +1852,6 @@
       "source": "crates/engine/src/cmd/section.rs"
     },
     {
-      "id": "select.add",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.area",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.byName",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.children",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.inverse",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.layersAt",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.matching",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.next",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.parent",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.previous",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.remove",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameEffect",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameFill",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameFont",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameInstance",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameProperties",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameStroke",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "select.sameText",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
       "id": "selection.applyColorStyle",
       "source": "crates/engine/src/selection_colors.rs"
     },
@@ -1864,23 +1888,7 @@
       "source": "crates/engine/src/shapebuilder.rs"
     },
     {
-      "id": "stroke.add",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
       "id": "stroke.brush",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "stroke.move",
-      "source": "crates/engine/src/cmd/lists.rs"
-    },
-    {
-      "id": "stroke.remove",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "stroke.set",
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
@@ -1910,14 +1918,6 @@
     {
       "id": "transform.moveTo",
       "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "transform.nudge",
-      "source": "crates/engine/src/cmd/edit.rs"
-    },
-    {
-      "id": "transform.nudgeSize",
-      "source": "crates/engine/src/cmd/edit.rs"
     },
     {
       "id": "transform.rotate",
@@ -2361,6 +2361,10 @@
     },
     {
       "id": "object.outlineStroke",
+      "source": "Session.all_commands()"
+    },
+    {
+      "id": "pattern.fill",
       "source": "Session.all_commands()"
     },
     {
