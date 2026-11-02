@@ -20,7 +20,7 @@ import { FONT_SPECS } from '../fonts'
 import { ok, spec, type CommandSpec, type Session } from '../lib'
 import { PREVIEW_SPECS } from '../textpreview'
 import { allAdvancedSpecs } from './advanced'
-import { ARRANGE_EXTENDED_SPECS } from './arrange'
+import { ARRANGE_SPECS } from './arrange'
 import { BOARD_SPECS } from './boards'
 import { CLIPBOARD_SPECS } from './clipboard'
 import { CODEGEN_SPECS } from './codegen'
@@ -313,62 +313,6 @@ function nodeIdsParam(v: unknown): NodeId[] | null {
   return one === null ? null : [one]
 }
 
-// ------------------------------ arrange.rs ------------------------------
-
-export const ARRANGE_SPECS: CommandSpec[] = [
-  spec('transform.move', 'Move', '{ids?, dx, dy}', true, (s, p) => {
-    const ds = s.ds()
-    const ids = idList(p.ids) ?? ds.selection
-    const dx = numParam(p, 'dx', 0)
-    const dy = numParam(p, 'dy', 0)
-    for (const id of ids) {
-      const n = ds.doc.node(id)
-      if (!n) continue
-      const c = [...n.transform.coeffs] as [number, number, number, number, number, number]
-      c[4] += dx
-      c[5] += dy
-      const mut = ds.doc.node_mut(id)
-      if (mut) mut.transform = Affine.new(c)
-    }
-    return ok()
-  }),
-  spec('transform.resize', 'Resize', '{ids?, width, height}', true, (s, p) => {
-    const ds = s.ds()
-    const ids = idList(p.ids) ?? ds.selection
-    for (const id of ids) {
-      const n = ds.doc.node_mut(id)
-      if (!n) continue
-      if (typeof p.width === 'number') n.width = Math.max(0, p.width)
-      if (typeof p.height === 'number') n.height = Math.max(0, p.height)
-    }
-    return ok()
-  }),
-  spec('align.left', 'Align left', '{ids?}', true, (s, p) => {
-    return alignAxis(s, p, 'min', 'x')
-  }),
-  spec('align.right', 'Align right', '{ids?}', true, (s, p) => {
-    return alignAxis(s, p, 'max', 'x')
-  }),
-  spec('align.hcenter', 'Align horizontal centers', '{ids?}', true, (s, p) => {
-    return alignAxis(s, p, 'center', 'x')
-  }),
-  spec('align.top', 'Align top', '{ids?}', true, (s, p) => {
-    return alignAxis(s, p, 'min', 'y')
-  }),
-  spec('align.bottom', 'Align bottom', '{ids?}', true, (s, p) => {
-    return alignAxis(s, p, 'max', 'y')
-  }),
-  spec('align.vcenter', 'Align vertical centers', '{ids?}', true, (s, p) => {
-    return alignAxis(s, p, 'center', 'y')
-  }),
-  spec('arrange.front', 'Bring to front', '{ids?}', true, (s, p) => {
-    return reorder(s, p, 'front')
-  }),
-  spec('arrange.back', 'Send to back', '{ids?}', true, (s, p) => {
-    return reorder(s, p, 'back')
-  })
-]
-
 function boundsOf(
   session: Session,
   ids: NodeId[]
@@ -385,66 +329,6 @@ function boundsOf(
   }
   if (!box) return null
   return { min0: box.x0, min1: box.y0, max0: box.x1, max1: box.y1 }
-}
-
-function alignAxis(
-  s: Session,
-  p: Record<string, unknown>,
-  mode: 'min' | 'center' | 'max',
-  axis: 'x' | 'y'
-): Record<string, unknown> {
-  const ds = s.ds()
-  const ids = idList(p.ids) ?? ds.selection
-  const b = boundsOf(s, ids)
-  if (!b) return ok()
-  const i0 = axis === 'x' ? 4 : 5
-  for (const id of ids) {
-    const n = ds.doc.node(id)
-    if (!n) continue
-    const nb = transform_rect_bbox(
-      { coeffs: n.transform.coeffs },
-      RectMath.new(0, 0, n.width, n.height)
-    )
-    const cur = axis === 'x' ? (nb.x0 + nb.x1) / 2 : (nb.y0 + nb.y1) / 2
-    const span = axis === 'x' ? nb.x1 - nb.x0 : nb.y1 - nb.y0
-    const target =
-      mode === 'min'
-        ? axis === 'x'
-          ? b.min0
-          : b.min1
-        : mode === 'max'
-          ? (axis === 'x' ? b.max0 : b.max1) - span
-          : (axis === 'x' ? b.min0 + b.max0 : b.min1 + b.max1) / 2 - span / 2
-    const delta = target - (axis === 'x' ? (mode === 'center' ? cur - span / 2 : cur) : cur)
-    void i0
-    void delta
-    const c = [...n.transform.coeffs] as [number, number, number, number, number, number]
-    if (axis === 'x')
-      c[4] += target - (mode === 'center' ? nb.x0 + span / 2 : mode === 'min' ? nb.x0 : nb.x1)
-    else c[5] += target - (mode === 'center' ? nb.y0 + span / 2 : mode === 'min' ? nb.y0 : nb.y1)
-    const mut = ds.doc.node_mut(id)
-    if (mut) mut.transform = Affine.new(c)
-  }
-  return ok()
-}
-
-function reorder(
-  s: Session,
-  p: Record<string, unknown>,
-  to: 'front' | 'back'
-): Record<string, unknown> {
-  const ds = s.ds()
-  const ids = idList(p.ids) ?? ds.selection
-  for (const id of ids) {
-    const n = ds.doc.node(id)
-    if (!n || n.parent === null || n.parent === undefined) continue
-    const parent = ds.doc.node_mut(n.parent)
-    if (!parent) continue
-    parent.children = parent.children.filter((c) => c !== id)
-    if (to === 'front') parent.children.push(id)
-    else parent.children.unshift(id)
-  }
-  return ok()
 }
 
 // ------------------------------ structure.rs ------------------------------
@@ -744,7 +628,6 @@ export function allCoreSpecs(): CommandSpec[] {
     ...PAINT_SPECS,
     ...NODE_SPECS,
     ...ARRANGE_SPECS,
-    ...ARRANGE_EXTENDED_SPECS,
     ...STRUCTURE_SPECS,
     ...STRUCTURE_EXTENDED_SPECS,
     ...PAGE_SPECS,

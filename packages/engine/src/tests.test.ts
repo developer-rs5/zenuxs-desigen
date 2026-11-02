@@ -6,8 +6,11 @@
 import { describe, expect, test } from 'bun:test'
 
 import { Vertex, type Segment, type VectorNetwork } from '@zenuxs/doc'
+import { Affine } from '@zenuxs/geom'
 
+import { reorderLayout, selectionSpacing } from './cmd/arrange'
 import { applyKeptToggles, PAN_STEP_PX, viewChecked } from './cmd/view'
+import { insideInstance } from './components'
 import {
   Session,
   History,
@@ -311,7 +314,7 @@ describe('engine session', () => {
     const b = s.execute('shape.rectangle', { x: 100, width: 50 }).id as number
     const c = s.execute('shape.rectangle', { x: 300, width: 50 }).id as number
 
-    s.execute('align.distributeH', { ids: [a, b, c], spacing: 20 })
+    s.execute('distribute.horizontal', { ids: [a, b, c], spacing: 20 })
     expect(s.doc().node(a)?.transform.coeffs[4]).toBe(0)
     expect(s.doc().node(b)?.transform.coeffs[4]).toBe(70)
     expect(s.doc().node(c)?.transform.coeffs[4]).toBe(140)
@@ -811,5 +814,472 @@ describe('clipboard — components', () => {
     const copy = s.doc().node(ids[0] as number)
     expect(copy?.kind.type).toBe('instance')
     if (copy?.kind.type === 'instance') expect(copy.kind.component).toBe(frame)
+  })
+})
+
+describe('arrange — align and distribute', () => {
+  /** A page with three 50×50 rectangles at the given `x`. */
+  function three(s: Session, xs: number[]): number[] {
+    return xs.map((x) => s.execute('shape.rectangle', { x, width: 50, height: 50 }).id as number)
+  }
+
+  test('aligning_several_layers_uses_their_combined_bounds', () => {
+    const s = new Session()
+    const [a, b] = three(s, [0, 200]) as [number, number]
+    s.execute('align.left', { ids: [a, b] })
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(0)
+    s.execute('align.right', { ids: [a, b] })
+    expect(s.doc().world_bounds(a)?.x1).toBeCloseTo(50)
+    expect(s.doc().world_bounds(b)?.x1).toBeCloseTo(50)
+  })
+
+  test('aligning_one_layer_uses_its_parent_frame', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { x: 100, y: 100, width: 400, height: 300 }).id as number
+    const child = s.execute('shape.rectangle', {
+      parent: frame,
+      x: 10,
+      y: 10,
+      width: 50,
+      height: 50
+    }).id as number
+    s.execute('align.right', { ids: [child] })
+    expect(s.doc().world_bounds(child)?.x1).toBeCloseTo(500)
+    s.execute('align.bottom', { ids: [child] })
+    expect(s.doc().world_bounds(child)?.y1).toBeCloseTo(400)
+    s.execute('align.hcenter', { ids: [child] })
+    const c = s.doc().world_bounds(child)
+    expect((c?.x0 ?? 0) + (c?.x1 ?? 0)).toBeCloseTo(600)
+  })
+
+  test('a_top_level_layer_has_no_align_target', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 40, width: 50, height: 50 }).id as number
+    s.execute('align.left', { ids: [a] })
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(40)
+  })
+
+  test('distributing_without_spacing_uses_the_existing_span', () => {
+    const s = new Session()
+    const [a, b, c] = three(s, [0, 100, 300]) as [number, number, number]
+    s.execute('distribute.horizontal', { ids: [a, b, c] })
+    // 350 of span, 150 of layers: two 100px gaps.
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(150)
+    expect(s.doc().world_bounds(c)?.x0).toBeCloseTo(300)
+  })
+
+  test('distributing_two_layers_needs_an_explicit_spacing', () => {
+    const s = new Session()
+    const [a, b] = three(s, [0, 200]) as [number, number]
+    s.execute('distribute.horizontal', { ids: [a, b] })
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(200)
+    s.execute('distribute.horizontal', { ids: [a, b], spacing: 10 })
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(60)
+  })
+
+  test('packing_is_distributing_with_no_gap', () => {
+    const s = new Session()
+    const [a, b, c] = three(s, [0, 90, 180]) as [number, number, number]
+    s.execute('arrange.packV', { ids: [a, b, c] })
+    expect(s.doc().world_bounds(a)?.y0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(b)?.y0).toBeCloseTo(50)
+    expect(s.doc().world_bounds(c)?.y0).toBeCloseTo(100)
+  })
+
+  test('tidying_snaps_into_rows_and_columns', () => {
+    const s = new Session()
+    const row1 = s.execute('shape.rectangle', { x: 0, y: 0, width: 50, height: 50 }).id as number
+    const row1b = s.execute('shape.rectangle', { x: 300, y: 5, width: 80, height: 40 }).id as number
+    const row2 = s.execute('shape.rectangle', { x: 40, y: 200, width: 50, height: 50 }).id as number
+    s.execute('arrange.tidy', { ids: [row1, row1b, row2] })
+    const a = s.doc().world_bounds(row1)
+    const b = s.doc().world_bounds(row1b)
+    const c = s.doc().world_bounds(row2)
+    // Two rows share a left edge and a row pitch.
+    expect(a?.x0).toBeCloseTo(0)
+    expect(b?.x0).toBeGreaterThan(a?.x1 ?? 0)
+    expect(a?.y0).toBeCloseTo(b?.y0 ?? -1)
+    expect(c?.y0).toBeGreaterThan(a?.y0 ?? 0)
+  })
+
+  test('rounding_to_pixels_snaps_offsets_and_sizes', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 10.4, width: 50.6, height: 50.2 }).id as number
+    const n = s.doc().node_mut(a)
+    if (n) n.transform = Affine.new([1, 0, 0, 1, 10.4, 20.7])
+    s.execute('arrange.roundToPixels', { ids: [a] })
+    const after = s.doc().node(a)
+    expect(after?.transform.coeffs[4]).toBe(10)
+    expect(after?.transform.coeffs[5]).toBe(21)
+    expect(after?.width).toBe(51)
+  })
+})
+
+describe('arrange — z-order', () => {
+  function stack(s: Session): number[] {
+    return [0, 1, 2].map(
+      (i) => s.execute('shape.rectangle', { x: i * 60, width: 50, height: 50 }).id as number
+    )
+  }
+
+  test('bringing_to_front_and_sending_to_back', () => {
+    const s = new Session()
+    const [a, b, c] = stack(s) as [number, number, number]
+    const page = s.page()
+    s.execute('arrange.front', { ids: [a] })
+    expect(s.doc().node(page)?.children.at(-1)).toBe(a)
+    s.execute('arrange.back', { ids: [c] })
+    expect(s.doc().node(page)?.children[0]).toBe(c)
+    expect(b).toBeGreaterThan(0)
+  })
+
+  test('forward_and_backward_move_one_slot_and_stop_at_the_edge', () => {
+    const s = new Session()
+    const [a, b] = stack(s) as [number, number, number]
+    const page = s.page()
+    s.execute('arrange.forward', { ids: [a] })
+    expect(s.doc().node(page)?.children[1]).toBe(a)
+    s.execute('arrange.forward', { ids: [a] })
+    s.execute('arrange.forward', { ids: [a] })
+    expect(s.doc().node(page)?.children.at(-1)).toBe(a)
+    s.execute('arrange.backward', { ids: [a] })
+    expect(s.doc().node(page)?.children.at(-2)).toBe(a)
+    expect(b).toBeGreaterThan(0)
+  })
+
+  test('several_layers_keep_their_relative_order_at_the_front', () => {
+    const s = new Session()
+    const [a, , c] = stack(s) as [number, number, number]
+    const page = s.page()
+    s.execute('arrange.front', { ids: [a, c] })
+    const kids = s.doc().node(page)?.children ?? []
+    expect(kids.indexOf(a)).toBeLessThan(kids.indexOf(c))
+  })
+
+  test('several_layers_keep_their_relative_order_at_the_back', () => {
+    const s = new Session()
+    const [a, b, c] = stack(s) as [number, number, number]
+    const page = s.page()
+    s.execute('arrange.back', { ids: [c, a] })
+    const kids = s.doc().node(page)?.children ?? []
+    // Both go to the back in their original z order, ahead of the untouched one.
+    expect(kids.indexOf(a)).toBeLessThan(kids.indexOf(c))
+    expect(kids.indexOf(c)).toBeLessThan(kids.indexOf(b))
+  })
+})
+
+describe('arrange — flips and rotation', () => {
+  test('flipping_mirrors_about_the_selection_centre', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 0, width: 50, height: 50 }).id as number
+    const b = s.execute('shape.rectangle', { x: 150, width: 50, height: 50 }).id as number
+    s.execute('object.flipH', { ids: [a, b] })
+    // The pair swap places about x = 100.
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(150)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(0)
+    // The transform is mirrored, so the layer's own box still reads 50 wide.
+    expect(s.doc().node(a)?.transform.coeffs[0]).toBeCloseTo(-1)
+    expect(s.doc().node(b)?.transform.coeffs[0]).toBeCloseTo(-1)
+  })
+
+  test('flipping_vertically_mirrors_about_the_centre_y', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { y: 0, width: 50, height: 50 }).id as number
+    const b = s.execute('shape.rectangle', { y: 150, width: 50, height: 50 }).id as number
+    s.execute('object.flipV', { ids: [a, b] })
+    expect(s.doc().world_bounds(a)?.y0).toBeCloseTo(150)
+    expect(s.doc().node(a)?.transform.coeffs[3]).toBeCloseTo(-1)
+  })
+
+  test('rotating_180_turns_about_the_selection_centre', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 0, width: 50, height: 50 }).id as number
+    const b = s.execute('shape.rectangle', { x: 150, width: 50, height: 50 }).id as number
+    s.execute('object.rotate180', { ids: [a, b] })
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(150)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(0)
+  })
+
+  test('rotating_90_left_and_right_turn_opposite_ways', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 100, y: 0, width: 50, height: 20 }).id as number
+    s.execute('object.rotateRight', { c: 0, ids: [a] })
+    let b = s.doc().world_bounds(a)
+    expect((b?.x1 ?? 0) - (b?.x0 ?? 0)).toBeCloseTo(20)
+    expect((b?.y1 ?? 0) - (b?.y0 ?? 0)).toBeCloseTo(50)
+    s.execute('object.rotateLeft', { ids: [a] })
+    b = s.doc().world_bounds(a)
+    expect((b?.x1 ?? 0) - (b?.x0 ?? 0)).toBeCloseTo(50)
+  })
+})
+
+describe('arrange — numeric transforms', () => {
+  test('moving_by_page_units_ignores_the_parent_scale', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { width: 200, height: 200 }).id as number
+    const n = s.doc().node_mut(frame)
+    if (n) n.transform = Affine.scale_non_uniform(2, 2)
+    const child = s.execute('shape.rectangle', {
+      parent: frame,
+      width: 20,
+      height: 20
+    }).id as number
+    s.execute('transform.move', { ids: [child], dx: 40, dy: 0 })
+    // 40 page units inside a 2× frame is 20 local units.
+    expect(s.doc().node(child)?.transform.coeffs[4]).toBeCloseTo(20)
+    expect(s.doc().world_bounds(child)?.x0).toBeCloseTo(40)
+  })
+
+  test('moving_to_a_page_point_aligns_the_selection_top_left', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 10, y: 10, width: 50, height: 50 }).id as number
+    const b = s.execute('shape.rectangle', { x: 90, y: 40, width: 50, height: 50 }).id as number
+    s.execute('transform.moveTo', { ids: [a, b], x: 0, y: 0 })
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(80)
+    expect(s.doc().world_bounds(b)?.y0).toBeCloseTo(30)
+  })
+
+  test('rotating_turns_about_a_given_pivot', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 100, width: 20, height: 20 }).id as number
+    s.execute('transform.rotate', { ids: [a], degrees: 90, cx: 0, cy: 0 })
+    // Figma convention: 90° turns (100,0) up to (0,-100).
+    const b = s.doc().world_bounds(a)
+    expect(b?.x0).toBeCloseTo(0)
+    expect(b?.y0).toBeCloseTo(-120)
+    expect(b?.y1).toBeCloseTo(-100)
+  })
+
+  test('scaling_grows_sizes_strokes_and_text_together', () => {
+    const s = new Session()
+    const frame = s.execute('shape.frame', { width: 100, height: 100 }).id as number
+    const r = s.execute('shape.rectangle', {
+      parent: frame,
+      width: 40,
+      height: 40,
+      cornerRadius: 4
+    }).id as number
+    s.execute('node.set', { ids: [r], strokeWeight: 2 })
+    s.execute('transform.scale', { ids: [frame], factor: 3 })
+    const after = s.doc().node(r)
+    expect(after?.width).toBeCloseTo(120)
+    expect(after?.stroke.weight).toBeCloseTo(6)
+    expect(after?.corners.radii[0]).toBeCloseTo(12)
+  })
+
+  test('scaling_rejects_a_zero_or_negative_factor', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { width: 20, height: 20 }).id as number
+    expect(() => s.execute('transform.scale', { ids: [a], factor: 0 })).toThrow(/positive/)
+  })
+
+  test('scaling_a_vector_network_moves_its_vertices', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { width: 10, height: 10 }).id as number
+    const n = s.doc().node_mut(a)
+    if (n) {
+      n.kind = {
+        type: 'vector',
+        network: {
+          vertices: [Vertex.new(0, 0), Vertex.new(10, 0), Vertex.new(10, 10)],
+          segments: [
+            { a: 0, b: 1, ta: [1, 0], tb: [0, 0] },
+            { a: 1, b: 2, ta: [0, 0], tb: [0, 0] }
+          ],
+          regions: []
+        }
+      }
+    }
+    s.execute('transform.scale', { ids: [a], factor: 2 })
+    const net =
+      s.doc().node(a)?.kind.type === 'vector'
+        ? (s.doc().node(a)?.kind.network as VectorNetwork)
+        : null
+    expect(net?.vertices[1]?.x).toBeCloseTo(20)
+    expect(net?.segments[0]?.ta[0]).toBeCloseTo(2)
+  })
+})
+
+describe('arrange — rotation origin', () => {
+  test('the_origin_starts_at_the_selection_centre_and_can_be_moved', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 100, width: 50, height: 50 }).id as number
+    s.execute('select.set', { ids: [a] })
+    const shown = s.execute('transform.rotationOrigin', { on: true })
+    expect(shown.editing).toBe(true)
+    expect(shown.moved).toBe(false)
+    expect(shown.x).toBeCloseTo(125)
+    expect(shown.y).toBeCloseTo(25)
+    const moved = s.execute('transform.setRotationOrigin', { x: 100, y: 0 })
+    expect(moved.moved).toBe(true)
+    expect(moved.x).toBeCloseTo(100)
+    expect(s.execute('transform.setRotationOrigin', { reset: true }).moved).toBe(false)
+  })
+
+  test('rotating_with_a_moved_origin_turns_about_it', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { x: 100, width: 50, height: 50 }).id as number
+    s.execute('select.set', { ids: [a] })
+    s.execute('transform.setRotationOrigin', { x: 100, y: 25 })
+    s.execute('transform.rotate', { degrees: 90 })
+    const b = s.doc().world_bounds(a)
+    // Turning about the layer's left edge keeps it centred on the origin.
+    expect(b?.x0).toBeCloseTo(75)
+    expect(b?.x1).toBeCloseTo(125)
+    expect(b?.y0).toBeCloseTo(-25)
+    expect(b?.y1).toBeCloseTo(25)
+  })
+
+  test('the_origin_needs_a_selection', () => {
+    const s = new Session()
+    expect(() => s.execute('transform.rotationOrigin', {})).toThrow(/nothing is selected/)
+    expect(() => s.execute('transform.setRotationOrigin', { x: 0, y: 0 })).toThrow(
+      /nothing is selected/
+    )
+  })
+
+  test('setting_the_origin_needs_coordinates_or_a_reset', () => {
+    const s = new Session()
+    const a = s.execute('shape.rectangle', { width: 20, height: 20 }).id as number
+    s.execute('select.set', { ids: [a] })
+    expect(() => s.execute('transform.setRotationOrigin', {})).toThrow(/give `x` and `y`/)
+  })
+})
+
+describe('arrange — smart selection', () => {
+  /** Three 50-wide rectangles in a row with a 10px gap. */
+  function row(s: Session): number[] {
+    return [0, 60, 120].map(
+      (x) => s.execute('shape.rectangle', { x, width: 50, height: 50 }).id as number
+    )
+  }
+
+  test('a_regular_row_has_equal_horizontal_spacing', () => {
+    const s = new Session()
+    const ids = row(s)
+    const layout = selectionSpacing(s.doc(), ids)
+    expect(layout.horizontal?.value).toBeCloseTo(10)
+    expect(layout.horizontal?.tracks.length).toBe(3)
+  })
+
+  test('spacing_a_row_rewrites_the_gap', () => {
+    const s = new Session()
+    const [a, b, c] = row(s) as [number, number, number]
+    s.execute('arrange.spacing', { ids: [a, b, c], horizontal: 30 })
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(80)
+    expect(s.doc().world_bounds(c)?.x0).toBeCloseTo(160)
+  })
+
+  test('spacing_needs_an_axis_and_a_regular_selection', () => {
+    const s = new Session()
+    const ids = row(s)
+    expect(() => s.execute('arrange.spacing', { ids })).toThrow(/horizontal or vertical/)
+    const scattered = [
+      s.execute('shape.rectangle', { x: 0, y: 0, width: 20, height: 20 }).id as number,
+      s.execute('shape.rectangle', { x: 300, y: 200, width: 20, height: 20 }).id as number
+    ]
+    expect(() => s.execute('arrange.spacing', { ids: scattered, horizontal: 10 })).toThrow(
+      /no spacing on this axis/
+    )
+  })
+
+  test('spacing_rejects_an_absurd_value', () => {
+    const s = new Session()
+    const ids = row(s)
+    expect(() => s.execute('arrange.spacing', { ids, horizontal: 2_000_000 })).toThrow(
+      /out of range/
+    )
+  })
+
+  test('a_regular_row_has_an_ordered_reorder_layout', () => {
+    const s = new Session()
+    const ids = row(s)
+    const layout = reorderLayout(s.doc(), ids)
+    expect(layout?.columns).toBe(3)
+    expect(layout?.rows).toBe(1)
+    expect(layout?.gapX).toBeCloseTo(10)
+    expect(layout?.slots.map(([id]) => id)).toEqual(ids)
+  })
+
+  test('reordering_inserts_at_the_target_slot', () => {
+    const s = new Session()
+    const [a, b, c] = row(s) as [number, number, number]
+    s.execute('arrange.reorder', { ids: [a, b, c], source: a, target: c })
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(c)?.x0).toBeCloseTo(60)
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(120)
+  })
+
+  test('reordering_with_swap_exchanges_two_slots', () => {
+    const s = new Session()
+    const [a, b, c] = row(s) as [number, number, number]
+    s.execute('arrange.reorder', { ids: [a, b, c], source: a, target: c, swap: true })
+    expect(s.doc().world_bounds(c)?.x0).toBeCloseTo(0)
+    expect(s.doc().world_bounds(b)?.x0).toBeCloseTo(60)
+    expect(s.doc().world_bounds(a)?.x0).toBeCloseTo(120)
+  })
+
+  test('reordering_a_grid_slot_keeps_rows_and_columns_aligned', () => {
+    const s = new Session()
+    const ids: number[] = []
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 2; c++) {
+        ids.push(
+          s.execute('shape.rectangle', {
+            x: c * 60,
+            y: r * 60,
+            width: 50,
+            height: 50
+          }).id as number
+        )
+      }
+    }
+    const first = ids[0] as number
+    const last = ids[3] as number
+    const layout = reorderLayout(s.doc(), ids)
+    expect(layout?.columns).toBe(2)
+    expect(layout?.rows).toBe(2)
+    expect(() => s.execute('arrange.reorder', { ids, source: first, target: last })).not.toThrow()
+  })
+
+  test('reordering_rejects_an_incomplete_selection', () => {
+    const s = new Session()
+    const ids: number[] = []
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 2; c++) {
+        ids.push(
+          s.execute('shape.rectangle', {
+            x: c * 60,
+            y: r * 60,
+            width: 50,
+            height: 50
+          }).id as number
+        )
+      }
+    }
+    const three = ids.slice(0, 3)
+    expect(() =>
+      s.execute('arrange.reorder', { ids: three, source: three[0], target: three[2] })
+    ).toThrow(/regular row/)
+  })
+
+  test('spacing_and_reorder_ignore_layers_inside_an_instance', () => {
+    const s = new Session()
+    const inst = s.execute('shape.frame', { width: 300, height: 100 }).id as number
+    const x = s.execute('shape.rectangle', { parent: inst, x: 0, width: 50, height: 50 })
+      .id as number
+    const y = s.execute('shape.rectangle', { parent: inst, x: 60, width: 50, height: 50 })
+      .id as number
+    const n = s.doc().node_mut(inst)
+    if (n) n.kind = { type: 'instance', component: inst, props: {} }
+    expect(insideInstance(s.doc(), x)).toBe(true)
+    expect(insideInstance(s.doc(), inst)).toBe(false)
+    // A regular row, but layers inside an instance don't take a spacing edit.
+    expect(selectionSpacing(s.doc(), [x, y]).horizontal).toBeNull()
+    expect(reorderLayout(s.doc(), [x, y])).toBeNull()
   })
 })

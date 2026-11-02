@@ -146,6 +146,13 @@ export function owningInstance(doc: Document, id: NodeId): NodeId | null {
   return null
 }
 
+/** Whether `id` is a layer inside an instance (not the outermost instance itself). */
+export function insideInstance(doc: Document, id: NodeId): boolean {
+  return scope(doc, id)
+    .slice(1)
+    .some((c) => isInstance(doc, c))
+}
+
 /** The component a node belongs to (itself, or the nearest component ancestor). */
 export function owningComponent(doc: Document, id: NodeId): NodeId | null {
   for (const c of [id, ...doc.ancestors(id)]) {

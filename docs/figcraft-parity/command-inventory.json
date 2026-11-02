@@ -50,6 +50,26 @@
       "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
+      "id": "arrange.packH",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.packV",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.reorder",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.roundToPixels",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "arrange.spacing",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
       "id": "arrange.tidy",
       "source": "crates/engine/src/cmd/arrange.rs"
     },
@@ -76,6 +96,14 @@
     {
       "id": "component.detach",
       "source": "crates/engine/src/cmd/component.rs"
+    },
+    {
+      "id": "distribute.horizontal",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "distribute.vertical",
+      "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
       "id": "edit.copy",
@@ -311,6 +339,14 @@
     },
     {
       "id": "object.rotate180",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.rotateLeft",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "object.rotateRight",
       "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
@@ -878,6 +914,10 @@
       "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
+      "id": "transform.moveTo",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
       "id": "transform.nudge",
       "source": "crates/engine/src/cmd/edit.rs"
     },
@@ -886,7 +926,19 @@
       "source": "crates/engine/src/cmd/edit.rs"
     },
     {
-      "id": "transform.resize",
+      "id": "transform.rotate",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.rotationOrigin",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.scale",
+      "source": "crates/engine/src/cmd/arrange.rs"
+    },
+    {
+      "id": "transform.setRotationOrigin",
       "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
@@ -1140,26 +1192,6 @@
       "source": "crates/engine/src/annotations.rs"
     },
     {
-      "id": "arrange.packH",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "arrange.packV",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "arrange.reorder",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "arrange.roundToPixels",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "arrange.spacing",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
       "id": "bool.exclude",
       "source": "crates/engine/src/cmd/structure.rs"
     },
@@ -1374,14 +1406,6 @@
     {
       "id": "devResource.remove",
       "source": "crates/engine/src/dev_resources.rs"
-    },
-    {
-      "id": "distribute.horizontal",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "distribute.vertical",
-      "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
       "id": "doc.home",
@@ -1704,14 +1728,6 @@
       "source": "crates/engine/src/cmd/structure.rs"
     },
     {
-      "id": "object.rotateLeft",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "object.rotateRight",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
       "id": "object.setThumbnail",
       "source": "crates/engine/src/cmd/structure.rs"
     },
@@ -1916,23 +1932,7 @@
       "source": "crates/engine/src/cmd/styles.rs"
     },
     {
-      "id": "transform.moveTo",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "transform.rotate",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "transform.rotationOrigin",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "transform.scale",
-      "source": "crates/engine/src/cmd/arrange.rs"
-    },
-    {
-      "id": "transform.setRotationOrigin",
+      "id": "transform.resize",
       "source": "crates/engine/src/cmd/arrange.rs"
     },
     {
@@ -2283,14 +2283,6 @@
     }
   ],
   "unmatchedZenuxs": [
-    {
-      "id": "align.distributeH",
-      "source": "Session.all_commands()"
-    },
-    {
-      "id": "align.distributeV",
-      "source": "Session.all_commands()"
-    },
     {
       "id": "board.connector.create",
       "source": "Session.all_commands()"
